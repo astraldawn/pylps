@@ -6,13 +6,25 @@ sys.path.append(
 from pylps.core import *  # nopep8
 
 
-initialise(max_time=5)
+initialise(max_time=5)  # Assume all time variables created here
 
 create_fluents('fire')
 create_actions('eliminate', 'escape')
 create_events('deal_with_fire')
 
 initially(fire)
+
+reactive_rule(fire.at(T1)).then(deal_with_fire.frm(T1, T2))
+
+# print(reactive_rule(fire.at(T1)))
+
+goal(deal_with_fire.frm(T1, T2)).requires(eliminate.frm(T1, T2))
+
+# goal(deal_with_fire.frm(T1, T2)).requires(escape.frm(T1, T2))
+
+eliminate.terminates(fire)
+
+show_reactive_rules()
 
 execute()
 
