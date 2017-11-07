@@ -1,5 +1,6 @@
 import inspect
 from pylps.constants import *
+from pylps.kb import KB
 from pylps.lps_objects import Action, Event, Fluent
 from pylps.logic_objects import Var
 
@@ -15,7 +16,9 @@ def create_objects(args, object_type):
         '''
 
         if object_type == FLUENT:
-            locals_[arg] = Fluent(arg)
+            new_fluent = Fluent(arg)
+            locals_[arg] = new_fluent
+            KB.add_fluent(new_fluent)
         elif object_type == ACTION:
             locals_[arg] = Action(arg)
         elif object_type == EVENT:

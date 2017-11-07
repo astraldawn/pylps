@@ -1,9 +1,9 @@
 from pylps.constants import *
 from pylps.creator import *
-from pylps.lps_objects import ReactiveRule
+from pylps.lps_objects import GoalClause, ReactiveRule
 from pylps.kb import KB
+from pylps.engine import ENGINE
 
-kb = KB()
 
 ''' Declarations '''
 
@@ -26,19 +26,19 @@ def create_variables(*args):
 
 def initially(*args):
     for arg in args:
-        arg.state = True
+        KB.modify_fluent(arg.name, new_state=True)
 
 
 def reactive_rule(*args):
     new_rule = ReactiveRule(args)
-    kb.add_rule(new_rule)
+    KB.add_rule(new_rule)
     return new_rule
 
 
 def goal(*args):
-    new_rule = ReactiveRule(args)
-    kb.add_rule(new_rule)
-    return new_rule
+    new_clause = GoalClause(args)
+    KB.add_clause(new_clause)
+    return new_clause
 
 
 ''' Core loop '''
@@ -47,16 +47,23 @@ def goal(*args):
 def initialise(max_time=5):
     # Must call create object directly due to stack issues
     create_objects(['T1', 'T2'], VARIABLE)
-
-    pass
+    ENGINE.set_params(max_time=max_time)
 
 
 def execute():
-    pass
+    ENGINE.run()
 
 
 ''' Utility '''
 
 
-def show_reactive_rules():
-    return kb.show_reactive_rules()
+def show_kb_clauses():
+    return KB.show_clauses()
+
+
+def show_kb_fluents():
+    return KB.show_fluents()
+
+
+def show_kb_rules():
+    return KB.show_reactive_rules()

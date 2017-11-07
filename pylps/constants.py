@@ -1,5 +1,10 @@
 # Objects
-FLUENT = 'fluent'
-ACTION = 'action'
-EVENT = 'event'
 VARIABLE = 'variable'
+
+# LPS Objects
+ACTION = 'action'
+CLAUSE = 'clause'
+EVENT = 'event'
+FLUENT = 'fluent'
+FLUENTS = 'fluents'
+RULE = 'rule'
