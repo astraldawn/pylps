@@ -22,20 +22,23 @@ execute()
 '''
 maxTime(5).
 
-fluents     fire.
+fluents     fire(_).
 actions     eliminate, escape.
-events      deal_with_fire.
+events      put_out_fire, run_from_fire.
 
-initially   fire.
+initially   fire(big).
 
-if      fire at T1
-then    deal_with_fire from T1 to T2.
+if      fire(small) at T1
+then    put_out_fire from T1 to T2.
 
-deal_with_fire from T1 to T2
+if      fire(big) at T1
+then    run_from_fire from T1 to T2.
+
+put_out_fire from T1 to T2
 if      eliminate from T1 to T2.
 
-deal_with_fire from T1 to T2
+run_from_fire from T1 to T2
 if       escape from T1 to T2.
 
-eliminate  terminates fire.
+eliminate  terminates fire(small).
 '''

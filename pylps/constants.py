@@ -1,5 +1,5 @@
 # Objects
-CONST = 'constant'
+CONSTANT = 'constant'
 VARIABLE = 'variable'
 
 # LPS Objects

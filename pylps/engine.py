@@ -48,7 +48,7 @@ class _ENGINE(object):
             if fluent.state:
                 self.observations[FLUENT].add((
                     FLUENT, fluent.name,
-                    ((CONST, cur_time),)
+                    ((CONSTANT, cur_time),)
                 ))
 
     def _show_observations(self, time=None):
