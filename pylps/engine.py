@@ -1,5 +1,6 @@
 from pylps.constants import *
 from pylps.kb import KB
+from pylps.unification import unify_obs
 
 
 class _ENGINE(object):
@@ -27,7 +28,9 @@ class _ENGINE(object):
                     cond_object = cond[0]
 
                     if cond_object.BaseClass is FLUENT:
-                        pass
+                        unify_obs(
+                            cond_object, [cond[1]], self.observations[FLUENT]
+                        )
                     else:
                         print('Unrecognised object')
 
@@ -40,16 +43,19 @@ class _ENGINE(object):
         cur_time = self.current_time
 
         # Fluents
-        self.observations[FLUENTS] = set()
+        self.observations[FLUENT] = set()
         for fluent in KB.fluents:
             if fluent.state:
-                self.observations[FLUENTS].add((fluent.name, cur_time))
+                self.observations[FLUENT].add((
+                    FLUENT, fluent.name,
+                    ((CONST, cur_time),)
+                ))
 
     def _show_observations(self, time=None):
-        print('Observations at time %s' % time)
+        print('-----\nObservations at time %s' % time)
         for k, v in self.observations.items():
             print(k, v)
-        print()
+        print('-----')
 
 
 ENGINE = _ENGINE()

@@ -1,4 +1,5 @@
 # Objects
+CONST = 'constant'
 VARIABLE = 'variable'
 
 # LPS Objects
@@ -8,3 +9,4 @@ EVENT = 'event'
 FLUENT = 'fluent'
 FLUENTS = 'fluents'
 RULE = 'rule'
+LPS_OBJECTS = ['ACTION', 'EVENT', 'FLUENT', 'RULE']
