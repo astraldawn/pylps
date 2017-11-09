@@ -1,23 +1,24 @@
 from pylps.core import *  # nopep8
 
-
 initialise(max_time=5)  # Assume all time variables created here
 
-create_fluents('fire')
+create_fluents('fire(_)')
 create_actions('eliminate', 'escape')
 create_events('deal_with_fire')
 
-initially(fire)
+initially(fire('small'))
 
-reactive_rule(fire.at(T1)).then(
+reactive_rule(fire('small').at(T1)).then(
     deal_with_fire.frm(T1, T2))
 
 goal(deal_with_fire.frm(T1, T2)).requires(eliminate.frm(T1, T2))
 
-eliminate.terminates(fire)
+eliminate.terminates(fire('small'))
 
-execute()
+show_kb_rules()
+show_kb_fluents()
 
+# execute()
 
 '''
 maxTime(5).

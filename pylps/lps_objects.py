@@ -12,6 +12,7 @@ class Action(LPSObject):
     def __init__(self, name, args=[]):
         self.name = name
         self.args = args
+        self.created = True
 
     def __repr__(self):
         ret = "Action %s, args: %s" % (self.name, self.args)
@@ -24,12 +25,13 @@ class Action(LPSObject):
         KB.add_causality((fluent.name, False))
 
 
-class Event(object):
+class Event(LPSObject):
     BaseClass = EVENT
 
     def __init__(self, name, args=[]):
         self.name = name
         self.args = args
+        self.created = True
 
     def __repr__(self):
         ret = "Event %s, args: %s" % (self.name, self.args)
@@ -39,27 +41,12 @@ class Event(object):
         return (self, start_time, end_time)
 
 
-class Fluent(object):
+class Fluent(LPSObject):
     BaseClass = FLUENT
 
-    def __init__(self, name, args=[]):
-        self.name = name
-        self.args = args
-
-        # All fluents are initially false
-        self._state = False
-
     def __repr__(self):
-        ret = "Fluent: %s, State %s, args: %s" % (
-            self.name, self.state, self.args)
+        ret = "Fluent: %s, args: %s" % (self.name, self.args)
         return ret
-
-    @property
-    def state(self):
-        return self._state
-
-    def set_state(self, state):
-        self._state = state
 
     def at(self, time):
         return (self, time)

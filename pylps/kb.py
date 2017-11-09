@@ -1,13 +1,13 @@
 '''
 Class for the knowledge base
 '''
+from pylps.constants import *
 
 
 class _KB(object):
     causalities = []
     clauses = []
-    _fluents = {}
-    fluents = []
+    fluents = {}
     reactive_rules = []
 
     ''' Rule controls '''
@@ -26,14 +26,14 @@ class _KB(object):
     ''' Fluent control '''
 
     def add_fluent(self, fluent):
-        self._fluents[fluent.name] = fluent
-        self.fluents.append(fluent)
-
-    def modify_fluent(self, fluent_name, new_state):
-        self._fluents[fluent_name].set_state(new_state)
+        fluent_tuple = (
+            FLUENT, fluent.name,
+            tuple(arg for arg in fluent.args)
+        )
+        self.fluents[fluent.name] = fluent_tuple
 
     def show_fluents(self):
-        for _, fluent in self._fluents.items():
+        for _, fluent in self.fluents.items():
             print(fluent)
 
     ''' Others '''

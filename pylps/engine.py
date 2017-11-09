@@ -16,8 +16,8 @@ class _ENGINE(object):
             cur_time = self.current_time
 
             # Update Observations
-            self._update_observations()
-            self._show_observations(cur_time)
+            # self._update_observations()
+            # self._show_observations(cur_time)
 
             # Check rules
             for rule in KB.rules:
@@ -39,23 +39,23 @@ class _ENGINE(object):
 
             self.current_time += 1
 
-    def _update_observations(self):
-        cur_time = self.current_time
+    # def _update_observations(self):
+    #     cur_time = self.current_time
 
-        # Fluents
-        self.observations[FLUENT] = set()
-        for fluent in KB.fluents:
-            if fluent.state:
-                self.observations[FLUENT].add((
-                    FLUENT, fluent.name,
-                    ((CONSTANT, cur_time),)
-                ))
+    #     # Fluents
+    #     self.observations[FLUENT] = set()
+    #     for fluent in KB.fluents:
+    #         if fluent.state:
+    #             self.observations[FLUENT].add((
+    #                 FLUENT, fluent.name,
+    #                 ((CONSTANT, cur_time),)
+    #             ))
 
-    def _show_observations(self, time=None):
-        print('-----\nObservations at time %s' % time)
-        for k, v in self.observations.items():
-            print(k, v)
-        print('-----')
+    # def _show_observations(self, time=None):
+    #     print('-----\nObservations at time %s' % time)
+    #     for k, v in self.observations.items():
+    #         print(k, v)
+    #     print('-----')
 
 
 ENGINE = _ENGINE()

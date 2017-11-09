@@ -26,7 +26,7 @@ def create_variables(*args):
 
 def initially(*args):
     for arg in args:
-        KB.modify_fluent(arg.name, new_state=True)
+        KB.add_fluent(arg)
 
 
 def reactive_rule(*args):
