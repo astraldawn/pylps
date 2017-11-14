@@ -1,10 +1,10 @@
 from pylps.constants import *
 from pylps.kb import KB
-from pylps.unification import unify_obs
+from pylps.unifier import unify_conds, unify_goals
 
 
 class _ENGINE(object):
-    current_time = 1
+    current_time = 0
     max_time = 5
     observations = {}
 
@@ -22,20 +22,13 @@ class _ENGINE(object):
             # Check rules
             for rule in KB.rules:
                 # Check conditions of the rules
-                # Assume these rules all use fluents
-                cond_true = True
-                for cond in rule.conds:
-                    cond_object = cond[0]
+                substitution = unify_conds(rule.conds, cur_time)
 
-                    if cond_object.BaseClass is FLUENT:
-                        unify_obs(
-                            cond_object, [cond[1]], self.observations[FLUENT]
-                        )
-                    else:
-                        print('Unrecognised object')
+                # If there is no substitution, go to the next rule
+                if not substitution:
+                    continue
 
-            if cur_time >= 3:
-                KB.modify_fluent('fire', False)
+                new_goals = unify_goals(rule.goals, substitution)
 
             self.current_time += 1
 

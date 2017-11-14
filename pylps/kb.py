@@ -26,11 +26,35 @@ class _KB(object):
     ''' Fluent control '''
 
     def add_fluent(self, fluent):
-        fluent_tuple = (
-            FLUENT, fluent.name,
-            tuple(arg for arg in fluent.args)
-        )
-        self.fluents[fluent.name] = fluent_tuple
+        if fluent.name not in self.fluents:
+            self.fluents[fluent.name] = set()
+
+        self.fluents[fluent.name].add(fluent.to_tuple())
+
+    def check_fluent(self, fluent):
+        try:
+            return fluent.to_tuple in self.fluents[fluent.name]
+        except KeyError:
+            return False
+
+    def get_fluents(self, fluent):
+        try:
+            return self.fluents[fluent.name]
+        except KeyError:
+            return False
+
+    def remove_fluent(self, fluent):
+
+        if not self.fluents[fluent.name]:
+            self.fluents[fluent.name] = set()
+
+        try:
+            self.fluents[fluent.name].remove(fluent.to_tuple())
+        except KeyError:
+            # Fluent removal fails
+            return False
+
+        return True
 
     def show_fluents(self):
         for _, fluent in self.fluents.items():

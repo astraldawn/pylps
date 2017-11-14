@@ -5,6 +5,12 @@ from pylps.kb import KB
 class LPSObject(object):
     BaseClass = None
 
+    def to_tuple(self):
+        return (
+            self.BaseClass, self.name,
+            tuple(arg for arg in self.args)
+        )
+
 
 class Action(LPSObject):
     BaseClass = ACTION

@@ -15,10 +15,10 @@ goal(deal_with_fire.frm(T1, T2)).requires(eliminate.frm(T1, T2))
 
 eliminate.terminates(fire('small'))
 
-show_kb_rules()
-show_kb_fluents()
+show_kb_clauses()
+# show_kb_fluents()
 
-# execute()
+execute()
 
 '''
 maxTime(5).
