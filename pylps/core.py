@@ -27,6 +27,7 @@ def create_variables(*args):
 def initially(*args):
     for arg in args:
         KB.add_fluent(arg)
+        KB.log_fluent(arg, 0, F_INITIATE)
 
 
 def reactive_rule(*args):
@@ -46,7 +47,7 @@ def goal(*args):
 
 def initialise(max_time=5):
     # Must call create object directly due to stack issues
-    create_objects(['T1', 'T2'], VARIABLE)
+    create_objects(['T1', 'T2'], TEMPORAL_VARIABLE)
     ENGINE.set_params(max_time=max_time)
 
 
@@ -63,6 +64,10 @@ def show_kb_clauses():
 
 def show_kb_fluents():
     return KB.show_fluents()
+
+
+def show_kb_log():
+    return KB.show_log()
 
 
 def show_kb_rules():

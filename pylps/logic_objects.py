@@ -1,12 +1,16 @@
-from pylps.constants import VARIABLE
+from pylps.constants import VARIABLE, TEMPORAL_VARIABLE
 
 
-class Var(object):
+class Variable(object):
     BaseClass = VARIABLE
 
     def __init__(self, name, args=[]):
         self.name = name
 
     def __repr__(self):
-        ret = 'Variable: %s' % (self.name)
+        ret = '%s: %s' % (self.BaseClass, self.name)
         return ret
+
+
+class TemporalVar(Variable):
+    BaseClass = TEMPORAL_VARIABLE

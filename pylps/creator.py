@@ -1,7 +1,7 @@
 import inspect
 from pylps.constants import *
 from pylps.lps_objects import Action, Event, Fluent
-from pylps.logic_objects import Var
+from pylps.logic_objects import Variable, TemporalVar
 
 
 def ClassFactory(name, arity, base_type, BaseClass):
@@ -50,4 +50,6 @@ def create_objects(args, object_type):
         elif object_type == EVENT:
             locals_[arg] = Event(arg)
         elif object_type == VARIABLE:
-            locals_[arg] = Var(arg)
+            locals_[arg] = Variable(arg)
+        elif object_type == TEMPORAL_VARIABLE:
+            locals_[arg] = TemporalVar(arg)
