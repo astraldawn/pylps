@@ -37,7 +37,7 @@ class _KB(object):
 
     def exists_fluent(self, fluent):
         try:
-            return self.fluents[fluent.name]
+            return fluent.to_tuple() in self.fluents[fluent.name]
         except KeyError:
             return False
 

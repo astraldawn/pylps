@@ -11,7 +11,8 @@ initially(fire('small'))
 reactive_rule(fire('small').at(T1)).then(
     deal_with_fire.frm(T1, T2))
 
-goal(deal_with_fire.frm(T1, T2)).requires(eliminate.frm(T1, T2))
+goal(deal_with_fire.frm(T1, T2)).requires(
+    eliminate.frm(T1, T2))
 
 eliminate.terminates(fire('small'))
 
