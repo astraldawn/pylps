@@ -103,7 +103,7 @@ class _KB(object):
         self.log.append([ACTION, action.name, temporal_vars])
 
     def log_fluent(self, fluent, time, action_type):
-        self.log.append([action_type, fluent.name, time])
+        self.log.append([action_type, fluent.name, fluent.args, time])
 
     def show_log(self):
         for item in self.log:
