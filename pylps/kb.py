@@ -6,11 +6,13 @@ from pylps.constants import *
 
 class _KB(object):
     causalities = {}
+    facts = {}
     fluents = {}
     reactive_rules = []
 
     _clauses = []
     _goals = set()
+    _observations = []
 
     log = []
 
@@ -67,6 +69,9 @@ class _KB(object):
     def add_goals(self, goals):
         self._goals.update(goals)
 
+    def remove_goals(self, goals):
+        self._goals = self._goals - goals
+
     def reset_goals(self):
         self._goals = set()
 
@@ -97,10 +102,31 @@ class _KB(object):
         except KeyError:
             return False
 
+    ''' Observations '''
+
+    @property
+    def observations(self):
+        return self._observations
+
+    def add_observation(self, observation):
+        self._observations.append(observation)
+
+    ''' Facts '''
+
+    def add_fact(self, fact):
+        if fact.name not in self.facts:
+            self.facts[fact.name] = set()
+
+        self.facts[fact.name].add(fact.to_tuple())
+
+    def show_facts(self):
+        for _, fact in self.facts.items():
+            print(fact)
+
     ''' Logs '''
 
     def log_action(self, action, temporal_vars):
-        self.log.append([ACTION, action.name, temporal_vars])
+        self.log.append([ACTION, action.name, action.args, temporal_vars])
 
     def log_fluent(self, fluent, time, action_type):
         self.log.append([action_type, fluent.name, fluent.args, time])

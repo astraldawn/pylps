@@ -7,8 +7,10 @@ TEMPORAL_VARIABLE = 'temporal_var'
 ACTION = 'action'
 CLAUSE = 'clause'
 EVENT = 'event'
+FACT = 'fact'
 FLUENT = 'fluent'
 FLUENTS = 'fluents'
+OBS = 'obs'
 RULE = 'rule'
 LPS_OBJECTS = ['ACTION', 'EVENT', 'FLUENT', 'RULE']
 

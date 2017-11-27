@@ -1,12 +1,15 @@
 import inspect
 from pylps.constants import *
-from pylps.lps_objects import Action, Event, Fluent
+from pylps.lps_objects import Action, Event, Fact, Fluent
 from pylps.logic_objects import Variable, TemporalVar
+from pylps.kb import KB
 
 types_dict = {
     ACTION: Action,
+    FACT: Fact,
     FLUENT: Fluent
 }
+valid_dynamic_types = types_dict.keys()
 
 
 def ClassFactory(name, arity, base_type):
@@ -17,11 +20,22 @@ def ClassFactory(name, arity, base_type):
     BaseClass = types_dict[base_type]
     attrs = {}
 
-    def __init__(self, *args):
-        if len(args) != arity:
-            raise TypeError('Please supply %s arguments' % arity)
-        self.args = [arg for arg in args]
-        self.created = True
+    if base_type == ACTION or base_type == FLUENT:
+
+        def __init__(self, *args):
+            if len(args) != arity:
+                raise TypeError('Please supply %s arguments' % arity)
+            self.args = [arg for arg in args]
+            self.created = True
+
+    elif base_type == FACT:
+
+        def __init__(self, *args):
+            if len(args) != arity:
+                raise TypeError('Please supply %s arguments' % arity)
+            self.args = [arg for arg in args]
+            self.created = True
+            KB.add_fact(self)
 
     attrs['__init__'] = __init__
     attrs['name'] = name
@@ -46,7 +60,13 @@ def create_objects(args, object_type):
         Tweak the argument string to accept arguments
         '''
 
-        if object_type == FLUENT or object_type == ACTION:
+        if object_type == EVENT:
+            locals_[arg] = Event(arg)
+        elif object_type == VARIABLE:
+            locals_[arg] = Variable(arg)
+        elif object_type == TEMPORAL_VARIABLE:
+            locals_[arg] = TemporalVar(arg)
+        elif object_type in valid_dynamic_types:
             name, arity = (arg, 0)
             if '(' in arg:
                 name, arity = arg.split('(', 1)
@@ -56,9 +76,5 @@ def create_objects(args, object_type):
                 name, arity, base_type=object_type
             )
             locals_[name] = new_object if arity else new_object()
-        elif object_type == EVENT:
-            locals_[arg] = Event(arg)
-        elif object_type == VARIABLE:
-            locals_[arg] = Variable(arg)
-        elif object_type == TEMPORAL_VARIABLE:
-            locals_[arg] = TemporalVar(arg)
+        else:
+            raise TypeError('Invalid object')

@@ -25,11 +25,6 @@ class LPSObject(object):
 class Action(LPSObject):
     BaseClass = ACTION
 
-    def __init__(self, name, args=[]):
-        self.name = name
-        self.args = args
-        self.created = True
-
     def frm(self, start_time, end_time):
         return (self, start_time, end_time)
 
@@ -57,6 +52,10 @@ class Fluent(LPSObject):
 
     def at(self, time):
         return (self, time)
+
+
+class Fact(LPSObject):
+    BaseClass = FACT
 
 
 class ReactiveRule(object):
@@ -107,3 +106,31 @@ class GoalClause(object):
 
     def requires(self, *args):
         self._requires = args
+
+
+class Observation(object):
+    BaseClass = OBS
+
+    def __init__(self, action, start, end):
+        self._action = action
+        self._start = start
+        self._end = end
+
+    def __repr__(self):
+        ret = "Observation\n"
+        ret += "Action: %s\n" % (self._action)
+        ret += "Start: %s\n" % (self._start)
+        ret += "End: %s\n" % (self._end)
+        return ret
+
+    @property
+    def action(self):
+        return self._action
+
+    @property
+    def start(self):
+        return self._start
+
+    @property
+    def end(self):
+        return self._end

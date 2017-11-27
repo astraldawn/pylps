@@ -1,14 +1,14 @@
+from .generators import *
 from .helpers import run_pylps_example
 
 
 def test_simple_fire():
     actual = run_pylps_example('simple_fire')
 
-    # TODO come up with a way to autogen this
     expected = [
-        "['fluent_initiate', 'fire', [], 0]",
-        "['action', 'eliminate', (1, 2)]",
-        "['fluent_terminate', 'fire', [], 2]"
+        fluent_initiate('fire', [], 0),
+        action('eliminate', [], (1, 2)),
+        fluent_terminate('fire', [], 2)
     ]
 
     assert actual == expected
@@ -17,20 +17,26 @@ def test_simple_fire():
 def test_simple_fire_args():
     actual = run_pylps_example('simple_fire_args')
 
-    # TODO come up with a way to autogen this
     expected = [
-        "['fluent_initiate', 'fire', ['small'], 0]",
-        "['action', 'eliminate', (1, 2)]",
-        "['fluent_terminate', 'fire', ['small'], 2]"
+        fluent_initiate('fire', ['small'], 0),
+        action('eliminate', [], (1, 2)),
+        fluent_terminate('fire', ['small'], 2),
     ]
 
     assert actual == expected
 
 
-def test_recurrent_fire_args():
+def test_recurrent_fire():
     # GIVEN
     actual = run_pylps_example('recurrent_fire')
 
-    print(actual)
+    expected = [
+        fluent_initiate('water', [], 0),
+        action('ignite', ['sofa'], (1, 2)),
+        fluent_initiate('fire', [], 2),
+        action('eliminate', [], (2, 3)),
+        fluent_terminate('fire', [], 3),
+        fluent_terminate('water', [], 3)
+    ]
 
-    assert 4 == 5
+    assert actual == expected

@@ -1,6 +1,6 @@
 from pylps.constants import *
 from pylps.kb import KB
-from pylps.unifier import unify_conds, reify_goals, unify_goal
+from pylps.unifier import unify_conds, reify_goals, unify_goal, unify_obs
 
 
 class _ENGINE(object):
@@ -16,10 +16,17 @@ class _ENGINE(object):
         KB.reset_goals()
 
         while self.current_time <= self.max_time:
-            self._check_rules()
+            self._check_observations()
             self._check_goals()
+            self._check_rules()
 
             self.current_time += 1
+
+    def _check_observations(self):
+        for observation in KB.observations:
+            if observation.end == self.current_time:
+                # Unify with the KB?
+                unify_obs(observation)
 
     def _check_rules(self):
         # Check rules
@@ -38,9 +45,14 @@ class _ENGINE(object):
         '''
         Work through the goals individually
         '''
+        solved_goals = set()
+
         for goal in KB.goals:
             # Check if the goal exists and attempt to add in a time
-            unify_goal(goal, self.current_time)
+            if unify_goal(goal, self.current_time):
+                solved_goals.add(goal)
+
+        KB.remove_goals(solved_goals)
 
 
 ENGINE = _ENGINE()

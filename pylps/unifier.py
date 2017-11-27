@@ -162,16 +162,42 @@ def unify_goal(goal, cycle_time):
                                         F_TERMINATE
                                     )
                                 elif causality[0] == A_INITIATE:
-                                    pass
+                                    print('Initiate req undefined')
+                                    return False
                                 else:
                                     print('Unrecognised causality')
+                                    return False
                     else:
                         print('Unrecognised object %s' % goal_object)
+                        return False
 
-                # Do the addition back into goals
+    return True
 
-    return False
 
+def unify_obs(observation):
+    # TODO: There should be an IC check
+    action = observation.action
+    start = observation.start
+    end = observation.end
+    causalities = KB.exists_causality(action)
+
+    if causalities:
+        for causality in causalities:
+            if causality[0] == A_TERMINATE:
+                print('Terminate observation undefined')
+                pass
+            elif causality[0] == A_INITIATE:
+                KB.add_fluent(causality[1])
+                KB.log_action(
+                    action, (start, end)
+                )
+                KB.log_fluent(
+                    causality[1],
+                    end,
+                    F_INITIATE
+                )
+            else:
+                print('Unrecognised causality')
 
 # def _unify_event(goal, cycle_time):
 #     event = goal[0]
