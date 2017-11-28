@@ -5,6 +5,22 @@ from pylps.kb import KB
 class LPSObject(object):
     BaseClass = None
 
+    def __repr__(self):
+        ret = "[%s %s, args: %s]" % (self.BaseClass, self.name, self.args)
+        return ret
+
+    # def __eq__(self, other):
+    #     """Overrides the default implementation"""
+    #     if isinstance(self, other.__class__):
+    #         return self.__dict__ == other.__dict__
+    #     return False
+
+    def to_tuple(self):
+        return (
+            self.BaseClass, self.name,
+            tuple(arg for arg in self.args)
+        )
+
 
 class Action(LPSObject):
     BaseClass = ACTION
@@ -12,54 +28,32 @@ class Action(LPSObject):
     def __init__(self, name, args=[]):
         self.name = name
         self.args = args
-
-    def __repr__(self):
-        ret = "Action %s, args: %s" % (self.name, self.args)
-        return ret
+        self.created = True
 
     def frm(self, start_time, end_time):
         return (self, start_time, end_time)
 
+    def initiates(self, fluent):
+        KB.add_causality(self, fluent, A_INITIATE)
+
     def terminates(self, fluent):
-        KB.add_causality((fluent.name, False))
+        KB.add_causality(self, fluent, A_TERMINATE)
 
 
-class Event(object):
+class Event(LPSObject):
     BaseClass = EVENT
 
     def __init__(self, name, args=[]):
         self.name = name
         self.args = args
-
-    def __repr__(self):
-        ret = "Event %s, args: %s" % (self.name, self.args)
-        return ret
+        self.created = True
 
     def frm(self, start_time, end_time):
         return (self, start_time, end_time)
 
 
-class Fluent(object):
+class Fluent(LPSObject):
     BaseClass = FLUENT
-
-    def __init__(self, name, args=[]):
-        self.name = name
-        self.args = args
-
-        # All fluents are initially false
-        self._state = False
-
-    def __repr__(self):
-        ret = "Fluent: %s, State %s, args: %s" % (
-            self.name, self.state, self.args)
-        return ret
-
-    @property
-    def state(self):
-        return self._state
-
-    def set_state(self, state):
-        self._state = state
 
     def at(self, time):
         return (self, time)
@@ -94,14 +88,22 @@ class GoalClause(object):
     BaseClass = CLAUSE
 
     def __init__(self, goal):
-        self.goal = goal
+        self._goal = goal
         self._requires = None
 
     def __repr__(self):
         ret = "Goal clause\n"
-        ret += "Goal: %s\n" % (self.goal)
+        ret += "Goal: %s\n" % (self._goal)
         ret += "Requires: %s\n" % (self._requires)
         return ret
+
+    @property
+    def goal(self):
+        return self._goal
+
+    @property
+    def reqs(self):
+        return self._requires
 
     def requires(self, *args):
         self._requires = args

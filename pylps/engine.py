@@ -1,61 +1,46 @@
 from pylps.constants import *
 from pylps.kb import KB
-from pylps.unification import unify_obs
+from pylps.unifier import unify_conds, reify_goals, unify_goal
 
 
 class _ENGINE(object):
+    start_time = 1
     current_time = 1
     max_time = 5
-    observations = {}
 
     def set_params(self, max_time):
         self.max_time = max_time
 
     def run(self):
-        while self.current_time < self.max_time:
-            cur_time = self.current_time
+        self.current_time = self.start_time
+        KB.reset_goals()
 
-            # Update Observations
-            self._update_observations()
-            self._show_observations(cur_time)
-
-            # Check rules
-            for rule in KB.rules:
-                # Check conditions of the rules
-                # Assume these rules all use fluents
-                cond_true = True
-                for cond in rule.conds:
-                    cond_object = cond[0]
-
-                    if cond_object.BaseClass is FLUENT:
-                        unify_obs(
-                            cond_object, [cond[1]], self.observations[FLUENT]
-                        )
-                    else:
-                        print('Unrecognised object')
-
-            if cur_time >= 3:
-                KB.modify_fluent('fire', False)
+        while self.current_time <= self.max_time:
+            self._check_rules()
+            self._check_goals()
 
             self.current_time += 1
 
-    def _update_observations(self):
-        cur_time = self.current_time
+    def _check_rules(self):
+        # Check rules
+        for rule in KB.rules:
+            # Check conditions of the rules
+            substitution = unify_conds(rule.conds, self.current_time)
 
-        # Fluents
-        self.observations[FLUENT] = set()
-        for fluent in KB.fluents:
-            if fluent.state:
-                self.observations[FLUENT].add((
-                    FLUENT, fluent.name,
-                    ((CONSTANT, cur_time),)
-                ))
+            # If there is no substitution, go to the next rule
+            if not substitution:
+                continue
 
-    def _show_observations(self, time=None):
-        print('-----\nObservations at time %s' % time)
-        for k, v in self.observations.items():
-            print(k, v)
-        print('-----')
+            new_goals = reify_goals(rule.goals, substitution)
+            KB.add_goals(new_goals)
+
+    def _check_goals(self):
+        '''
+        Work through the goals individually
+        '''
+        for goal in KB.goals:
+            # Check if the goal exists and attempt to add in a time
+            unify_goal(goal, self.current_time)
 
 
 ENGINE = _ENGINE()
