@@ -2,6 +2,7 @@
 Class for the knowledge base
 '''
 from pylps.constants import *
+from pylps.kb_objects import Causality
 
 
 class _KB(object):
@@ -90,17 +91,31 @@ class _KB(object):
 
     ''' Causality '''
 
-    def add_causality(self, action, fluent, causality_type):
+    def add_causality_outcome(self, action, fluent, causality_type):
         if action.name not in self.causalities:
-            self.causalities[action.name] = []
+            self.causalities[action.name] = Causality(action)
 
-        self.causalities[action.name].append([causality_type, fluent])
+        self.causalities[action.name].add_outcome(
+            [causality_type, fluent])
+
+    def add_causality_constraint(self, action, fluents):
+        if action.name not in self.causalities:
+            self.causalities[action.name] = Causality(action)
+
+        self.causalities[action.name].add_constraint(fluents)
 
     def exists_causality(self, action):
         try:
             return self.causalities[action.name]
         except KeyError:
             return False
+
+    def show_causalities(self):
+        for action_name, causality in self.causalities.items():
+            print(action_name)
+            print('outcomes:', causality.outcomes)
+            print('constraints:', causality.constraints)
+            print()
 
     ''' Observations '''
 

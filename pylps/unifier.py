@@ -86,6 +86,7 @@ def unify_goal(goal, cycle_time):
     requirements = set()
 
     # Check if this goal is associated with some clause
+    # This will match the first clause available
     for clause in KB.clauses:
         clause_goal = clause.goal[0]
 
@@ -150,22 +151,25 @@ def unify_goal(goal, cycle_time):
                         causalities = KB.exists_causality(req_object)
 
                         if causalities:
-                            for causality in causalities:
-                                if causality[0] == A_TERMINATE:
-                                    KB.remove_fluent(causality[1])
-                                    KB.log_action(
-                                        req_object, req_temporal_vars
-                                    )
+                            if not constraints_satisfied(causalities):
+                                # TODO: Return True to delete goal?
+                                # This is so hax
+                                return True
+
+                            KB.log_action(req_object, req_temporal_vars)
+                            for outcome in causalities.outcomes:
+                                if outcome[0] == A_TERMINATE:
+                                    KB.remove_fluent(outcome[1])
                                     KB.log_fluent(
-                                        causality[1],
+                                        outcome[1],
                                         max(req_temporal_vars),
                                         F_TERMINATE
                                     )
-                                elif causality[0] == A_INITIATE:
+                                elif outcome[0] == A_INITIATE:
                                     print('Initiate req undefined')
                                     return False
                                 else:
-                                    print('Unrecognised causality')
+                                    print('Unrecognised outcomes')
                                     return False
                     else:
                         print('Unrecognised object %s' % goal_object)
@@ -182,22 +186,39 @@ def unify_obs(observation):
     causalities = KB.exists_causality(action)
 
     if causalities:
-        for causality in causalities:
-            if causality[0] == A_TERMINATE:
+        KB.log_action(action, (start, end))
+        for outcome in causalities.outcomes:
+            if outcome[0] == A_TERMINATE:
                 print('Terminate observation undefined')
                 pass
-            elif causality[0] == A_INITIATE:
-                KB.add_fluent(causality[1])
-                KB.log_action(
-                    action, (start, end)
-                )
-                KB.log_fluent(
-                    causality[1],
-                    end,
-                    F_INITIATE
-                )
+            elif outcome[0] == A_INITIATE:
+                KB.add_fluent(outcome[1])
+                KB.log_fluent(outcome[1], end, F_INITIATE)
             else:
-                print('Unrecognised causality')
+                print('Unrecognised outcome')
+
+
+def constraints_satisfied(causality):
+    for constraint in causality.constraints:
+        true_satis = True
+        false_satis = True
+        for (fluent, state) in constraint:
+            fluent_exists = KB.exists_fluent(fluent)
+
+            # All truth must be satisfied to consider
+            if state and not fluent_exists:
+                true_satis = False
+
+            if not state and not fluent_exists:
+                false_satis = False
+
+        if not true_satis:
+            continue
+
+        if not false_satis:
+            return False
+
+    return True
 
 # def _unify_event(goal, cycle_time):
 #     event = goal[0]

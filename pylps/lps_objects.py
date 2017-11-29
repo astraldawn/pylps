@@ -29,10 +29,18 @@ class Action(LPSObject):
         return (self, start_time, end_time)
 
     def initiates(self, fluent):
-        KB.add_causality(self, fluent, A_INITIATE)
+        KB.add_causality_outcome(self, fluent, A_INITIATE)
 
     def terminates(self, fluent):
-        KB.add_causality(self, fluent, A_TERMINATE)
+        KB.add_causality_outcome(self, fluent, A_TERMINATE)
+
+    def false_if(self, *args):
+        converted = [(arg, True) for arg in args
+                     if not isinstance(arg, tuple)]
+        converted += [arg for arg in args
+                      if isinstance(arg, tuple)]
+
+        KB.add_causality_constraint(self, converted)
 
 
 class Event(LPSObject):
@@ -49,6 +57,13 @@ class Event(LPSObject):
 
 class Fluent(LPSObject):
     BaseClass = FLUENT
+
+    def __repr__(self):
+        ret = "[%s %s, args: %s]" % (self.BaseClass, self.name, self.args)
+        return ret
+
+    def __invert__(self):
+        return (self, False)
 
     def at(self, time):
         return (self, time)

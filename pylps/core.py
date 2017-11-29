@@ -68,6 +68,10 @@ def execute():
 ''' Utility '''
 
 
+def show_kb_causalities():
+    return KB.show_causalities()
+
+
 def show_kb_clauses():
     return KB.show_clauses()
 

@@ -15,8 +15,6 @@ observe(refill.frm(7, 8))
 
 initially(water)
 
-flammable('sofa')
-
 reactive_rule(fire.at(T1)).then(
     deal_with_fire.frm(T1, T2))
 
