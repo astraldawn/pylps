@@ -2,7 +2,7 @@ from .generators import *
 from .helpers import run_pylps_test_program
 
 
-def test_recurrent_fire():
+def test_recurrent_fire_simple():
     # GIVEN
     actual = run_pylps_test_program('recurrent_fire_simple')
 
@@ -20,6 +20,20 @@ def test_recurrent_fire():
         action('eliminate', [], (7, 8)),
         fluent_terminate('fire', [], 8),
         fluent_terminate('water', [], 8),
+    ]
+
+    assert actual == expected
+
+
+def test_recurrent_fire_none():
+    # GIVEN
+    actual = run_pylps_test_program('recurrent_fire_none')
+
+    expected = [
+        fluent_initiate('water', [], 0),
+        action('ignite', ['sofa'], (1, 2)),
+        action('ignite', ['bed'], (4, 5)),
+        action('refill', [], (7, 8))
     ]
 
     assert actual == expected

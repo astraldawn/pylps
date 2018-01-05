@@ -36,7 +36,13 @@ class _KB(object):
         if fluent.name not in self.fluents:
             self.fluents[fluent.name] = set()
 
+        fluent_tuple = fluent.to_tuple()
+
+        if fluent_tuple in self.fluents[fluent.name]:
+            return False
+
         self.fluents[fluent.name].add(fluent.to_tuple())
+        return True
 
     def exists_fluent(self, fluent):
         try:
@@ -104,6 +110,12 @@ class _KB(object):
 
         self.causalities[action.name].add_constraint(fluents)
 
+    def add_causality_req(self, action, items):
+        if action.name not in self.causalities:
+            self.causalities[action.name] = Causality(action)
+
+        self.causalities[action.name].add_req(items)
+
     def exists_causality(self, action):
         try:
             return self.causalities[action.name]
@@ -112,10 +124,7 @@ class _KB(object):
 
     def show_causalities(self):
         for action_name, causality in self.causalities.items():
-            print(action_name)
-            print('outcomes:', causality.outcomes)
-            print('constraints:', causality.constraints)
-            print()
+            print(causality)
 
     ''' Observations '''
 
@@ -133,6 +142,13 @@ class _KB(object):
             self.facts[fact.name] = set()
 
         self.facts[fact.name].add(fact.to_tuple())
+
+    def exists_fact(self, fact):
+        return False
+        # try:
+        #     return self.facts[fact.name]
+        # except KeyError:
+        #     return False
 
     def show_facts(self):
         for _, fact in self.facts.items():

@@ -11,6 +11,9 @@ class Variable(object):
         ret = '%s: %s' % (self.BaseClass, self.name)
         return ret
 
+    def __invert__(self):
+        return (self, False)
+
 
 class TemporalVar(Variable):
     BaseClass = TEMPORAL_VARIABLE

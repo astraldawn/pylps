@@ -2,11 +2,13 @@
 Tuple based unification engine
 Referened from: https://github.com/aimacode/aima-python/blob/master/logic.py
 '''
+import copy
 from unification import *
 
 from pylps.constants import *
 from pylps.logic_objects import TemporalVar
 from pylps.kb import KB
+from pylps.exceptions import *
 from pylps.utils import strictly_increasing
 
 
@@ -83,7 +85,7 @@ def _reify_event(goal, substitution):
 
 
 def unify_goal(goal, cycle_time):
-    requirements = set()
+    # requirements = set()
 
     # Check if this goal is associated with some clause
     # This will match the first clause available
@@ -183,19 +185,30 @@ def unify_obs(observation):
     action = observation.action
     start = observation.start
     end = observation.end
-    causalities = KB.exists_causality(action)
+    causality = KB.exists_causality(action)
 
-    if causalities:
-        KB.log_action(action, (start, end))
-        for outcome in causalities.outcomes:
-            if outcome[0] == A_TERMINATE:
-                print('Terminate observation undefined')
-                pass
-            elif outcome[0] == A_INITIATE:
-                KB.add_fluent(outcome[1])
+    KB.log_action(action, (start, end))
+
+    # If there is causality, need to make the check
+    if causality:
+        unify_res = {}
+        for action_arg, causality_arg in zip(action.args,
+                                             causality.action.args):
+            if causality_arg.BaseClass == VARIABLE:
+                res = unify(action_arg, var(causality_arg.name))
+                unify_res.update(res)
+
+            if not check_reqs(causality.reqs, unify_res):
+                return
+
+    for outcome in causality.outcomes:
+        if outcome[0] == A_TERMINATE:
+            raise UnhandledOutcomeError(A_TERMINATE)
+        elif outcome[0] == A_INITIATE:
+            if KB.add_fluent(outcome[1]):
                 KB.log_fluent(outcome[1], end, F_INITIATE)
-            else:
-                print('Unrecognised outcome')
+        else:
+            raise UnknownOutcomeError(outcome[0])
 
 
 def constraints_satisfied(causality):
@@ -219,6 +232,44 @@ def constraints_satisfied(causality):
             return False
 
     return True
+
+
+def check_reqs(reqs, unify_vars):
+    '''
+    # TODO: Actually get the facts checked
+    '''
+    if reqs == []:
+        return True
+
+    # print(reqs, unify_vars)
+    for req in reqs:
+        true_satis = True
+        # false_satis = True
+        for (obj_original, state) in req:
+            # copy object, do not want to modify KB
+            obj = copy.deepcopy(obj_original)
+            if obj.BaseClass == FACT:
+                reify_args = []
+                for arg in obj.args:
+                    if arg.BaseClass == VARIABLE:
+                        res = reify(var(arg.name), unify_vars)
+                        reify_args.append(res)
+                    else:
+                        reify_args.append(arg)
+                obj.args = reify_args
+
+                fact_exists = KB.exists_fact(obj)
+
+                if state and not fact_exists:
+                    true_satis = False
+            else:
+                raise UnhandledObjectError(obj.BaseClass)
+
+        if not true_satis:
+            return False
+
+    return True
+
 
 # def _unify_event(goal, cycle_time):
 #     event = goal[0]

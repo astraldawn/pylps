@@ -30,9 +30,11 @@ class Action(LPSObject):
 
     def initiates(self, fluent):
         KB.add_causality_outcome(self, fluent, A_INITIATE)
+        return self
 
     def terminates(self, fluent):
         KB.add_causality_outcome(self, fluent, A_TERMINATE)
+        return self
 
     def false_if(self, *args):
         converted = [(arg, True) for arg in args
@@ -41,6 +43,17 @@ class Action(LPSObject):
                       if isinstance(arg, tuple)]
 
         KB.add_causality_constraint(self, converted)
+        return self
+
+    def iff(self, *args):
+        converted = [(arg, True) for arg in args
+                     if not isinstance(arg, tuple)]
+        converted += [arg for arg in args
+                      if isinstance(arg, tuple)]
+
+        KB.add_causality_req(self, converted)
+
+        return self
 
 
 class Event(LPSObject):
