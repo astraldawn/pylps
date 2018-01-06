@@ -21,7 +21,7 @@ def unify_conds(conds, cycle_time):
             # Note that there might be more than one
             substitution = _unify_fluent(cond, cycle_time)
         else:
-            print('Unrecognised object %s' % cond_object)
+            raise UnhandledObjectError(cond_object.BaseClass)
 
     return substitution
 
@@ -50,7 +50,7 @@ def reify_goals(goals, substitution):
         if goal_object.BaseClass is EVENT:
             goal_res = _reify_event(goal, substitution)
         else:
-            print('Unrecognised object %s' % goal_object)
+            raise UnhandledObjectError(goal_object.BaseClass)
 
         if goal_res:
             converted_goals = []
@@ -168,13 +168,15 @@ def unify_goal(goal, cycle_time):
                                         F_TERMINATE
                                     )
                                 elif outcome[0] == A_INITIATE:
-                                    print('Initiate req undefined')
-                                    return False
+                                    raise(
+                                        UnimplementedOutcomeError(outcome[0])
+                                    )
                                 else:
-                                    print('Unrecognised outcomes')
-                                    return False
+                                    raise(
+                                        UnknownOutcomeError(outcome[0])
+                                    )
                     else:
-                        print('Unrecognised object %s' % goal_object)
+                        raise UnhandledObjectError(req_object.BaseClass)
                         return False
 
     return True

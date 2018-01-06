@@ -16,6 +16,7 @@ observe(refill.frm(7, 8))
 initially(water)
 
 flammable('sofa')
+flammable('bed')
 
 reactive_rule(fire.at(T1)).then(
     deal_with_fire.frm(T1, T2))
@@ -23,7 +24,7 @@ reactive_rule(fire.at(T1)).then(
 goal(deal_with_fire.frm(T1, T2)).requires(
     eliminate.frm(T1, T2))
 
-ignite(X).initiates(fire)
+ignite(X).initiates(fire).iff(flammable(X))
 
 eliminate.terminates(fire)
 eliminate.terminates(water)

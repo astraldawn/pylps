@@ -144,11 +144,11 @@ class _KB(object):
         self.facts[fact.name].add(fact.to_tuple())
 
     def exists_fact(self, fact):
-        return False
-        # try:
-        #     return self.facts[fact.name]
-        # except KeyError:
-        #     return False
+        try:
+            facts = self.facts[fact.name]
+            return fact.to_tuple() in facts
+        except KeyError:
+            return False
 
     def show_facts(self):
         for _, fact in self.facts.items():
