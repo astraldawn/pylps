@@ -32,14 +32,15 @@ class _ENGINE(object):
         # Check rules
         for rule in KB.rules:
             # Check conditions of the rules
-            substitution = unify_conds(rule.conds, self.current_time)
+            substitutions = unify_conds(rule.conds, self.current_time)
 
-            # If there is no substitution, go to the next rule
-            if not substitution:
+            # If there are no substitutions, go to the next rule
+            if not substitutions:
                 continue
 
-            new_goals = reify_goals(rule.goals, substitution)
-            KB.add_goals(new_goals)
+            for substitution in substitutions:
+                new_goals = reify_goals(rule.goals, substitution)
+                KB.add_goals(new_goals)
 
     def _check_goals(self):
         '''

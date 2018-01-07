@@ -6,7 +6,7 @@ class LPSObject(object):
     BaseClass = None
 
     def __repr__(self):
-        ret = "[%s %s, args: %s]" % (self.BaseClass, self.name, self.args)
+        ret = "| %s %s, args: %s |" % (self.BaseClass, self.name, self.args)
         return ret
 
     # def __eq__(self, other):
@@ -14,6 +14,12 @@ class LPSObject(object):
     #     if isinstance(self, other.__class__):
     #         return self.__dict__ == other.__dict__
     #     return False
+
+    def __eq__(self, other):
+        return self.to_tuple() == other.to_tuple()
+
+    def __hash__(self):
+        return hash(self.to_tuple())
 
     def to_tuple(self):
         return (
@@ -96,7 +102,7 @@ class ReactiveRule(object):
     def __repr__(self):
         ret = "Reactive rule\n"
         ret += "Cond: %s\n" % (self.conds)
-        ret += "Goals: %s\n" % (self.goals)
+        ret += "Goals: %s\n" % (', '.join(str(g) for g in self.goals))
         return ret
 
     @property

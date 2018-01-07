@@ -36,17 +36,15 @@ class _KB(object):
         if fluent.name not in self.fluents:
             self.fluents[fluent.name] = set()
 
-        fluent_tuple = fluent.to_tuple()
-
-        if fluent_tuple in self.fluents[fluent.name]:
+        if fluent in self.fluents[fluent.name]:
             return False
 
-        self.fluents[fluent.name].add(fluent.to_tuple())
+        self.fluents[fluent.name].add(fluent)
         return True
 
     def exists_fluent(self, fluent):
         try:
-            return fluent.to_tuple() in self.fluents[fluent.name]
+            return fluent in self.fluents[fluent.name]
         except KeyError:
             return False
 
@@ -56,7 +54,7 @@ class _KB(object):
             self.fluents[fluent.name] = set()
 
         try:
-            self.fluents[fluent.name].remove(fluent.to_tuple())
+            self.fluents[fluent.name].remove(fluent)
         except KeyError:
             # Fluent removal fails
             return False
@@ -141,14 +139,33 @@ class _KB(object):
         if fact.name not in self.facts:
             self.facts[fact.name] = set()
 
-        self.facts[fact.name].add(fact.to_tuple())
+        # Does it contain a variable?
+        contains_var = False
+        for arg in fact.args:
+            try:
+                if arg.BaseClass == VARIABLE:
+                    contains_var = True
+            except AttributeError:
+                pass
+
+        # Do not save facts that are not grounded
+        if contains_var:
+            return
+
+        self.facts[fact.name].add(fact)
 
     def exists_fact(self, fact):
         try:
             facts = self.facts[fact.name]
-            return fact.to_tuple() in facts
+            return fact in facts
         except KeyError:
             return False
+
+    def get_facts(self, fact):
+        try:
+            return self.facts[fact.name]
+        except KeyError:
+            return []
 
     def show_facts(self):
         for _, fact in self.facts.items():

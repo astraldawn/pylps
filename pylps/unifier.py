@@ -1,6 +1,6 @@
 '''
 Tuple based unification engine
-Referened from: https://github.com/aimacode/aima-python/blob/master/logic.py
+Referenced from: https://github.com/aimacode/aima-python/blob/master/logic.py
 '''
 import copy
 from unification import *
@@ -9,48 +9,105 @@ from pylps.constants import *
 from pylps.logic_objects import TemporalVar
 from pylps.kb import KB
 from pylps.exceptions import *
-from pylps.utils import strictly_increasing
+from pylps.utils import *
 
 
 def unify_conds(conds, cycle_time):
-    substitution = {}
+    substitutions = []
     for cond in conds:
-        cond_object = cond[0]
+        temporal = False
 
-        if cond_object.BaseClass is FLUENT:
-            # Note that there might be more than one
-            substitution = _unify_fluent(cond, cycle_time)
+        # Temporal check
+        try:
+            cond_object = cond[0]
+            temporal = True
+        except TypeError:
+            cond_object = cond
+
+        if temporal:
+            if cond_object.BaseClass is FLUENT:
+                # Note that there might be more than one possible sub
+                substitutions.extend(_unify_fluent(cond, cycle_time))
+            else:
+                raise UnhandledObjectError(cond_object.BaseClass)
         else:
-            raise UnhandledObjectError(cond_object.BaseClass)
+            if cond_object.BaseClass is FACT:
+                substitutions.extend(_unify_fact(cond_object))
+            else:
+                raise UnhandledObjectError(cond_object.BaseClass)
 
-    return substitution
+    return substitutions
 
 
 def _unify_fluent(cond, cycle_time):
     fluent = cond[0]
     temporal_var = cond[1]
 
+    substitutions = []
+
     # Check if fluent is in KB
     if not KB.exists_fluent(fluent):
-        return False
+        return substitutions
 
     # Unify with temporal vars, return the substitution
-    substitution = unify(var(temporal_var.name), cycle_time)
+    substitutions.append(unify(var(temporal_var.name), cycle_time))
 
-    return substitution
+    return substitutions
+
+
+def _unify_fact(fact):
+    substitutions = []
+    for kb_fact in KB.get_facts(fact):
+        unify_res = unify_args(fact.args, kb_fact.args)
+        substitutions.append(unify_res)
+    return substitutions
 
 
 def reify_goals(goals, substitution):
+    '''
+    Note that goals are interative
+
+    E.g.
+
+    reactive_rule(country(X)).then(
+        colour(C),
+        paint(X, C).frm(T1, T2)
+    )
+
+    If consequent rules are swapped, should raise some error
+
+    '''
     new_goals = set()  # To prevent repeat goals
 
-    for goal in goals:
-        goal_object = goal[0]
-        goal_re = None
+    # print(goals, substitution)
 
-        if goal_object.BaseClass is EVENT:
-            goal_res = _reify_event(goal, substitution)
+    for goal in goals:
+        temporal = False
+        goal_res = None
+
+        # Temporal check
+        try:
+            goal_object_original = goal[0]
+            temporal = True
+        except TypeError:
+            goal_object_original = goal
+
+        goal_object = copy.deepcopy(goal_object_original)
+        goal_object.args = reify_args(
+            goal_object.args, substitution)
+
+        if temporal:
+            if goal_object.BaseClass is ACTION:
+                goal_res = _reify_event(goal, substitution)
+            elif goal_object.BaseClass is EVENT:
+                goal_res = _reify_event(goal, substitution)
+            else:
+                raise UnhandledObjectError(goal_object.BaseClass)
         else:
-            raise UnhandledObjectError(goal_object.BaseClass)
+            if goal_object.BaseClass is FACT:
+                new_goals.add(goal_object)
+            else:
+                raise UnhandledObjectError(goal_object.BaseClass)
 
         if goal_res:
             converted_goals = []
@@ -63,6 +120,7 @@ def reify_goals(goals, substitution):
             converted_goals = tuple(goal for goal in converted_goals)
             new_goals.add((goal_object,) + converted_goals)
 
+    # print(new_goals)
     return new_goals
 
 
@@ -193,15 +251,10 @@ def unify_obs(observation):
 
     # If there is causality, need to make the check
     if causality:
-        unify_res = {}
-        for action_arg, causality_arg in zip(action.args,
-                                             causality.action.args):
-            if causality_arg.BaseClass == VARIABLE:
-                res = unify(action_arg, var(causality_arg.name))
-                unify_res.update(res)
+        substitutions = unify_args(causality.action.args, action.args)
 
-            if not check_reqs(causality.reqs, unify_res):
-                return
+        if not check_reqs(causality.reqs, substitutions):
+            return
 
     for outcome in causality.outcomes:
         if outcome[0] == A_TERMINATE:
@@ -236,14 +289,11 @@ def constraints_satisfied(causality):
     return True
 
 
-def check_reqs(reqs, unify_vars):
-    '''
-    # TODO: Actually get the facts checked
-    '''
+def check_reqs(reqs, substitutions):
     if reqs == []:
         return True
 
-    # print(reqs, unify_vars)
+    # print(reqs, substitutions)
     for req in reqs:
         true_satis = True
         # false_satis = True
@@ -251,17 +301,8 @@ def check_reqs(reqs, unify_vars):
             # copy object, do not want to modify KB
             obj = copy.deepcopy(obj_original)
             if obj.BaseClass == FACT:
-                reify_args = []
-                for arg in obj.args:
-                    if arg.BaseClass == VARIABLE:
-                        res = reify(var(arg.name), unify_vars)
-                        reify_args.append(res)
-                    else:
-                        reify_args.append(arg)
-                obj.args = reify_args
-
+                obj.args = reify_args(obj.args, substitutions)
                 fact_exists = KB.exists_fact(obj)
-
                 if state and not fact_exists:
                     true_satis = False
             else:
