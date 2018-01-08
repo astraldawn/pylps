@@ -14,7 +14,6 @@ class Causality(object):
         ret = "Causality %s\n" % (self.action.name)
         ret += "Action: %s\n" % (self._action)
         ret += "Outcomes: %s\n" % (self._outcomes)
-        ret += "Constraints: %s\n" % (self._constraints)
         ret += "Reqs: %s\n" % (self._reqs)
         return ret
 
@@ -28,13 +27,6 @@ class Causality(object):
 
     def add_outcome(self, outcome):
         self._outcomes.append(outcome)
-
-    @property
-    def constraints(self):
-        return self._constraints
-
-    def add_constraint(self, constraint):
-        self._constraints.append(constraint)
 
     @property
     def reqs(self):

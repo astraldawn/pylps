@@ -1,6 +1,7 @@
 from pylps.constants import *
 from pylps.kb import KB
-from pylps.unifier import unify_conds, reify_goals, unify_goal, unify_obs
+from pylps.unifier import unify_conds, reify_goals, unify_obs, \
+    unify_multigoal
 
 
 class _ENGINE(object):
@@ -51,9 +52,8 @@ class _ENGINE(object):
         for multigoal in KB.goals:
             # Check if the goal exists and attempt to add in a time
             # print(multigoal)
-            for goal in multigoal.goals:
-                if unify_goal(goal, self.current_time):
-                    solved_goals.add(goal)
+            if unify_multigoal(multigoal, self.current_time):
+                    solved_goals.add(multigoal)
 
         KB.remove_goals(solved_goals)
 

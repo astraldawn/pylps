@@ -145,12 +145,30 @@ def _reify_event(goal, substitution):
     return goal_res
 
 
+def unify_multigoal(multigoal, cycle_time):
+    solved = True
+    for goal in multigoal.goals:
+        if not unify_goal(goal, cycle_time):
+            solved = False
+
+    return solved
+
+
 def unify_goal(goal, cycle_time):
     # requirements = set()
 
     # Check if this goal is associated with some clause
     # This will match the first clause available
-    for clause in KB.clauses:
+    temporal = False
+    try:
+        goal_object_original = goal[0]
+        temporal = True
+    except TypeError:
+        goal_object_original = goal
+
+    # print(goal, cycle_time, temporal)
+
+    for clause in KB.get_clauses(goal_object_original):
         clause_goal = clause.goal[0]
 
         # TODO: FIX / CHANGE THIS
@@ -214,7 +232,7 @@ def unify_goal(goal, cycle_time):
                         causalities = KB.exists_causality(req_object)
 
                         if causalities:
-                            if not constraints_satisfied(causalities):
+                            if not constraints_satisfied(causalities.action):
                                 # TODO: Return True to delete goal?
                                 # This is so hax
                                 return True
@@ -269,19 +287,25 @@ def unify_obs(observation):
             raise UnknownOutcomeError(outcome[0])
 
 
-def constraints_satisfied(causality):
-    for constraint in causality.constraints:
+def constraints_satisfied(action):
+    for constraint in KB.get_constraints(action):
         true_satis = True
         false_satis = True
-        for (fluent, state) in constraint:
-            fluent_exists = KB.exists_fluent(fluent)
+        for (obj, state) in constraint:
+            if obj == action:
+                continue
 
-            # All truth must be satisfied to consider
-            if state and not fluent_exists:
-                true_satis = False
+            if obj.BaseClass == FLUENT:
+                fluent_exists = KB.exists_fluent(obj)
 
-            if not state and not fluent_exists:
-                false_satis = False
+                # All truth must be satisfied to consider
+                if state and not fluent_exists:
+                    true_satis = False
+
+                if not state and not fluent_exists:
+                    false_satis = False
+            else:
+                raise UnhandledObjectError(obj.BaseClass)
 
         if not true_satis:
             continue

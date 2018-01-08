@@ -30,7 +30,8 @@ eliminate.terminates(fire)
 eliminate.terminates(water)
 refill.initiates(water)
 
-eliminate.false_if(fire, ~water)
+# eliminate.false_if(fire, ~water)
+false_if(eliminate, fire, ~water)
 
 execute()
 

@@ -12,9 +12,10 @@ class _KB(object):
     fluents = {}
     reactive_rules = []
 
-    _clauses = []
+    _clauses = {}
     _goals = OrderedSet()
     _observations = []
+    _constraints = []
 
     log = []
 
@@ -76,10 +77,11 @@ class _KB(object):
         self._goals.add(MultiGoal(goals))
 
     def remove_goals(self, goals):
-        try:
-            self._goals.remove(MultiGoal(goals))
-        except KeyError:
-            pass
+        for goal in goals:
+            try:
+                self._goals.remove(goal)
+            except KeyError:
+                pass
 
     def reset_goals(self):
         self._goals = OrderedSet()
@@ -91,10 +93,17 @@ class _KB(object):
         return self._clauses
 
     def add_clause(self, clause):
-        self._clauses.append(clause)
+        try:
+            self._clauses[clause.name].add(clause)
+        except KeyError:
+            self._clauses[clause.name] = OrderedSet()
+            self._clauses[clause.name].add(clause)
+
+    def get_clauses(self, goal_object):
+        return self._clauses.get(goal_object.name, [])
 
     def show_clauses(self):
-        for clause in self._clauses:
+        for name, clause in self._clauses.items():
             print(clause)
 
     ''' Causality '''
@@ -106,12 +115,6 @@ class _KB(object):
         self.causalities[action.name].add_outcome(
             [causality_type, fluent])
 
-    def add_causality_constraint(self, action, fluents):
-        if action.name not in self.causalities:
-            self.causalities[action.name] = Causality(action)
-
-        self.causalities[action.name].add_constraint(fluents)
-
     def add_causality_req(self, action, items):
         if action.name not in self.causalities:
             self.causalities[action.name] = Causality(action)
@@ -119,10 +122,7 @@ class _KB(object):
         self.causalities[action.name].add_req(items)
 
     def exists_causality(self, action):
-        try:
-            return self.causalities[action.name]
-        except KeyError:
-            return False
+        return self.causalities.get(action.name, False)
 
     def show_causalities(self):
         for action_name, causality in self.causalities.items():
@@ -136,6 +136,26 @@ class _KB(object):
 
     def add_observation(self, observation):
         self._observations.append(observation)
+
+    ''' Constraints '''
+
+    @property
+    def constraints(self):
+        return self._constraints
+
+    def add_constraint(self, constraint):
+        self._constraints.append(constraint)
+
+    def get_constraints(self, action):
+        relevant_constraints = []
+        for constraint in self._constraints:
+            if (action, True) in constraint:
+                relevant_constraints.append(constraint)
+        return relevant_constraints
+
+    def show_constraints(self):
+        for constraint in self._constraints:
+            print(constraint)
 
     ''' Facts '''
 

@@ -42,15 +42,6 @@ class Action(LPSObject):
         KB.add_causality_outcome(self, fluent, A_TERMINATE)
         return self
 
-    def false_if(self, *args):
-        converted = [(arg, True) for arg in args
-                     if not isinstance(arg, tuple)]
-        converted += [arg for arg in args
-                      if isinstance(arg, tuple)]
-
-        KB.add_causality_constraint(self, converted)
-        return self
-
     def iff(self, *args):
         converted = [(arg, True) for arg in args
                      if not isinstance(arg, tuple)]
@@ -123,6 +114,11 @@ class GoalClause(object):
     def __init__(self, goal):
         self._goal = goal
         self._requires = None
+
+        try:
+            self.name = goal.name
+        except AttributeError:
+            self.name = goal[0][0].name
 
     def __repr__(self):
         ret = "Goal clause\n"

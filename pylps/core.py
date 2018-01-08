@@ -52,6 +52,16 @@ def goal(*args):
     return new_clause
 
 
+def false_if(*args):
+    converted = []
+    for arg in args:
+        if isinstance(arg, tuple):
+            converted.append(arg)
+        else:
+            converted.append((arg, True))
+    KB.add_constraint(converted)
+
+
 ''' Core loop '''
 
 
@@ -74,6 +84,10 @@ def show_kb_causalities():
 
 def show_kb_clauses():
     return KB.show_clauses()
+
+
+def show_kb_constraints():
+    return KB.show_constraints()
 
 
 def show_kb_facts():
