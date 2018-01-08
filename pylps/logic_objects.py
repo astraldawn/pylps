@@ -14,6 +14,12 @@ class Variable(object):
     def __invert__(self):
         return (self, False)
 
+    # def to_tuple(self):
+    #     return (
+    #         self.BaseClass, self.name,
+    #         tuple(arg for arg in self.args)
+    #     )
+
 
 class TemporalVar(Variable):
     BaseClass = TEMPORAL_VARIABLE

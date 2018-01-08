@@ -42,3 +42,29 @@ class Causality(object):
 
     def add_req(self, req):
         self._reqs.append(req)
+
+
+class MultiGoal(object):
+    '''
+    Class to contain related goals
+    '''
+
+    def __init__(self, goals):
+        self._goals = goals
+
+    def __eq__(self, other):
+        return self._to_tuple() == other._to_tuple()
+
+    def __hash__(self):
+        return hash(self._to_tuple())
+
+    def __repr__(self):
+        ret = "Goals: %s\n" % (self._goals)
+        return ret
+
+    @property
+    def goals(self):
+        return self._goals
+
+    def _to_tuple(self):
+        return tuple(goal for goal in self._goals)

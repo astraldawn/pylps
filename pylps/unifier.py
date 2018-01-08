@@ -120,7 +120,6 @@ def reify_goals(goals, substitution):
             converted_goals = tuple(goal for goal in converted_goals)
             new_goals.add((goal_object,) + converted_goals)
 
-    # print(new_goals)
     return new_goals
 
 

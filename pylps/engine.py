@@ -48,10 +48,11 @@ class _ENGINE(object):
         '''
         solved_goals = set()
 
-        for goal in KB.goals:
+        for multigoal in KB.goals:
             # Check if the goal exists and attempt to add in a time
-            if unify_goal(goal, self.current_time):
-                solved_goals.add(goal)
+            for goal in multigoal.goals:
+                if unify_goal(goal, self.current_time):
+                    solved_goals.add(goal)
 
         KB.remove_goals(solved_goals)
 

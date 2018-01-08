@@ -2,7 +2,7 @@
 Class for the knowledge base
 '''
 from pylps.constants import *
-from pylps.kb_objects import Causality
+from pylps.kb_objects import Causality, MultiGoal
 
 
 class _KB(object):
@@ -72,10 +72,13 @@ class _KB(object):
         return self._goals
 
     def add_goals(self, goals):
-        self._goals.update(goals)
+        self._goals.add(MultiGoal(goals))
 
     def remove_goals(self, goals):
-        self._goals = self._goals - goals
+        try:
+            self._goals.remove(MultiGoal(goals))
+        except KeyError:
+            pass
 
     def reset_goals(self):
         self._goals = set()
