@@ -1,6 +1,7 @@
 '''
 Class for the knowledge base
 '''
+from ordered_set import OrderedSet
 from pylps.constants import *
 from pylps.kb_objects import Causality, MultiGoal
 
@@ -12,7 +13,7 @@ class _KB(object):
     reactive_rules = []
 
     _clauses = []
-    _goals = set()
+    _goals = OrderedSet()
     _observations = []
 
     log = []
@@ -81,7 +82,7 @@ class _KB(object):
             pass
 
     def reset_goals(self):
-        self._goals = set()
+        self._goals = OrderedSet()
 
     ''' Clauses '''
 
@@ -140,7 +141,7 @@ class _KB(object):
 
     def add_fact(self, fact):
         if fact.name not in self.facts:
-            self.facts[fact.name] = set()
+            self.facts[fact.name] = OrderedSet()
 
         # Does it contain a variable?
         contains_var = False

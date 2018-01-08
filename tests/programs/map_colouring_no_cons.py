@@ -15,12 +15,6 @@ colour('red')
 colour('yellow')
 colour('blue')
 
-# adjacent('C', 'A')
-# adjacent('C', 'B')
-# adjacent('A', 'B')
-# adjacent('A', 'D')
-# adjacent('B', 'D')
-
 reactive_rule(country(X)).then(
     colour(C),
     paint(X, C).frm(T1, T2)
@@ -44,12 +38,6 @@ country(uz).
 colour(red).
 colour(yellow).
 colour(blue).
-
-adjacent(az,iz).
-adjacent(az,oz).
-adjacent(iz,oz).
-adjacent(iz,uz).
-adjacent(oz,uz).
 
 if country(X)
 then

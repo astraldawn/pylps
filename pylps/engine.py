@@ -50,6 +50,7 @@ class _ENGINE(object):
 
         for multigoal in KB.goals:
             # Check if the goal exists and attempt to add in a time
+            # print(multigoal)
             for goal in multigoal.goals:
                 if unify_goal(goal, self.current_time):
                     solved_goals.add(goal)

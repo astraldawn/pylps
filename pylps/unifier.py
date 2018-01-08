@@ -75,9 +75,9 @@ def reify_goals(goals, substitution):
     )
 
     If consequent rules are swapped, should raise some error
-
     '''
-    new_goals = set()  # To prevent repeat goals
+    new_goals_set = set()  # To prevent repeat goals
+    new_goals = []         # To keep ordering constant
 
     # print(goals, substitution)
 
@@ -104,8 +104,10 @@ def reify_goals(goals, substitution):
             else:
                 raise UnhandledObjectError(goal_object.BaseClass)
         else:
-            if goal_object.BaseClass is FACT:
-                new_goals.add(goal_object)
+            if (goal_object.BaseClass is FACT and
+                    goal_object not in new_goals_set):
+                new_goals_set.add(goal_object)
+                new_goals.append(goal_object)
             else:
                 raise UnhandledObjectError(goal_object.BaseClass)
 
@@ -118,7 +120,9 @@ def reify_goals(goals, substitution):
                     converted_goals.append(goal_re)
 
             converted_goals = tuple(goal for goal in converted_goals)
-            new_goals.add((goal_object,) + converted_goals)
+            combined_goal = (goal_object,) + converted_goals
+            if combined_goal not in new_goals_set:
+                new_goals.append(combined_goal)
 
     return new_goals
 

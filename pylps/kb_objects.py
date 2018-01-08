@@ -52,15 +52,15 @@ class MultiGoal(object):
     def __init__(self, goals):
         self._goals = goals
 
+    def __repr__(self):
+        ret = "Goals: %s\n" % (self._goals)
+        return ret
+
     def __eq__(self, other):
         return self._to_tuple() == other._to_tuple()
 
     def __hash__(self):
         return hash(self._to_tuple())
-
-    def __repr__(self):
-        ret = "Goals: %s\n" % (self._goals)
-        return ret
 
     @property
     def goals(self):
