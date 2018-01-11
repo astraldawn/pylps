@@ -41,11 +41,13 @@ class MultiGoal(object):
     Class to contain related goals
     '''
 
-    def __init__(self, goals):
+    def __init__(self, goals, subs=[]):
         self._goals = goals
+        self._subs = subs
 
     def __repr__(self):
         ret = "Goals: %s\n" % (self._goals)
+        ret += "Subs: %s\n" % (self._subs)
         return ret
 
     def __eq__(self, other):
@@ -59,4 +61,10 @@ class MultiGoal(object):
         return self._goals
 
     def _to_tuple(self):
-        return tuple(goal for goal in self._goals)
+        convert = tuple(goal for goal in self._goals) + \
+            tuple((sub, val) for sub, val in self._subs.items())
+        return convert
+
+    @property
+    def subs(self):
+        return self._subs

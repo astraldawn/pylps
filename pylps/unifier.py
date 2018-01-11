@@ -63,7 +63,7 @@ def _unify_fact(fact):
     return substitutions
 
 
-def reify_goals(goals, substitution):
+def reify_goals(goals, substitution, defer=False):
     '''
     Note that goals are interative
 
@@ -76,6 +76,9 @@ def reify_goals(goals, substitution):
 
     If consequent rules are swapped, should raise some error
     '''
+    if defer:
+        return copy.deepcopy(goals)
+
     new_goals_set = set()  # To prevent repeat goals
     new_goals = []         # To keep ordering constant
 
@@ -93,6 +96,7 @@ def reify_goals(goals, substitution):
             goal_object_original = goal
 
         goal_object = copy.deepcopy(goal_object_original)
+
         goal_object.args = reify_args(
             goal_object.args, substitution)
 
@@ -146,119 +150,245 @@ def _reify_event(goal, substitution):
 
 
 def unify_multigoal(multigoal, cycle_time):
-    solved = True
+    solved_cnt = 0
     for goal in multigoal.goals:
-        if not unify_goal(goal, cycle_time):
-            solved = False
+        response = unify_goal(goal, multigoal.subs, cycle_time)
+        if response is G_DISCARD:
+            return response
+        elif response is G_UNSOLVED:
+            # Handle unsolved subgoal
+            pass
+        elif response is G_SOLVED:
+            solved_cnt += 1
 
-    return solved
+    return G_SOLVED if solved_cnt == len(multigoal.goals) else G_UNSOLVED
 
 
-def unify_goal(goal, cycle_time):
+def unify_goal(goal, cur_subs, cycle_time):
     # requirements = set()
 
     # Check if this goal is associated with some clause
     # This will match the first clause available
     temporal = False
+    cycle_temporal_sub_used = False
+    subs = copy.deepcopy(cur_subs)
+
     try:
         goal_object_original = goal[0]
+        goal_temporal_vars = tuple(
+            var(temporal_var.name)
+            for temporal_var in goal[1:]
+        )
         temporal = True
+
+        # Make a check if there is a temporal substitution from first step
+        for temporal_var in goal[1:]:
+            if var(temporal_var.name) in subs:
+                cycle_temporal_sub_used = True
     except TypeError:
         goal_object_original = goal
 
-    # print(goal, cycle_time, temporal)
+    # print(goal, subs, cycle_time, temporal, cycle_temporal_sub_used)
 
     for clause in KB.get_clauses(goal_object_original):
         clause_goal = clause.goal[0]
+        clause_goal_object = clause_goal[0]  # This may cause issues
 
         # TODO: FIX / CHANGE THIS
         # Check if the objects match
-        if clause_goal[0] != goal[0]:
+        if clause_goal_object != goal_object_original:
             continue
 
-        clause_temporal_vars = tuple(
-            var(temporal_var.name)
-            for temporal_var in clause_goal[1:]
-        )
-
-        goal_temporal_vars = []
-        cycle_sub_used = False
-        defer = False
-
-        for item in goal[1:]:
-            if isinstance(item, TemporalVar):
-                if cycle_sub_used:
-                    defer = True
-                else:
-                    t_sub = unify(var(item.name), cycle_time)
-                    goal_temporal_vars.append(reify(var(item.name), t_sub))
-                    cycle_sub_used = True
-            else:
-                goal_temporal_vars.append(item)
-
-        goal_temporal_vars = tuple(goal_temporal_vars)
-
-        if defer:
-            # Further temporal substitutions required, so it is not possible
-            # to proceed. Reinsert the revised goal
-            return False
-
-        if not strictly_increasing(goal_temporal_vars):
-            # Set this for now, ensure that it is strictly increasing
-            return False
-
-        # Attempt to make the match if possible
-        substitution = unify(clause_temporal_vars, goal_temporal_vars)
-
-        if substitution:
-            for req in clause.reqs:
+        for req in clause.reqs:
+            try:
                 req_object = req[0]
                 req_temporal_vars = tuple(
                     var(temporal_var.name)
                     for temporal_var in req[1:]
                 )
-                req_temporal_vars = reify(req_temporal_vars, substitution)
+            except TypeError:
+                raise UnhandledOutcomeError(req)
 
-                # Check if all temporal var satisfied, otherwise add to goal
-                temporal_satisfied = True
-                for item in req_temporal_vars:
-                    if not isinstance(item, int):
-                        temporal_satisfied = False
-                        break
+            reify_req = None
 
-                if temporal_satisfied:
-                    if req_object.BaseClass is ACTION:
-                        # Unify with the KB (but for now is a simple check)
-                        causalities = KB.exists_causality(req_object)
+            if req_object.BaseClass == ACTION:
+                reify_req = reify(req_temporal_vars, subs)
+                if isinstance(reify_req[0], int):
+                    reify_req = (reify_req[0], reify_req[0] + 1)
+                    subs.update(unify(req_temporal_vars, reify_req))
 
-                        if causalities:
-                            if not constraints_satisfied(causalities.action):
-                                # TODO: Return True to delete goal?
-                                # This is so hax
-                                return True
+                    reify_valid = (
+                        (reify_req[0] == cycle_time) or
+                        (reify_req[1] == cycle_time)
+                    )
 
-                            KB.log_action(req_object, req_temporal_vars)
-                            for outcome in causalities.outcomes:
-                                if outcome[0] == A_TERMINATE:
-                                    KB.remove_fluent(outcome[1])
-                                    KB.log_fluent(
-                                        outcome[1],
-                                        max(req_temporal_vars),
-                                        F_TERMINATE
-                                    )
-                                elif outcome[0] == A_INITIATE:
-                                    raise(
-                                        UnimplementedOutcomeError(outcome[0])
-                                    )
-                                else:
-                                    raise(
-                                        UnknownOutcomeError(outcome[0])
-                                    )
+                    if not reify_valid:
+                        return G_DISCARD
+                else:
+                    raise UnhandledOutcomeError(reify_req)
+            else:
+                raise UnhandledObjectError(req_object.BaseClass)
+
+            req_temporal_satisfied_cnt = 0
+            for item in reify_req:
+                if isinstance(item, int):
+                    req_temporal_satisfied_cnt += 1
+
+            req_temporal_satisfied = (
+                req_temporal_satisfied_cnt == len(req_temporal_vars))
+
+            # print(req_temporal_satisfied)
+
+            if req_temporal_satisfied:
+                req_temporal_vars = reify(req_temporal_vars, subs)
+                if req_object.BaseClass is ACTION:
+                    # Unify with the KB (but for now is a simple check)
+                    causalities = KB.exists_causality(req_object)
+
+                    if causalities:
+                        if not constraints_satisfied(causalities.action):
+                            # TODO: Return True to delete goal?
+                            # This is so hax
+                            return G_UNSOLVED
+
+                        KB.log_action(req_object, req_temporal_vars)
+                        for outcome in causalities.outcomes:
+                            if outcome[0] == A_TERMINATE:
+                                KB.remove_fluent(outcome[1])
+                                KB.log_fluent(
+                                    outcome[1],
+                                    max(req_temporal_vars),
+                                    F_TERMINATE
+                                )
+                            elif outcome[0] == A_INITIATE:
+                                raise(
+                                    UnimplementedOutcomeError(outcome[0])
+                                )
+                            else:
+                                raise(
+                                    UnknownOutcomeError(outcome[0])
+                                )
                     else:
-                        raise UnhandledObjectError(req_object.BaseClass)
-                        return False
+                        pass
+                        # raise UnhandledObjectError("ERROR")
+                else:
+                    raise UnhandledObjectError(req_object.BaseClass)
 
-    return True
+        # Check if can meet all the temporal reqs for clause
+        temporal_satisfied_cnt = 0
+        for temporal_var in clause_goal[1:]:
+            if var(temporal_var.name) in subs:
+                temporal_satisfied_cnt += 1
+
+        temporal_satisfied = (temporal_satisfied_cnt == len(clause_goal[1:]))
+
+        if temporal_satisfied:
+            goal_temporal_vars = reify(goal_temporal_vars, subs)
+
+            if not strictly_increasing(goal_temporal_vars):
+                return G_DISCARD
+
+            return G_SOLVED
+
+    return G_UNSOLVED
+
+    # for clause in KB.get_clauses(goal_object_original):
+    #     clause_goal = clause.goal[0]
+    #     clause_goal_object = clause_goal[0]  # This may cause issues
+
+    #     # TODO: FIX / CHANGE THIS
+    #     # Check if the objects match
+    #     if clause_goal_object != goal_object_original:
+    #         continue
+
+    #     clause_temporal_vars = tuple(
+    #         var(temporal_var.name)
+    #         for temporal_var in clause_goal[1:]
+    #     )
+
+    #     goal_temporal_vars = []
+    #     defer = False
+
+    #     print(clause_goal, goal[1:])
+
+    #     for item in goal[1:]:
+    #         if isinstance(item, TemporalVar):
+    #             if cycle_temporal_sub_used:
+    #                 defer = True
+    #             else:
+    #                 t_sub = unify(var(item.name), cycle_time)
+    #                 goal_temporal_vars.append(reify(var(item.name), t_sub))
+    #                 cycle_temporal_sub_used = True
+    #         else:
+    #             goal_temporal_vars.append(item)
+
+    #     goal_temporal_vars = tuple(goal_temporal_vars)
+
+    #     if defer:
+    #         # Further temporal substitutions required, so it is not possible
+    #         # to proceed. Reinsert the revised goal
+    #         return False
+
+    #     if not strictly_increasing(goal_temporal_vars):
+    #         # Set this for now, ensure that it is strictly increasing
+    #         return False
+
+    #     # Attempt to make the match if possible
+    #     substitution = unify(clause_temporal_vars, goal_temporal_vars)
+
+    #     if substitution:
+    #         for req in clause.reqs:
+    #             req_object = req[0]
+    #             print(substitution, req[1:])
+    #             req_temporal_vars = tuple(
+    #                 var(temporal_var.name)
+    #                 for temporal_var in req[1:]
+    #             )
+    #             req_temporal_vars = reify(req_temporal_vars, substitution)
+
+    #             # Check if all temporal var satisfied, otherwise add to goal
+    #             temporal_satisfied = True
+    #             for item in req_temporal_vars:
+    #                 if not isinstance(item, int):
+    #                     temporal_satisfied = False
+    #                     break
+
+    #             if temporal_satisfied:
+    #                 if req_object.BaseClass is ACTION:
+    #                     # Unify with the KB (but for now is a simple check)
+    #                     causalities = KB.exists_causality(req_object)
+
+    #                     if causalities:
+    #                         if not constraints_satisfied(causalities.action):
+    #                             # TODO: Return True to delete goal?
+    #                             # This is so hax
+    #                             return True
+
+    #                         KB.log_action(req_object, req_temporal_vars)
+    #                         for outcome in causalities.outcomes:
+    #                             if outcome[0] == A_TERMINATE:
+    #                                 KB.remove_fluent(outcome[1])
+    #                                 KB.log_fluent(
+    #                                     outcome[1],
+    #                                     max(req_temporal_vars),
+    #                                     F_TERMINATE
+    #                                 )
+    #                             elif outcome[0] == A_INITIATE:
+    #                                 raise(
+    #                                     UnimplementedOutcomeError(outcome[0])
+    #                                 )
+    #                             else:
+    #                                 raise(
+    #                                     UnknownOutcomeError(outcome[0])
+    #                                 )
+    #                     else:
+    #                         pass
+    #                         # raise UnhandledObjectError("ERROR")
+    #                 else:
+    #                     raise UnhandledObjectError(req_object.BaseClass)
+    #                     return False
+
+    # return True
 
 
 def unify_obs(observation):

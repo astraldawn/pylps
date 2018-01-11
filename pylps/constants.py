@@ -20,3 +20,8 @@ A_TERMINATE = 'terminate'
 A_INITIATE = 'initiate'
 F_INITIATE = 'fluent_initiate'
 F_TERMINATE = 'fluent_terminate'
+
+# GOAL STATUS
+G_DISCARD = 'goal_discard'
+G_SOLVED = 'goal_solved'
+G_UNSOLVED = 'goal_unsolved'

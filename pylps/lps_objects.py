@@ -1,4 +1,5 @@
 from pylps.constants import *
+from pylps.exceptions import *
 from pylps.kb import KB
 
 
@@ -109,6 +110,9 @@ class ReactiveRule(object):
 
 
 class GoalClause(object):
+    '''
+    Goals are also known as macro actions
+    '''
     BaseClass = CLAUSE
 
     def __init__(self, goal):

@@ -73,8 +73,8 @@ class _KB(object):
     def goals(self):
         return self._goals
 
-    def add_goals(self, goals):
-        self._goals.add(MultiGoal(goals))
+    def add_goals(self, goals, subs):
+        self._goals.add(MultiGoal(goals, subs))
 
     def remove_goals(self, goals):
         for goal in goals:

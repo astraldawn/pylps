@@ -24,13 +24,15 @@ reactive_rule(fire.at(T1)).then(
 goal(deal_with_fire.frm(T1, T2)).requires(
     eliminate.frm(T1, T2))
 
+goal(deal_with_fire.frm(T1, T2)).requires(
+    escape.frm(T1, T2))
+
 ignite(X).initiates(fire).iff(flammable(X))
 
 eliminate.terminates(fire)
 eliminate.terminates(water)
 refill.initiates(water)
 
-# eliminate.false_if(fire, ~water)
 false_if(eliminate, fire, ~water)
 
 execute()

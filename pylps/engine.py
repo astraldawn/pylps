@@ -18,8 +18,8 @@ class _ENGINE(object):
 
         while self.current_time <= self.max_time:
             self._check_observations()
-            self._check_goals()
             self._check_rules()
+            self._check_goals()
 
             self.current_time += 1
 
@@ -40,22 +40,33 @@ class _ENGINE(object):
                 continue
 
             for substitution in substitutions:
-                new_goals = reify_goals(rule.goals, substitution)
-                KB.add_goals(new_goals)
+                new_goals = reify_goals(rule.goals, substitution, defer=True)
+                KB.add_goals(new_goals, substitution)
 
     def _check_goals(self):
         '''
         Work through the goals individually
         '''
+        discarded_goals = set()
         solved_goals = set()
+        solved_group = set()
 
         for multigoal in KB.goals:
-            # Check if the goal exists and attempt to add in a time
-            # print(multigoal)
-            if unify_multigoal(multigoal, self.current_time):
-                    solved_goals.add(multigoal)
+            # If the goal has been solved, do not attempt further solves
+            if multigoal.goals in solved_group:
+                discarded_goals.add(multigoal)
+                continue
+
+            multigoal_respose = unify_multigoal(multigoal, self.current_time)
+
+            if multigoal_respose is G_SOLVED:
+                solved_goals.add(multigoal)
+                solved_group.add(multigoal.goals)
+            elif multigoal_respose is G_DISCARD:
+                discarded_goals.add(multigoal)
 
         KB.remove_goals(solved_goals)
+        KB.remove_goals(discarded_goals)
 
 
 ENGINE = _ENGINE()
