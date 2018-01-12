@@ -65,6 +65,7 @@ class _ENGINE(object):
             elif multigoal_respose is G_DISCARD:
                 discarded_goals.add(multigoal)
 
+        # print(KB.goals)
         KB.remove_goals(solved_goals)
         KB.remove_goals(discarded_goals)
 

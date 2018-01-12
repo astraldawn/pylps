@@ -1,4 +1,5 @@
 from pylps.constants import *
+from pylps.config import CONFIG
 from pylps.creator import *
 from pylps.lps_objects import GoalClause, Observation, ReactiveRule
 from pylps.kb import KB
@@ -71,7 +72,11 @@ def initialise(max_time=5):
     ENGINE.set_params(max_time=max_time)
 
 
-def execute():
+def execute(single_clause=True):
+    options_dict = {
+        'single_clause': single_clause
+    }
+    CONFIG.set_options(options_dict)
     ENGINE.run()
 
 

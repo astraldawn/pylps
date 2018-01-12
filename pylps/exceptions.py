@@ -1,3 +1,9 @@
+class ConfigError(Exception):
+    def __init__(self, config_option, value):
+        self.config_option = config_option
+        self.value = value
+
+
 class UnhandledObjectError(Exception):
     def __init__(self, obj_type):
         self.obj_type = obj_type
