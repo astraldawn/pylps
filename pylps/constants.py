@@ -29,3 +29,7 @@ G_CLAUSE_FAIL = 'goal_clause_fail'
 G_SINGLE_SOLVED = 'goal_single_solved'
 G_SINGLE_UNSOLVED = 'goal_single_unsolved'
 NO_SUBS = None
+
+VALID_GOAL_RESPONSES = set(
+    [G_DISCARD, G_UNSOLVED, G_UNSOLVED, G_CLAUSE_FAIL, G_SINGLE_SOLVED,
+     G_SINGLE_UNSOLVED, NO_SUBS])

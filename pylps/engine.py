@@ -1,7 +1,7 @@
 from pylps.constants import *
 from pylps.kb import KB
-from pylps.unifier import unify_conds, reify_goals, unify_obs, \
-    unify_multigoal
+from pylps.solver import solve_multigoal
+from pylps.unifier import unify_conds, reify_goals, unify_obs
 
 
 class _ENGINE(object):
@@ -57,7 +57,7 @@ class _ENGINE(object):
                 discarded_goals.add(multigoal)
                 continue
 
-            multigoal_respose = unify_multigoal(multigoal, self.current_time)
+            multigoal_respose = solve_multigoal(multigoal, self.current_time)
 
             if multigoal_respose is G_SOLVED:
                 solved_goals.add(multigoal)
