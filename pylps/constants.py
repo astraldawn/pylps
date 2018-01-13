@@ -15,6 +15,9 @@ OBS = 'obs'
 RULE = 'rule'
 LPS_OBJECTS = ['ACTION', 'EVENT', 'FLUENT', 'RULE']
 
+# Solver objects
+SOLVER_GOAL = 'solver_goal'
+
 # Actions
 A_TERMINATE = 'terminate'
 A_INITIATE = 'initiate'
@@ -22,6 +25,7 @@ F_INITIATE = 'fluent_initiate'
 F_TERMINATE = 'fluent_terminate'
 
 # Goal related stuff
+G_NPROCESSED = 'goal_not_processed'
 G_DISCARD = 'goal_discard'
 G_SOLVED = 'goal_solved'
 G_UNSOLVED = 'goal_unsolved'
@@ -32,4 +36,4 @@ NO_SUBS = None
 
 VALID_GOAL_RESPONSES = set(
     [G_DISCARD, G_UNSOLVED, G_UNSOLVED, G_CLAUSE_FAIL, G_SINGLE_SOLVED,
-     G_SINGLE_UNSOLVED, NO_SUBS])
+     G_SINGLE_UNSOLVED, NO_SUBS, G_NPROCESSED])

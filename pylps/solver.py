@@ -5,10 +5,11 @@ from pylps.constants import *
 from pylps.exceptions import *
 from pylps.utils import *
 
-
 from pylps.config import CONFIG
-from pylps.logic_objects import TemporalVar
 from pylps.kb import KB
+
+from pylps.logic_objects import TemporalVar
+from pylps.solver_objects import SolverGoal
 
 from pylps.unifier import constraints_satisfied, unify_fact
 
@@ -17,12 +18,12 @@ def solve_multigoal(multigoal, cycle_time):
     solved_cnt = 0
     for goal in multigoal.goals:
         response = solve_goal(goal, multigoal.subs, cycle_time)
-        if response is G_DISCARD:
+        if response.result is G_DISCARD:
             return response
-        elif response is G_UNSOLVED:
+        elif response.result is G_UNSOLVED:
             # Handle unsolved subgoal
             pass
-        elif response is G_SOLVED:
+        elif response.result is G_SOLVED:
             solved_cnt += 1
 
     return G_SOLVED if solved_cnt == len(multigoal.goals) else G_UNSOLVED
@@ -53,6 +54,12 @@ def solve_goal(goal, cur_subs, cycle_time):
     goal_object = copy.deepcopy(goal_object_original)
     # print(goal, subs, cycle_time, temporal, cycle_temporal_sub_used)
 
+    ret = SolverGoal(
+        goal=goal_object,
+        cur_subs=cur_subs,
+        goal_temporal=goal_temporal_vars
+    )
+
     KB_clauses = KB.get_clauses(goal_object_original)
 
     if CONFIG.single_clause:
@@ -69,13 +76,14 @@ def solve_goal(goal, cur_subs, cycle_time):
                 cycle_time
             )
 
-            if clause_res is G_CLAUSE_FAIL:
+            if clause_res.result is G_CLAUSE_FAIL:
                 continue
 
-            if clause_res is G_SOLVED or clause_res is G_DISCARD:
-                return clause_res
+            if clause_res.result is G_SOLVED or clause_res.result is G_DISCARD:
+                ret.update_result(clause_res.result)
+                return ret
     else:
-        clause_res, new_subs = solve_goal_single(
+        clause_res = solve_goal_single(
             goal,
             cur_subs,
             cycle_time
@@ -83,7 +91,9 @@ def solve_goal(goal, cur_subs, cycle_time):
 
         print(clause_res, new_subs)
 
-    return G_UNSOLVED
+    ret.clear_subs()
+    ret.update_result(G_UNSOLVED)
+    return ret
 
 
 def solve_goal_complex(clause, goal_object, goal_temporal_vars, cur_subs,
@@ -93,37 +103,49 @@ def solve_goal_complex(clause, goal_object, goal_temporal_vars, cur_subs,
     clause_goal_object = clause_goal[0]  # This may cause issues
     subs = copy.deepcopy(cur_subs)  # Create a new subs object
 
+    ret = SolverGoal(
+        goal=goal_object,
+        cur_subs=subs,
+        goal_temporal=goal_temporal_vars,
+        result=G_UNSOLVED
+    )
+
     # TODO: FIX / CHANGE THIS
     # Check if the objects match
     if clause_goal_object != goal_object:
-        return G_UNSOLVED
+        return ret
 
     for req in clause.reqs:
-        response, new_subs = solve_goal_single(req, subs, cycle_time)
+        single_res = solve_goal_single(req, subs, cycle_time)
 
-        if response is G_DISCARD or response is G_CLAUSE_FAIL:
-            return response
+        if (single_res.result is G_DISCARD or
+                single_res.result is G_CLAUSE_FAIL):
+            return single_res
 
-        if new_subs:
-            subs.update(new_subs)
+        if single_res.new_subs:
+            ret.update_subs(single_res.new_subs)
 
     # Check if can meet all the temporal reqs for clause
+    combined_subs = {**ret.cur_subs, **ret.new_subs}
     temporal_satisfied_cnt = 0
     for temporal_var in clause_goal[1:]:
-        if var(temporal_var.name) in subs:
+        if var(temporal_var.name) in combined_subs:
             temporal_satisfied_cnt += 1
 
     temporal_satisfied = (temporal_satisfied_cnt == len(clause_goal[1:]))
 
     if temporal_satisfied:
-        goal_temporal_vars = reify(goal_temporal_vars, subs)
+        goal_temporal_vars = reify(goal_temporal_vars, combined_subs)
 
         if not strictly_increasing(goal_temporal_vars):
-            return G_DISCARD
+            ret.clear_subs()
+            ret.update_result(G_DISCARD)
+            return ret
 
-        return G_SOLVED
+        ret.update_result(G_SOLVED)
+        return ret
 
-    return G_UNSOLVED
+    return ret
 
 
 def solve_goal_single(req, subs, cycle_time):
@@ -142,6 +164,12 @@ def solve_goal_single(req, subs, cycle_time):
         req_temporal_satisfied = True
         req_object = req
 
+    ret = SolverGoal(
+        goal=req_object,
+        cur_subs=copy.deepcopy(subs),
+        goal_temporal=req_temporal_vars
+    )
+
     reify_req = None
 
     if req_temporal_vars:
@@ -150,12 +178,15 @@ def solve_goal_single(req, subs, cycle_time):
             reify_req = (reify_req[0], reify_req[0] + 1)
 
             # This should be reviewed if fails
-            new_subs.update(unify(req_temporal_vars, reify_req))
+            ret.update_subs(unify(req_temporal_vars, reify_req))
+            # new_subs.update(unify(req_temporal_vars, reify_req))
 
             reify_valid = reify_req[0] == cycle_time
 
             if not reify_valid:
-                return G_DISCARD, NO_SUBS
+                ret.clear_subs()
+                ret.update_result(G_DISCARD)
+                return ret
         else:
             raise UnhandledOutcomeError(reify_req)
 
@@ -170,12 +201,15 @@ def solve_goal_single(req, subs, cycle_time):
     # print(req_temporal_satisfied)
 
     if req_temporal_satisfied:
-        req_temporal_vars = reify(req_temporal_vars, new_subs)
+        combined_subs = {**ret.cur_subs, **ret.new_subs}
+        req_temporal_vars = reify(req_temporal_vars, combined_subs)
         if req_object.BaseClass is ACTION:
             # Unify with the KB (but for now is a simple check)
             # Goal cannot be solved, discard
             if not constraints_satisfied(req_object):
-                return G_CLAUSE_FAIL, NO_SUBS
+                ret.clear_subs()
+                ret.update_result(G_CLAUSE_FAIL)
+                return ret
 
             KB.log_action(req_object, req_temporal_vars)
 
@@ -195,7 +229,8 @@ def solve_goal_single(req, subs, cycle_time):
                     else:
                         raise(UnknownOutcomeError(outcome[0]))
 
-                return G_SINGLE_SOLVED, new_subs
+                ret.update_result(G_SINGLE_SOLVED)
+                return ret
             else:
                 pass
                 # raise UnhandledObjectError("ERROR")
@@ -205,8 +240,12 @@ def solve_goal_single(req, subs, cycle_time):
                 print(unify_fact_res)
                 return G_SINGLE_SOLVED, new_subs
 
-            return G_DISCARD, NO_SUBS
+            ret.clear_subs()
+            ret.update_result(G_DISCARD)
+            return ret
         else:
             raise UnhandledObjectError(req_object.BaseClass)
 
-    return G_SINGLE_UNSOLVED, NO_SUBS
+    ret.clear_subs()
+    ret.update_result(G_UNSOLVED)
+    return ret
