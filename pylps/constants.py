@@ -21,7 +21,11 @@ A_INITIATE = 'initiate'
 F_INITIATE = 'fluent_initiate'
 F_TERMINATE = 'fluent_terminate'
 
-# GOAL STATUS
+# Goal related stuff
 G_DISCARD = 'goal_discard'
 G_SOLVED = 'goal_solved'
 G_UNSOLVED = 'goal_unsolved'
+G_CLAUSE_FAIL = 'goal_clause_fail'
+G_SINGLE_SOLVED = 'goal_single_solved'
+G_SINGLE_UNSOLVED = 'goal_single_unsolved'
+NO_SUBS = None

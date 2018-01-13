@@ -22,8 +22,6 @@ reactive_rule(country(X)).then(
 
 execute()
 
-# show_kb_rules()
-
 show_kb_log()
 
 
