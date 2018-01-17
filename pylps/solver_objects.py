@@ -1,4 +1,5 @@
 from unification import *
+from collections import defaultdict
 
 from pylps.constants import *
 
@@ -6,7 +7,8 @@ from pylps.constants import *
 class SolverGoal(object):
     BaseClass = SOLVER_GOAL
 
-    def __init__(self, goal, subs=None, result=G_NPROCESSED):
+    def __init__(self, goal, subs=None, temporal_sub_used=False,
+                 result=G_NPROCESSED):
         self._goal = goal
 
         try:
@@ -22,7 +24,8 @@ class SolverGoal(object):
         self._subs = subs
         self._result = result
         self._new_subs = {}
-        self._new_subs_options = []
+        self._new_subs_options = defaultdict(list)
+        self.temporal_sub_used = False
 
     def __repr__(self):
         ret = "SolverGoal\n"
@@ -72,4 +75,6 @@ class SolverGoal(object):
         return self._new_subs_options
 
     def set_new_subs_options(self, subs):
-        self._new_subs_options = subs
+        for sub_list in subs:
+            for var, item in sub_list.items():
+                self._new_subs_options[var].append({var: item})

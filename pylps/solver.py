@@ -8,13 +8,15 @@ from pylps.utils import *
 from pylps.config import CONFIG
 from pylps.kb import KB
 
-from pylps.logic_objects import TemporalVar
+from pylps.kb_objects import MultiGoal
 from pylps.solver_objects import SolverGoal
+from pylps.lps_objects import LPSObject, GoalClause
+
 
 from pylps.unifier import constraints_satisfied, unify_fact
 
 
-def solve_multigoal(multigoal, cycle_time):
+def solve_multigoal(multigoal: MultiGoal, cycle_time: int) -> bool:
     solved_cnt = 0
     for goal in multigoal.goals:
         response = solve_goal(goal, multigoal.subs, cycle_time)
@@ -23,20 +25,19 @@ def solve_multigoal(multigoal, cycle_time):
         elif response.result is G_UNSOLVED:
             # Handle unsolved subgoal
             pass
-        elif response.result is G_SOLVED:
+        elif response.result in SOLVED_RESPONSES:
             solved_cnt += 1
+            multigoal.update_subs(response.new_subs)
+
+        # print(response.result)
 
     return G_SOLVED if solved_cnt == len(multigoal.goals) else G_UNSOLVED
 
 
-def solve_goal(goal, subs, cycle_time):
+def solve_goal(goal: LPSObject, subs: dict, cycle_time: int) -> SolverGoal:
     # requirements = set()
 
-    # Check if this goal is associated with some clause
-    # This will match the first clause available
-    cycle_temporal_sub_used = False
-
-    # print(goal, subs, cycle_time, temporal, cycle_temporal_sub_used)
+    # print(goal, subs, cycle_time)
 
     solver_goal = SolverGoal(
         goal=copy.deepcopy(goal),
@@ -46,7 +47,7 @@ def solve_goal(goal, subs, cycle_time):
     if solver_goal.temporal_vars:
         for temporal_var in solver_goal.temporal_vars:
             if temporal_var in subs:
-                cycle_temporal_sub_used = True
+                solver_goal.temporal_sub_used = True
 
     KB_clauses = KB.get_clauses(solver_goal.obj)
 
@@ -58,7 +59,6 @@ def solve_goal(goal, subs, cycle_time):
             solver_goal = solve_goal_complex(
                 clause,
                 solver_goal,
-                cycle_temporal_sub_used,
                 cycle_time
             )
 
@@ -71,13 +71,16 @@ def solve_goal(goal, subs, cycle_time):
     else:
         solver_goal = solve_goal_single(solver_goal, cycle_time)
 
-        print(solver_goal)
+        return solver_goal
 
     solver_goal.clear_subs()
     return solver_goal
 
 
-def solve_goal_complex(clause, goal, cycle_temporal_sub_used, cycle_time):
+def solve_goal_complex(
+        clause: GoalClause,
+        goal: SolverGoal,
+        cycle_time: int) -> SolverGoal:
 
     clause_goal = clause.goal[0]
     clause_goal_object = clause_goal[0]  # This may cause issues
@@ -90,7 +93,8 @@ def solve_goal_complex(clause, goal, cycle_temporal_sub_used, cycle_time):
     for req in clause.reqs:
         req_goal = SolverGoal(
             goal=req,
-            subs=copy.deepcopy(goal.subs)
+            subs=copy.deepcopy(goal.subs),
+            temporal_sub_used=goal.temporal_sub_used
         )
 
         req_goal = solve_goal_single(req_goal, cycle_time)
@@ -128,28 +132,44 @@ def solve_goal_complex(clause, goal, cycle_temporal_sub_used, cycle_time):
     return goal
 
 
-def solve_goal_single(goal, cycle_time):
+def solve_goal_single(goal: SolverGoal, cycle_time: int) -> SolverGoal:
 
     reify_goal = None
     goal_temporal_satisfied = True
+    combined_subs = goal.subs
 
     if goal.temporal_vars:
-        reify_goal = reify(goal.temporal_vars, goal.subs)
-        if isinstance(reify_goal[0], int):
-            reify_goal = (reify_goal[0], reify_goal[0] + 1)
+        if not goal.temporal_sub_used:
+            for temporal_var in goal.temporal_vars:
+                if temporal_var in goal.subs:
+                    continue
 
-            # This should be reviewed if fails
-            goal.update_subs(unify(goal.temporal_vars, reify_goal))
-            # new_subs.update(unify(req_temporal_vars, reify_req))
+                if not goal.temporal_sub_used:
+                    goal.update_subs(unify(temporal_var, cycle_time))
 
-            reify_valid = reify_goal[0] == cycle_time
+                    # Update the combined subs
+                    combined_subs = {**goal.subs, **goal.new_subs}
+                    goal.temporal_sub_used = True
 
-            if not reify_valid:
-                goal.clear_subs()
-                goal.update_result(G_DISCARD)
-                return goal
+        if goal.obj.BaseClass is ACTION:
+            reify_goal = reify(goal.temporal_vars, combined_subs)
+            if isinstance(reify_goal[0], int):
+                reify_goal = (reify_goal[0], reify_goal[0] + 1)
+
+                # This should be reviewed if fails
+                goal.update_subs(unify(goal.temporal_vars, reify_goal))
+                # new_subs.update(unify(req_temporal_vars, reify_req))
+
+                reify_valid = reify_goal[0] == cycle_time
+
+                if not reify_valid:
+                    goal.clear_subs()
+                    goal.update_result(G_DISCARD)
+                    return goal
+            else:
+                raise UnknownOutcomeError(reify_goal)
         else:
-            raise UnhandledOutcomeError(reify_goal)
+            raise UnknownOutcomeError("Temporal var without action")
 
         goal_temporal_satisfied_cnt = 0
         for item in reify_goal:
@@ -170,7 +190,7 @@ def solve_goal_single(goal, cycle_time):
                 goal.update_result(G_CLAUSE_FAIL)
                 return goal
 
-            KB.log_action(goal.obj, goal_temporal_vars)
+            KB.log_action(goal, combined_subs)
 
             causalities = KB.exists_causality(goal.obj)
 
@@ -191,8 +211,8 @@ def solve_goal_single(goal, cycle_time):
                 goal.update_result(G_SINGLE_SOLVED)
                 return goal
             else:
-                pass
-                # raise UnhandledObjectError("ERROR")
+                goal.update_result(G_SINGLE_SOLVED)
+                return goal
         elif goal.obj.BaseClass is FACT:
             unify_fact_res = unify_fact(goal.obj)
             if unify_fact_res:

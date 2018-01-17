@@ -23,6 +23,10 @@ def unify_args(args_with_var, args_grounded):
 def reify_args(args_with_var, substitutions):
     reify_args = []
     for arg in args_with_var:
+        if isinstance(arg, str) or isinstance(arg, int):
+            reify_args.append(arg)
+            continue
+
         if arg.BaseClass == VARIABLE:
             res = reify(var(arg.name), substitutions)
             if isinstance(res, Var):

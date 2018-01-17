@@ -3,6 +3,7 @@ Class for the knowledge base
 '''
 from ordered_set import OrderedSet
 from pylps.constants import *
+from pylps.utils import *
 from pylps.kb_objects import Causality, MultiGoal
 
 
@@ -16,6 +17,7 @@ class _KB(object):
     _goals = OrderedSet()
     _observations = []
     _constraints = []
+    _fact_used_reactive = set()
 
     log = []
 
@@ -77,11 +79,11 @@ class _KB(object):
         self._goals.add(MultiGoal(goals, subs))
 
     def remove_goals(self, goals):
-        for goal in goals:
-            try:
-                self._goals.remove(goal)
-            except KeyError:
-                pass
+        new_goals = OrderedSet()
+        for goal in self._goals:
+            if goal not in goals:
+                new_goals.add(goal)
+        self._goals = new_goals
 
     def reset_goals(self):
         self._goals = OrderedSet()
@@ -185,9 +187,19 @@ class _KB(object):
         except KeyError:
             return False
 
-    def get_facts(self, fact):
+    def get_facts(self, fact, reactive_rule=False):
         try:
-            return self.facts[fact.name]
+            facts = self.facts[fact.name]
+
+            if not reactive_rule:
+                return facts
+
+            # Check if a fact was used to trigger a reactive rule
+            if fact.name in self._fact_used_reactive:
+                return []
+
+            self._fact_used_reactive.add(fact.name)
+            return facts
         except KeyError:
             return []
 
@@ -197,7 +209,13 @@ class _KB(object):
 
     ''' Logs '''
 
-    def log_action(self, action, temporal_vars):
+    def log_action(self, goal, subs):
+        action = goal.obj
+        action_args = reify_args(action.args, subs)
+        goal_temporal_vars = reify(goal.temporal_vars, subs)
+        self.log.append([ACTION, action.name, action_args, goal_temporal_vars])
+
+    def log_action_obs(self, action, temporal_vars):
         self.log.append([ACTION, action.name, action.args, temporal_vars])
 
     def log_fluent(self, fluent, time, action_type):

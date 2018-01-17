@@ -33,7 +33,8 @@ def unify_conds(conds, cycle_time):
                 raise UnhandledObjectError(cond_object.BaseClass)
         else:
             if cond_object.BaseClass is FACT:
-                substitutions.extend(unify_fact(cond_object))
+                substitutions.extend(
+                    unify_fact(cond_object, reactive_rule=True))
             else:
                 raise UnhandledObjectError(cond_object.BaseClass)
 
@@ -56,9 +57,9 @@ def unify_fluent(cond, cycle_time):
     return substitutions
 
 
-def unify_fact(fact):
+def unify_fact(fact, reactive_rule=False):
     substitutions = []
-    for kb_fact in KB.get_facts(fact):
+    for kb_fact in KB.get_facts(fact, reactive_rule):
         unify_res = unify_args(fact.args, kb_fact.args)
         substitutions.append(unify_res)
     return substitutions
@@ -82,8 +83,6 @@ def reify_goals(goals, substitution, defer=False):
 
     new_goals_set = set()  # To prevent repeat goals
     new_goals = []         # To keep ordering constant
-
-    # print(goals, substitution)
 
     for goal in goals:
         temporal = False
@@ -129,7 +128,7 @@ def reify_goals(goals, substitution, defer=False):
             if combined_goal not in new_goals_set:
                 new_goals.append(combined_goal)
 
-    return new_goals
+    return tuple(g for g in new_goals)
 
 
 def _reify_event(goal, substitution):
@@ -157,7 +156,7 @@ def unify_obs(observation):
     end = observation.end
     causality = KB.exists_causality(action)
 
-    KB.log_action(action, (start, end))
+    KB.log_action_obs(action, (start, end))
 
     # If there is causality, need to make the check
     if causality:

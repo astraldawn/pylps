@@ -68,7 +68,7 @@ def false_if(*args):
 
 def initialise(max_time=5):
     # Must call create object directly due to stack issues
-    create_objects(['T1', 'T2'], TEMPORAL_VARIABLE)
+    create_objects(['T1', 'T2', 'T3', 'T4', 'T5'], TEMPORAL_VARIABLE)
     ENGINE.set_params(max_time=max_time)
 
 

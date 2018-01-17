@@ -53,6 +53,7 @@ class _ENGINE(object):
 
         for multigoal in KB.goals:
             # If the goal has been solved, do not attempt further solves
+            # print(multigoal._to_tuple())
             if multigoal.goals in solved_group:
                 discarded_goals.add(multigoal)
                 continue
@@ -61,11 +62,15 @@ class _ENGINE(object):
 
             if multigoal_respose is G_SOLVED:
                 solved_goals.add(multigoal)
-                solved_group.add(multigoal.goals)
+
+                # To review this, it might cause issues
+                solved_group.add(multigoal)
             elif multigoal_respose is G_DISCARD:
                 discarded_goals.add(multigoal)
 
         # print(KB.goals)
+        # print(solved_goals)
+        # print(discarded_goals)
         KB.remove_goals(solved_goals)
         KB.remove_goals(discarded_goals)
 

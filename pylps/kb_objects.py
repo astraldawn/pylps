@@ -46,7 +46,7 @@ class MultiGoal(object):
         self._subs = subs
 
     def __repr__(self):
-        ret = "Goals: %s\n" % (self._goals)
+        ret = "Goals: %s\n" % (', '.join(str(g) for g in self.goals))
         ret += "Subs: %s\n" % (self._subs)
         return ret
 
@@ -68,3 +68,6 @@ class MultiGoal(object):
     @property
     def subs(self):
         return self._subs
+
+    def update_subs(self, subs):
+        self._subs.update(subs)
