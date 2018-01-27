@@ -1,4 +1,5 @@
 from pylps.constants import *
+from pylps.config import CONFIG
 from pylps.creator import *
 from pylps.lps_objects import GoalClause, Observation, ReactiveRule
 from pylps.kb import KB
@@ -52,16 +53,30 @@ def goal(*args):
     return new_clause
 
 
+def false_if(*args):
+    converted = []
+    for arg in args:
+        if isinstance(arg, tuple):
+            converted.append(arg)
+        else:
+            converted.append((arg, True))
+    KB.add_constraint(converted)
+
+
 ''' Core loop '''
 
 
 def initialise(max_time=5):
     # Must call create object directly due to stack issues
-    create_objects(['T1', 'T2'], TEMPORAL_VARIABLE)
+    create_objects(['T1', 'T2', 'T3', 'T4', 'T5'], TEMPORAL_VARIABLE)
     ENGINE.set_params(max_time=max_time)
 
 
-def execute():
+def execute(single_clause=True):
+    options_dict = {
+        'single_clause': single_clause
+    }
+    CONFIG.set_options(options_dict)
     ENGINE.run()
 
 
@@ -74,6 +89,10 @@ def show_kb_causalities():
 
 def show_kb_clauses():
     return KB.show_clauses()
+
+
+def show_kb_constraints():
+    return KB.show_constraints()
 
 
 def show_kb_facts():

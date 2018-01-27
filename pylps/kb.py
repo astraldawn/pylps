@@ -1,8 +1,10 @@
 '''
 Class for the knowledge base
 '''
+from ordered_set import OrderedSet
 from pylps.constants import *
-from pylps.kb_objects import Causality
+from pylps.utils import *
+from pylps.kb_objects import Causality, MultiGoal
 
 
 class _KB(object):
@@ -11,9 +13,11 @@ class _KB(object):
     fluents = {}
     reactive_rules = []
 
-    _clauses = []
-    _goals = set()
+    _clauses = {}
+    _goals = OrderedSet()
     _observations = []
+    _constraints = []
+    _fact_used_reactive = set()
 
     log = []
 
@@ -36,17 +40,15 @@ class _KB(object):
         if fluent.name not in self.fluents:
             self.fluents[fluent.name] = set()
 
-        fluent_tuple = fluent.to_tuple()
-
-        if fluent_tuple in self.fluents[fluent.name]:
+        if fluent in self.fluents[fluent.name]:
             return False
 
-        self.fluents[fluent.name].add(fluent.to_tuple())
+        self.fluents[fluent.name].add(fluent)
         return True
 
     def exists_fluent(self, fluent):
         try:
-            return fluent.to_tuple() in self.fluents[fluent.name]
+            return fluent in self.fluents[fluent.name]
         except KeyError:
             return False
 
@@ -56,7 +58,7 @@ class _KB(object):
             self.fluents[fluent.name] = set()
 
         try:
-            self.fluents[fluent.name].remove(fluent.to_tuple())
+            self.fluents[fluent.name].remove(fluent)
         except KeyError:
             # Fluent removal fails
             return False
@@ -73,14 +75,18 @@ class _KB(object):
     def goals(self):
         return self._goals
 
-    def add_goals(self, goals):
-        self._goals.update(goals)
+    def add_goals(self, goals, subs):
+        self._goals.add(MultiGoal(goals, subs))
 
     def remove_goals(self, goals):
-        self._goals = self._goals - goals
+        new_goals = OrderedSet()
+        for goal in self._goals:
+            if goal not in goals:
+                new_goals.add(goal)
+        self._goals = new_goals
 
     def reset_goals(self):
-        self._goals = set()
+        self._goals = OrderedSet()
 
     ''' Clauses '''
 
@@ -89,10 +95,17 @@ class _KB(object):
         return self._clauses
 
     def add_clause(self, clause):
-        self._clauses.append(clause)
+        try:
+            self._clauses[clause.name].add(clause)
+        except KeyError:
+            self._clauses[clause.name] = OrderedSet()
+            self._clauses[clause.name].add(clause)
+
+    def get_clauses(self, goal_object):
+        return self._clauses.get(goal_object.name, [])
 
     def show_clauses(self):
-        for clause in self._clauses:
+        for name, clause in self._clauses.items():
             print(clause)
 
     ''' Causality '''
@@ -104,12 +117,6 @@ class _KB(object):
         self.causalities[action.name].add_outcome(
             [causality_type, fluent])
 
-    def add_causality_constraint(self, action, fluents):
-        if action.name not in self.causalities:
-            self.causalities[action.name] = Causality(action)
-
-        self.causalities[action.name].add_constraint(fluents)
-
     def add_causality_req(self, action, items):
         if action.name not in self.causalities:
             self.causalities[action.name] = Causality(action)
@@ -117,10 +124,7 @@ class _KB(object):
         self.causalities[action.name].add_req(items)
 
     def exists_causality(self, action):
-        try:
-            return self.causalities[action.name]
-        except KeyError:
-            return False
+        return self.causalities.get(action.name, False)
 
     def show_causalities(self):
         for action_name, causality in self.causalities.items():
@@ -135,20 +139,69 @@ class _KB(object):
     def add_observation(self, observation):
         self._observations.append(observation)
 
+    ''' Constraints '''
+
+    @property
+    def constraints(self):
+        return self._constraints
+
+    def add_constraint(self, constraint):
+        self._constraints.append(constraint)
+
+    def get_constraints(self, action):
+        relevant_constraints = []
+        for constraint in self._constraints:
+            if (action, True) in constraint:
+                relevant_constraints.append(constraint)
+        return relevant_constraints
+
+    def show_constraints(self):
+        for constraint in self._constraints:
+            print(constraint)
+
     ''' Facts '''
 
     def add_fact(self, fact):
         if fact.name not in self.facts:
-            self.facts[fact.name] = set()
+            self.facts[fact.name] = OrderedSet()
 
-        self.facts[fact.name].add(fact.to_tuple())
+        # Does it contain a variable?
+        contains_var = False
+        for arg in fact.args:
+            try:
+                if arg.BaseClass == VARIABLE:
+                    contains_var = True
+            except AttributeError:
+                pass
+
+        # Do not save facts that are not grounded
+        if contains_var:
+            return
+
+        self.facts[fact.name].add(fact)
 
     def exists_fact(self, fact):
         try:
             facts = self.facts[fact.name]
-            return fact.to_tuple() in facts
+            return fact in facts
         except KeyError:
             return False
+
+    def get_facts(self, fact, reactive_rule=False):
+        try:
+            facts = self.facts[fact.name]
+
+            if not reactive_rule:
+                return facts
+
+            # Check if a fact was used to trigger a reactive rule
+            if fact.name in self._fact_used_reactive:
+                return []
+
+            self._fact_used_reactive.add(fact.name)
+            return facts
+        except KeyError:
+            return []
 
     def show_facts(self):
         for _, fact in self.facts.items():
@@ -156,7 +209,13 @@ class _KB(object):
 
     ''' Logs '''
 
-    def log_action(self, action, temporal_vars):
+    def log_action(self, goal, subs):
+        action = goal.obj
+        action_args = reify_args(action.args, subs)
+        goal_temporal_vars = reify(goal.temporal_vars, subs)
+        self.log.append([ACTION, action.name, action_args, goal_temporal_vars])
+
+    def log_action_obs(self, action, temporal_vars):
         self.log.append([ACTION, action.name, action.args, temporal_vars])
 
     def log_fluent(self, fluent, time, action_type):

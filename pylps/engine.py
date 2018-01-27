@@ -1,6 +1,7 @@
 from pylps.constants import *
 from pylps.kb import KB
-from pylps.unifier import unify_conds, reify_goals, unify_goal, unify_obs
+from pylps.solver import solve_multigoal
+from pylps.unifier import unify_conds, reify_goals, unify_obs
 
 
 class _ENGINE(object):
@@ -17,8 +18,8 @@ class _ENGINE(object):
 
         while self.current_time <= self.max_time:
             self._check_observations()
-            self._check_goals()
             self._check_rules()
+            self._check_goals()
 
             self.current_time += 1
 
@@ -32,27 +33,46 @@ class _ENGINE(object):
         # Check rules
         for rule in KB.rules:
             # Check conditions of the rules
-            substitution = unify_conds(rule.conds, self.current_time)
+            substitutions = unify_conds(rule.conds, self.current_time)
 
-            # If there is no substitution, go to the next rule
-            if not substitution:
+            # If there are no substitutions, go to the next rule
+            if not substitutions:
                 continue
 
-            new_goals = reify_goals(rule.goals, substitution)
-            KB.add_goals(new_goals)
+            for substitution in substitutions:
+                new_goals = reify_goals(rule.goals, substitution, defer=True)
+                KB.add_goals(new_goals, substitution)
 
     def _check_goals(self):
         '''
         Work through the goals individually
         '''
+        discarded_goals = set()
         solved_goals = set()
+        solved_group = set()
 
-        for goal in KB.goals:
-            # Check if the goal exists and attempt to add in a time
-            if unify_goal(goal, self.current_time):
-                solved_goals.add(goal)
+        for multigoal in KB.goals:
+            # If the goal has been solved, do not attempt further solves
+            # print(multigoal._to_tuple())
+            if multigoal.goals in solved_group:
+                discarded_goals.add(multigoal)
+                continue
 
+            multigoal_respose = solve_multigoal(multigoal, self.current_time)
+
+            if multigoal_respose is G_SOLVED:
+                solved_goals.add(multigoal)
+
+                # To review this, it might cause issues
+                solved_group.add(multigoal)
+            elif multigoal_respose is G_DISCARD:
+                discarded_goals.add(multigoal)
+
+        # print(KB.goals)
+        # print(solved_goals)
+        # print(discarded_goals)
         KB.remove_goals(solved_goals)
+        KB.remove_goals(discarded_goals)
 
 
 ENGINE = _ENGINE()

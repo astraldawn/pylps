@@ -19,7 +19,7 @@ observe(refill.frm(7, 8))
 initially(water)
 
 reactive_rule(fire.at(T1)).then(
-    deal_with_fire.frm(T1, T2))
+    deal_with_fire.frm(T2, T3))
 
 goal(deal_with_fire.frm(T1, T2)).requires(
     eliminate.frm(T1, T2))
@@ -30,7 +30,7 @@ eliminate.terminates(fire)
 eliminate.terminates(water)
 refill.initiates(water)
 
-eliminate.false_if(fire, ~water)
+false_if(fire, ~water, eliminate)
 
 execute()
 

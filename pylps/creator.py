@@ -35,7 +35,7 @@ def ClassFactory(name, arity, base_type):
                 raise TypeError('Please supply %s arguments' % arity)
             self.args = [arg for arg in args]
             self.created = True
-            KB.add_fact(self)
+            KB.add_fact(self)  # Add the declared fact straight to KB
 
     attrs['__init__'] = __init__
     attrs['name'] = name

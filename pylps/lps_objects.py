@@ -1,4 +1,5 @@
 from pylps.constants import *
+from pylps.exceptions import *
 from pylps.kb import KB
 
 
@@ -6,7 +7,7 @@ class LPSObject(object):
     BaseClass = None
 
     def __repr__(self):
-        ret = "[%s %s, args: %s]" % (self.BaseClass, self.name, self.args)
+        ret = "| %s %s, args: %s |" % (self.BaseClass, self.name, self.args)
         return ret
 
     # def __eq__(self, other):
@@ -14,6 +15,12 @@ class LPSObject(object):
     #     if isinstance(self, other.__class__):
     #         return self.__dict__ == other.__dict__
     #     return False
+
+    def __eq__(self, other):
+        return self.to_tuple() == other.to_tuple()
+
+    def __hash__(self):
+        return hash(self.to_tuple())
 
     def to_tuple(self):
         return (
@@ -34,15 +41,6 @@ class Action(LPSObject):
 
     def terminates(self, fluent):
         KB.add_causality_outcome(self, fluent, A_TERMINATE)
-        return self
-
-    def false_if(self, *args):
-        converted = [(arg, True) for arg in args
-                     if not isinstance(arg, tuple)]
-        converted += [arg for arg in args
-                      if isinstance(arg, tuple)]
-
-        KB.add_causality_constraint(self, converted)
         return self
 
     def iff(self, *args):
@@ -96,7 +94,7 @@ class ReactiveRule(object):
     def __repr__(self):
         ret = "Reactive rule\n"
         ret += "Cond: %s\n" % (self.conds)
-        ret += "Goals: %s\n" % (self.goals)
+        ret += "Goals: %s\n" % (', '.join(str(g) for g in self.goals))
         return ret
 
     @property
@@ -112,11 +110,19 @@ class ReactiveRule(object):
 
 
 class GoalClause(object):
+    '''
+    Goals are also known as macro actions
+    '''
     BaseClass = CLAUSE
 
     def __init__(self, goal):
         self._goal = goal
         self._requires = None
+
+        try:
+            self.name = goal.name
+        except AttributeError:
+            self.name = goal[0][0].name
 
     def __repr__(self):
         ret = "Goal clause\n"
