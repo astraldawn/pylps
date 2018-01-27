@@ -30,7 +30,7 @@ class SolverGoal(object):
     def __repr__(self):
         ret = "SolverGoal\n"
         ret += "Goal object: %s\n" % (self._obj)
-        ret += "Goal temporal vars: %s\n" % (self._temporal_vars)
+        ret += "Goal temporal vars: %s\n" % (str(self._temporal_vars))
         ret += "Result: %s\n" % (self._result)
         ret += "Cur subs: %s\n" % (self._subs)
         ret += "New subs: %s\n" % (self._new_subs)

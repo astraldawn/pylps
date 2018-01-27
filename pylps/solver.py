@@ -84,6 +84,9 @@ def solve_goal_complex(
 
     clause_goal = clause.goal[0]
     clause_goal_object = clause_goal[0]  # This may cause issues
+    clause_temporal_vars = tuple(
+        var(temporal_var.name) for temporal_var in clause_goal[1:]
+    )
 
     # TODO: FIX / CHANGE THIS
     # Check if the objects match
@@ -91,13 +94,16 @@ def solve_goal_complex(
         return goal
 
     for req in clause.reqs:
+        combined_subs = {**goal.subs, **goal.new_subs}
         req_goal = SolverGoal(
             goal=req,
-            subs=copy.deepcopy(goal.subs),
+            subs=copy.deepcopy(combined_subs),
             temporal_sub_used=goal.temporal_sub_used
         )
 
         req_goal = solve_goal_single(req_goal, cycle_time)
+
+        # print(req_goal)
 
         if (req_goal.result is G_DISCARD or
                 req_goal.result is G_CLAUSE_FAIL):
@@ -106,7 +112,11 @@ def solve_goal_complex(
             return goal
 
         if req_goal.new_subs:
+            # print(req_goal.subs)
+            # print(req_goal.new_subs)
             goal.update_subs(req_goal.new_subs)
+
+        goal.temporal_sub_used = req_goal.temporal_sub_used
 
     # Check if can meet all the temporal reqs for clause
     combined_subs = {**goal.subs, **goal.new_subs}
@@ -118,7 +128,7 @@ def solve_goal_complex(
     temporal_satisfied = (temporal_satisfied_cnt == len(clause_goal[1:]))
 
     if temporal_satisfied:
-        goal_temporal_vars = reify(goal.temporal_vars, combined_subs)
+        goal_temporal_vars = reify(clause_temporal_vars, combined_subs)
 
         if strictly_increasing(goal_temporal_vars):
             goal.update_result(G_SOLVED)
@@ -160,12 +170,12 @@ def solve_goal_single(goal: SolverGoal, cycle_time: int) -> SolverGoal:
                 goal.update_subs(unify(goal.temporal_vars, reify_goal))
                 # new_subs.update(unify(req_temporal_vars, reify_req))
 
-                reify_valid = reify_goal[0] == cycle_time
+                # reify_valid = reify_goal[0] == cycle_time
 
-                if not reify_valid:
-                    goal.clear_subs()
-                    goal.update_result(G_DISCARD)
-                    return goal
+                # if not reify_valid:
+                #     goal.clear_subs()
+                #     goal.update_result(G_DISCARD)
+                #     return goal
             else:
                 raise UnknownOutcomeError(reify_goal)
         else:

@@ -19,7 +19,7 @@ flammable('sofa')
 flammable('bed')
 
 reactive_rule(fire.at(T1)).then(
-    deal_with_fire.frm(T1, T2))
+    deal_with_fire.frm(T2, T3))
 
 goal(deal_with_fire.frm(T1, T2)).requires(
     eliminate.frm(T1, T2))

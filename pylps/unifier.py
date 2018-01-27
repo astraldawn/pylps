@@ -65,7 +65,7 @@ def unify_fact(fact, reactive_rule=False):
     return substitutions
 
 
-def reify_goals(goals, substitution, defer=False):
+def reify_goals(goals, subs, defer=False):
     '''
     Note that goals are interative
 
@@ -78,6 +78,35 @@ def reify_goals(goals, substitution, defer=False):
 
     If consequent rules are swapped, should raise some error
     '''
+    temporal = False
+    used_var = set()
+
+    # Checking whether or not a variable is used
+    # Look to combine these
+    for goal in goals:
+        # Temporal check
+        try:
+            goal_object_original = goal[0]
+            temporal = True
+        except TypeError:
+            goal_object_original = goal
+
+        for arg in goal_object_original.args:
+            try:
+                if arg.BaseClass is VARIABLE:
+                    used_var.add(var(arg.name))
+            except TypeError:
+                pass
+
+        if temporal:
+            for temporal_var in goal[1:]:
+                used_var.add(var(temporal_var.name))
+
+    sub_vars = list(subs.keys())
+    for variable in sub_vars:
+        if variable not in used_var:
+            del subs[variable]
+
     if defer:
         return copy.deepcopy(goals)
 
@@ -98,13 +127,13 @@ def reify_goals(goals, substitution, defer=False):
         goal_object = copy.deepcopy(goal_object_original)
 
         goal_object.args = reify_args(
-            goal_object.args, substitution)
+            goal_object.args, subs)
 
         if temporal:
             if goal_object.BaseClass is ACTION:
-                goal_res = _reify_event(goal, substitution)
+                goal_res = _reify_event(goal, subs)
             elif goal_object.BaseClass is EVENT:
-                goal_res = _reify_event(goal, substitution)
+                goal_res = _reify_event(goal, subs)
             else:
                 raise UnhandledObjectError(goal_object.BaseClass)
         else:
