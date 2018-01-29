@@ -66,6 +66,10 @@ class MultiGoal(object):
         return self._goals
 
     def _to_tuple(self):
+        # May use this to attempt to get goal ordering correct
+        # convert = tuple(goal for goal in self._goals) + \
+        #     tuple((sub, val) for sub, val in self._subs.items()) + \
+        #     tuple(goal for goal in self._defer_goals)
         convert = tuple(goal for goal in self._goals) + \
             tuple((sub, val) for sub, val in self._subs.items())
         return convert

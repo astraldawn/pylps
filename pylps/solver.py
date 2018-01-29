@@ -61,8 +61,6 @@ def solve_multigoal(multigoal: MultiGoal, cycle_time: int) -> bool:
 
 
 def solve_goal(goal: LPSObject, subs: dict, cycle_time: int) -> SolverGoal:
-    # requirements = set()
-
     # print(goal, subs, cycle_time)
 
     solver_goal = SolverGoal(
@@ -299,7 +297,6 @@ def solve_goal_single(goal: SolverGoal, cycle_time: int) -> SolverGoal:
                                 max(goal_temporal_vars),
                                 F_INITIATE
                             )
-                        # raise(UnimplementedOutcomeError(outcome[0]))
                     else:
                         raise(UnknownOutcomeError(outcome[0]))
 
