@@ -21,7 +21,7 @@ def test_recurrent_fire_simple():
     ]
 
     # WHEN
-    actual = run_pylps_test_program('recurrent_fire_simple')
+    actual = run_pylps_test_program('recurrent_fire', 'simple')
 
     # THEN
     assert actual == expected
@@ -37,7 +37,7 @@ def test_recurrent_fire_none():
     ]
 
     # WHEN
-    actual = run_pylps_test_program('recurrent_fire_none')
+    actual = run_pylps_test_program('recurrent_fire', 'none')
 
     # THEN
     assert actual == expected
@@ -62,13 +62,13 @@ def test_recurrent_fire_single():
     ]
 
     # WHEN
-    actual = run_pylps_test_program('recurrent_fire_single')
+    actual = run_pylps_test_program('recurrent_fire', 'single')
 
     # THEN
     assert actual == expected
 
 
-def test_recurrent_fire_delay():
+def test_recurrent_fire_delay_success():
     # GIVEN
     expected = [
         fluent_initiate('water', [], 0),
@@ -78,18 +78,11 @@ def test_recurrent_fire_delay():
         fluent_terminate('fire', [], 3),
         fluent_terminate('water', [], 3),
         action('delay', [], (3, 4)),
-        action('ignite', ['bed'], (4, 5)),
-        fluent_initiate('fire', [], 5),
-        action('refill', [], (7, 8)),
-        fluent_initiate('water', [], 8),
-        action('eliminate', [], (8, 9)),
-        fluent_terminate('fire', [], 9),
-        fluent_terminate('water', [], 9),
-        action('delay', [], (9, 10)),
+        action('delay_more', [], (4, 5))
     ]
 
     # WHEN
-    actual = run_pylps_test_program('recurrent_fire_delay')
+    actual = run_pylps_test_program('recurrent_fire', 'delay_success')
 
     # THEN
     assert actual == expected

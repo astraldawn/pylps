@@ -206,8 +206,8 @@ def unify_obs(observation):
 
 def constraints_satisfied(action):
     for constraint in KB.get_constraints(action):
-        true_satis = True
-        false_satis = True
+
+        c_satis = True
         for (obj, state) in constraint:
             if obj == action:
                 continue
@@ -217,17 +217,15 @@ def constraints_satisfied(action):
 
                 # All truth must be satisfied to consider
                 if state and not fluent_exists:
-                    true_satis = False
-
-                if not state and not fluent_exists:
-                    false_satis = False
+                    c_satis = False
+                elif not state and fluent_exists:
+                    c_satis = False
             else:
                 raise UnhandledObjectError(obj.BaseClass)
 
-        if not true_satis:
-            continue
-
-        if not false_satis:
+        # Constraints are false_if, so if any of them evaluate to true,
+        # fails
+        if c_satis:
             return False
 
     return True

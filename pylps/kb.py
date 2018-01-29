@@ -78,6 +78,9 @@ class _KB(object):
     def add_goals(self, goals, subs):
         self._goals.add(MultiGoal(goals, subs))
 
+    def add_multigoal(self, multigoal):
+        self._goals.add(multigoal)
+
     def remove_goals(self, goals):
         new_goals = OrderedSet()
         for goal in self._goals:

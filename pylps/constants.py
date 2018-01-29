@@ -32,6 +32,7 @@ G_UNSOLVED = 'goal_unsolved'
 G_CLAUSE_FAIL = 'goal_clause_fail'
 G_SINGLE_SOLVED = 'goal_single_solved'
 G_SINGLE_UNSOLVED = 'goal_single_unsolved'
+G_DEFER = 'goal_defer'
 NO_SUBS = None
 
 VALID_GOAL_RESPONSES = set(

@@ -12,7 +12,7 @@ def test_map_colouring_no_cons():
     ]
 
     # WHEN
-    actual = run_pylps_test_program('map_colouring_no_cons')
+    actual = run_pylps_test_program('map_colouring', 'no_cons')
 
     # THEN
     assert actual == expected
