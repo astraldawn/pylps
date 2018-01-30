@@ -59,7 +59,6 @@ class _ENGINE(object):
                 continue
 
             solve_multigoal(multigoal, self.current_time)
-            # print(multigoal)
 
             if multigoal.result is G_SOLVED:
                 solved_goals.add(multigoal)

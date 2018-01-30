@@ -40,13 +40,18 @@ def solve_multigoal(multigoal: MultiGoal, cycle_time: int) -> bool:
             if response.result is G_DISCARD:
                 multigoal.update_result(G_DISCARD)
                 return multigoal
-            elif response.result is G_UNSOLVED:
-                raise UnimplementedOutcomeError("multigoal_response_unsolved")
             elif response.result is G_DEFER:
                 multigoal.add_defer_goals(response)
             elif response.result in SOLVED_RESPONSES:
                 multigoal.solved_cnt += 1
                 multigoal.update_subs(response.new_subs)
+            elif response.result is G_CLAUSE_FAIL:
+                # TODO: Treat a clause failure like a discard
+                multigoal.update_result(G_DISCARD)
+                return multigoal
+            else:
+                print(cycle_time, response)
+                raise UnimplementedOutcomeError("solve_multigoal")
 
         # multigoal.update_result(G_UNSOLVED)
 
@@ -127,6 +132,7 @@ def solve_defer_goal(goal: SolverGoal, cycle_time: int) -> SolverGoal:
             raise UnknownOutcomeError("solve_defer_goal")
 
     goal.set_defer_goals(new_defer_goals)
+
     if not goal.defer_goals:
         goal.update_result(G_SOLVED)
     # print(cycle_time, goal)

@@ -11,6 +11,7 @@ create_variables('X')
 create_facts('flammable(_)')
 
 observe(ignite('sofa').frm(1, 2))
+observe(p_init.frm(2, 3))
 observe(ignite('bed').frm(4, 5))
 observe(refill.frm(7, 8))
 
@@ -27,10 +28,6 @@ goal(deal_with_fire.frm(T1, T4)).requires(
     delay.frm(T2, T3),
     delay_more.frm(T3, T4))
 
-goal(deal_with_fire.frm(T1, T2)).requires(
-    escape.frm(T1, T2)
-)
-
 ignite(X).initiates(fire).iff(flammable(X))
 
 eliminate.terminates(fire)
@@ -41,7 +38,7 @@ p_init.initiates(p)
 false_if(eliminate, fire, ~water)
 false_if(delay, p)
 
-execute(single_clause=False)
+execute()
 show_kb_log()
 
 '''

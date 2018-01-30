@@ -1,7 +1,7 @@
 from pylps.core import *
 
 
-initialise(max_time=4)  # Assume all time variables created here
+initialise(max_time=10)  # Assume all time variables created here
 
 create_fluents('fire', 'water', 'p')
 create_actions('eliminate', 'escape', 'refill', 'ignite(_)',
@@ -23,10 +23,14 @@ flammable('bed')
 reactive_rule(fire.at(T1)).then(
     deal_with_fire.frm(T2, T3))
 
-goal(deal_with_fire.frm(T1, T4)).requires(
+'''
+Should this fail immediately if delay fails?
+Or should delay_more be allowed to execute (doing as much as possible)
+'''
+goal(deal_with_fire.frm(T1, T5)).requires(
     eliminate.frm(T1, T2),
     delay.frm(T2, T3),
-    delay_more.frm(T3, T4))
+    delay_more.frm(T4, T5))
 
 ignite(X).initiates(fire).iff(flammable(X))
 
