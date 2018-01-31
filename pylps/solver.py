@@ -34,7 +34,40 @@ def solve_multigoal(multigoal: MultiGoal, cycle_time: int) -> bool:
                 raise UnimplementedOutcomeError("multigoal_defer")
 
     else:
-        for goal in multigoal.goals:
+        cur_goal_pos = 0
+        num_goals = len(multigoal.goals)
+        responses = [None] * num_goals
+        failed_prev = False
+
+        '''
+        DFS to move back and forth between goals
+        This should be extracted out and hardened
+        '''
+        while cur_goal_pos < len(multigoal.goals):
+            goal = multigoal.goals[cur_goal_pos]
+
+            if failed_prev:
+                response = responses[cur_goal_pos]
+
+                if response.result in SOLVED_RESPONSES:
+                    new_sub = response.get_new_sub_option()
+
+                    if new_sub is ERROR_NO_SUB_OPTIONS:
+                        multigoal.update_result(G_DISCARD)
+                        return
+
+                    # Update the subs
+                    response.update_subs(new_sub)
+                    multigoal.update_subs(response.new_subs)
+
+                    # Reset flags
+                    failed_prev = False
+                    cur_goal_pos += 1
+                    continue
+
+                else:
+                    raise UnimplementedOutcomeError("solve_multigoal_p_fail")
+
             response = solve_goal(goal, multigoal.subs, cycle_time)
 
             if response.result is G_DISCARD:
@@ -42,13 +75,23 @@ def solve_multigoal(multigoal: MultiGoal, cycle_time: int) -> bool:
                 return multigoal
             elif response.result is G_DEFER:
                 multigoal.add_defer_goals(response)
+                cur_goal_pos += 1
             elif response.result in SOLVED_RESPONSES:
                 multigoal.solved_cnt += 1
                 multigoal.update_subs(response.new_subs)
+                responses[cur_goal_pos] = copy.deepcopy(response)
+                cur_goal_pos += 1
             elif response.result is G_CLAUSE_FAIL:
-                # TODO: Treat a clause failure like a discard
-                multigoal.update_result(G_DISCARD)
-                return multigoal
+                '''
+                TODO: Handle clause failure correctly
+                Treat clause failure like a discard now
+                '''
+                if cur_goal_pos == 0:
+                    multigoal.update_result(G_DISCARD)
+                    return multigoal
+
+                cur_goal_pos = cur_goal_pos - 1
+                failed_prev = True
             else:
                 print(cycle_time, response)
                 raise UnimplementedOutcomeError("solve_multigoal")
@@ -269,8 +312,9 @@ def solve_goal_single(goal: SolverGoal, cycle_time: int) -> SolverGoal:
 
         if goal.obj.BaseClass is ACTION:
             # Unify with the KB (but for now is a simple check)
-            # Goal cannot be solved, discard
             if not constraints_satisfied(goal):
+
+                # Goal cannot be solved even after defer, discard
                 if goal.result is G_DEFER:
                     goal.update_result(G_DISCARD)
                     return goal

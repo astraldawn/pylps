@@ -1,5 +1,5 @@
 from unification import *
-from collections import defaultdict
+from collections import deque
 
 from pylps.constants import *
 
@@ -24,7 +24,7 @@ class SolverGoal(object):
         self._subs = subs
         self._result = result
         self._new_subs = {}
-        self._new_subs_options = defaultdict(list)
+        self._new_subs_options = deque()
         self.temporal_sub_used = False
         self._defer_goals = []
 
@@ -78,9 +78,14 @@ class SolverGoal(object):
         return self._new_subs_options
 
     def set_new_subs_options(self, subs):
-        for sub_list in subs:
-            for var, item in sub_list.items():
-                self._new_subs_options[var].append({var: item})
+        for sub in subs:
+            self._new_subs_options.append(sub)
+
+    def get_new_sub_option(self):
+        try:
+            return self._new_subs_options.popleft()
+        except IndexError:
+            return ERROR_NO_SUB_OPTIONS
 
     @property
     def defer_goals(self):
