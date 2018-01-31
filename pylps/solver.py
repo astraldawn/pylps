@@ -270,7 +270,7 @@ def solve_goal_single(goal: SolverGoal, cycle_time: int) -> SolverGoal:
         if goal.obj.BaseClass is ACTION:
             # Unify with the KB (but for now is a simple check)
             # Goal cannot be solved, discard
-            if not constraints_satisfied(goal.obj):
+            if not constraints_satisfied(goal):
                 if goal.result is G_DEFER:
                     goal.update_result(G_DISCARD)
                     return goal
@@ -283,7 +283,7 @@ def solve_goal_single(goal: SolverGoal, cycle_time: int) -> SolverGoal:
                 goal.update_result(G_DEFER)
                 return goal
 
-            KB.log_action(goal, combined_subs)
+            KB.add_cycle_action(goal, combined_subs)
 
             causalities = KB.exists_causality(goal.obj)
 

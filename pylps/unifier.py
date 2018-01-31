@@ -3,6 +3,8 @@ Tuple based unification engine
 Referenced from: https://github.com/aimacode/aima-python/blob/master/logic.py
 '''
 import copy
+from collections import defaultdict
+
 from unification import *
 
 from pylps.constants import *
@@ -59,7 +61,8 @@ def unify_fluent(cond, cycle_time):
 
 def unify_fact(fact, reactive_rule=False):
     substitutions = []
-    for kb_fact in KB.get_facts(fact, reactive_rule):
+    kb_facts = KB.get_facts(fact, reactive_rule)
+    for kb_fact in kb_facts:
         unify_res = unify_args(fact.args, kb_fact.args)
         substitutions.append(unify_res)
     return substitutions
@@ -204,18 +207,83 @@ def unify_obs(observation):
             raise UnknownOutcomeError(outcome[0])
 
 
-def constraints_satisfied(action):
+def constraints_satisfied(goal):
+    action = goal.obj
+    combined_subs = {**goal.subs, **goal.new_subs}
+
+    '''
+    TODO:
+    This could become very complicated, for example,
+    you need to have 2 associated substitutions,
+
+    Associated subsitutions are ignored for now
+    Also a set is used, which may affect the outcome
+    '''
+    sub_dict = defaultdict(set)
+
+    # print(action, combined_subs)
+    # print(KB._cycle_actions)
+    # print()
+
     for constraint in KB.get_constraints(action):
 
-        c_satis = True
+        c_satis = True  # TODO: This should be true
         for (obj, state) in constraint:
-            if obj == action:
+            if not c_satis or obj == action:
                 continue
 
-            if obj.BaseClass == FLUENT:
+            if obj.BaseClass is ACTION:
+                r_obj = reify_obj_args(obj, combined_subs)
+
+                '''
+                This potentially can get very time consuming, probably
+                have to go via DFS? Similar code will be required for
+                going through the options in reactive rules
+
+                TODO: Support multiple variables
+                '''
+                var = None
+                for arg in r_obj.args:
+                    try:
+                        if arg.BaseClass == VARIABLE:
+                            if var:
+                                raise UnimplementedOutcomeError(
+                                    "constraint multiple variables")
+                            var = Var(arg.name)
+                    except AttributeError:
+                        continue
+
+                # Do nothing if no substitutions
+                if not var or not sub_dict[var]:
+                    continue
+
+                t_sub_set = set()
+
+                # Attempt to falsify with every sub
+                for sub in sub_dict[var]:
+                    combined_subs[var] = sub
+                    t_obj = reify_obj_args(r_obj, combined_subs)
+
+                    action_exists = KB.exists_cycle_action(t_obj)
+                    t_sub_set.add(action_exists)
+
+                # print(t_sub_set)
+                if state and True not in t_sub_set:
+                    c_satis = False
+
+            elif obj.BaseClass is FACT:
+                r_obj = reify_obj_args(obj, combined_subs)
+                new_subs = unify_fact(r_obj)
+
+                for new_sub_d in new_subs:
+                    for k, v in new_sub_d.items():
+                        sub_dict[k].add(v)
+
+            elif obj.BaseClass is FLUENT:
                 fluent_exists = KB.exists_fluent(obj)
 
                 # All truth must be satisfied to consider
+                # Might need to rework this (see the handling for action)
                 if state and not fluent_exists:
                     c_satis = False
                 elif not state and fluent_exists:

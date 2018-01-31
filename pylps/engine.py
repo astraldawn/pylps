@@ -17,6 +17,7 @@ class _ENGINE(object):
         KB.reset_goals()
 
         while self.current_time <= self.max_time:
+            KB.clear_cycle_actions()
             self._check_observations()
             self._check_rules()
             self._check_goals()
