@@ -15,7 +15,7 @@ def test_example_simple_fire():
 
 
 def test_simple_fire_args():
-    actual = run_pylps_test_program('simple_fire_args')
+    actual = run_pylps_test_program('simple_fire', 'args')
 
     expected = [
         fluent_initiate('fire', ['small'], 0),

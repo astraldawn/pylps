@@ -44,10 +44,15 @@ class MultiGoal(object):
     def __init__(self, goals, subs=[]):
         self._goals = goals
         self._subs = subs
+        self._result = G_NPROCESSED
+        self._defer_goals = []
+        self.solved_cnt = 0
 
     def __repr__(self):
         ret = "Goals: %s\n" % (', '.join(str(g) for g in self.goals))
         ret += "Subs: %s\n" % (self._subs)
+        ret += "Result: %s\n" % (self._result)
+        ret += "defer goals %s\n" % (self._defer_goals)
         return ret
 
     def __eq__(self, other):
@@ -61,6 +66,10 @@ class MultiGoal(object):
         return self._goals
 
     def _to_tuple(self):
+        # May use this to attempt to get goal ordering correct
+        # convert = tuple(goal for goal in self._goals) + \
+        #     tuple((sub, val) for sub, val in self._subs.items()) + \
+        #     tuple(goal for goal in self._defer_goals)
         convert = tuple(goal for goal in self._goals) + \
             tuple((sub, val) for sub, val in self._subs.items())
         return convert
@@ -71,3 +80,20 @@ class MultiGoal(object):
 
     def update_subs(self, subs):
         self._subs.update(subs)
+
+    @property
+    def result(self):
+        return self._result
+
+    def update_result(self, result):
+        self._result = result
+
+    @property
+    def defer_goals(self):
+        return self._defer_goals
+
+    def add_defer_goals(self, goal):
+        self._defer_goals.append(goal)
+
+    def set_defer_goals(self, goals):
+        self._defer_goals = goals

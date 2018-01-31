@@ -13,9 +13,10 @@ def run_pylps_example(example_name):
     return actual
 
 
-def run_pylps_test_program(program_name):
+def run_pylps_test_program(program_group, program_name):
     completed = subprocess.run(
-        ['python', 'tests/programs/' + program_name + '.py'],
+        ['python', 'tests/programs/' + program_group + '/' +
+         program_name + '.py'],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )

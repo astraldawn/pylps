@@ -17,6 +17,7 @@ class _ENGINE(object):
         KB.reset_goals()
 
         while self.current_time <= self.max_time:
+            KB.clear_cycle_actions()
             self._check_observations()
             self._check_rules()
             self._check_goals()
@@ -58,14 +59,14 @@ class _ENGINE(object):
                 discarded_goals.add(multigoal)
                 continue
 
-            multigoal_respose = solve_multigoal(multigoal, self.current_time)
+            solve_multigoal(multigoal, self.current_time)
 
-            if multigoal_respose is G_SOLVED:
+            if multigoal.result is G_SOLVED:
                 solved_goals.add(multigoal)
 
                 # To review this, it might cause issues
                 solved_group.add(multigoal)
-            elif multigoal_respose is G_DISCARD:
+            elif multigoal.result is G_DISCARD:
                 discarded_goals.add(multigoal)
 
         # print(KB.goals)

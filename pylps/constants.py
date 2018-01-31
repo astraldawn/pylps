@@ -32,6 +32,7 @@ G_UNSOLVED = 'goal_unsolved'
 G_CLAUSE_FAIL = 'goal_clause_fail'
 G_SINGLE_SOLVED = 'goal_single_solved'
 G_SINGLE_UNSOLVED = 'goal_single_unsolved'
+G_DEFER = 'goal_defer'
 NO_SUBS = None
 
 VALID_GOAL_RESPONSES = set(
@@ -39,3 +40,6 @@ VALID_GOAL_RESPONSES = set(
      G_SINGLE_UNSOLVED, NO_SUBS, G_NPROCESSED])
 
 SOLVED_RESPONSES = set([G_SOLVED, G_SINGLE_SOLVED])
+
+# ERROR CONSTANTS
+ERROR_NO_SUB_OPTIONS = 'ERROR_NO_SUB_OPTIONS'

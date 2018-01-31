@@ -18,6 +18,8 @@ class _KB(object):
     _observations = []
     _constraints = []
     _fact_used_reactive = set()
+    _cycle_actions = OrderedSet()
+    _cycle_actions_log = []
 
     log = []
 
@@ -192,31 +194,73 @@ class _KB(object):
             facts = self.facts[fact.name]
 
             if not reactive_rule:
-                return facts
+                return self._match_facts(fact, facts)
 
             # Check if a fact was used to trigger a reactive rule
+            # Only check if it is being called to trigger a reactive rule
             if fact.name in self._fact_used_reactive:
                 return []
 
             self._fact_used_reactive.add(fact.name)
-            return facts
+            return self._match_facts(fact, facts)
         except KeyError:
             return []
+
+    def _match_facts(self, fact, facts):
+        '''
+        Matches facts against the KB
+        '''
+        ret_facts = []
+        for kb_fact in facts:
+            arg_match = True
+            for fact_arg, kb_fact_arg in zip(fact.args, kb_fact.args):
+                if not arg_match:
+                    continue
+
+                try:
+                    if fact_arg.BaseClass == VARIABLE:
+                        continue
+                except AttributeError:
+                    if fact_arg != kb_fact_arg:
+                        arg_match = False
+
+            if arg_match:
+                ret_facts.append(kb_fact)
+
+        return ret_facts
 
     def show_facts(self):
         for _, fact in self.facts.items():
             print(fact)
 
-    ''' Logs '''
+    ''' Cycle actions '''
 
-    def log_action(self, goal, subs):
+    @property
+    def cycle_actions(self):
+        return self._cycle_actions
+
+    def clear_cycle_actions(self):
+        self._cycle_actions_log.append(list(self._cycle_actions))
+        self._cycle_actions = OrderedSet()
+
+    def exists_cycle_action(self, action):
+        return action in self._cycle_actions
+
+    def add_cycle_action(self, goal, subs):
         action = goal.obj
         action_args = reify_args(action.args, subs)
         goal_temporal_vars = reify(goal.temporal_vars, subs)
-        self.log.append([ACTION, action.name, action_args, goal_temporal_vars])
+        action.args = action_args
+        self._cycle_actions.add((action))
+        self.log_action(action.name, action_args, goal_temporal_vars)
+
+    ''' Logs '''
 
     def log_action_obs(self, action, temporal_vars):
         self.log.append([ACTION, action.name, action.args, temporal_vars])
+
+    def log_action(self, action_name, action_args, goal_temporal_vars):
+        self.log.append([ACTION, action_name, action_args, goal_temporal_vars])
 
     def log_fluent(self, fluent, time, action_type):
         self.log.append([action_type, fluent.name, fluent.args, time])

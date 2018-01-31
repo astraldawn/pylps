@@ -1,3 +1,4 @@
+import copy
 from unification import *
 
 from pylps.constants import *
@@ -13,9 +14,12 @@ def unify_args(args_with_var, args_grounded):
 
     substitutions = {}
     for v_arg, g_arg in zip(args_with_var, args_grounded):
-        if v_arg.BaseClass == VARIABLE:
-            res = unify(var(v_arg.name), g_arg)
-            substitutions.update(res)
+        try:
+            if v_arg.BaseClass == VARIABLE:
+                res = unify(var(v_arg.name), g_arg)
+                substitutions.update(res)
+        except AttributeError:
+            continue
 
     return substitutions
 
@@ -37,3 +41,12 @@ def reify_args(args_with_var, substitutions):
             reify_args.append(arg)
 
     return reify_args
+
+
+def reify_obj_args(o_obj, substitutions):
+    '''
+    This function returns a copy of the object
+    '''
+    obj = copy.deepcopy(o_obj)
+    obj.args = reify_args(obj.args, substitutions)
+    return obj
