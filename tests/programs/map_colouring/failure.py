@@ -13,7 +13,6 @@ country('D')
 
 colour('red')
 colour('yellow')
-colour('blue')
 
 adjacent('C', 'A')
 adjacent('C', 'B')
@@ -36,35 +35,3 @@ false_if(
 execute()
 
 show_kb_log()
-
-
-'''
-maxTime(5).
-
-actions paint(_,_).
-
-country(iz).
-country(oz).
-country(az).
-country(uz).
-
-colour(red).
-colour(yellow).
-colour(blue).
-
-adjacent(az,iz).
-adjacent(az,oz).
-adjacent(iz,oz).
-adjacent(iz,uz).
-adjacent(oz,uz).
-
-if country(X)
-then
-    colour(C),
-    paint(X,C) from T1 to T2.
-
-false
-    paint(X,C),
-    adjacent(X,Y),
-    paint(Y,C).
-'''

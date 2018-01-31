@@ -8,7 +8,7 @@ from pylps.utils import *
 from pylps.config import CONFIG
 from pylps.kb import KB
 
-from pylps.kb_objects import MultiGoal
+from pylps.tree_goal import TreeGoal
 from pylps.solver_objects import SolverGoal
 from pylps.lps_objects import LPSObject, GoalClause
 
@@ -16,7 +16,7 @@ from pylps.lps_objects import LPSObject, GoalClause
 from pylps.unifier import constraints_satisfied, unify_fact
 
 
-def solve_multigoal(multigoal: MultiGoal, cycle_time: int) -> bool:
+def solve_multigoal(multigoal: TreeGoal, cycle_time: int) -> bool:
 
     if multigoal.defer_goals:
         for defer_goal in multigoal.defer_goals:
@@ -275,7 +275,7 @@ def solve_goal_single(goal: SolverGoal, cycle_time: int) -> SolverGoal:
                     combined_subs = {**goal.subs, **goal.new_subs}
                     goal.temporal_sub_used = True
 
-        if goal.obj.BaseClass is ACTION:
+        if goal.obj.BaseClass is ACTION or goal.obj.BaseClass is EVENT:
             reify_goal = reify(goal.temporal_vars, combined_subs)
             if isinstance(reify_goal[0], int):
                 reify_goal = (reify_goal[0], reify_goal[0] + 1)
@@ -355,6 +355,8 @@ def solve_goal_single(goal: SolverGoal, cycle_time: int) -> SolverGoal:
             else:
                 goal.update_result(G_SINGLE_SOLVED)
                 return goal
+        elif goal.obj.BaseClass is EVENT:
+            print(goal)
         elif goal.obj.BaseClass is FACT:
             unify_fact_res = unify_fact(goal.obj)
             if unify_fact_res:

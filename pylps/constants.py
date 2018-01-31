@@ -17,6 +17,9 @@ LPS_OBJECTS = ['ACTION', 'EVENT', 'FLUENT', 'RULE']
 
 # Solver objects
 SOLVER_GOAL = 'solver_goal'
+TREE_GOAL = 'TREE_GOAL'
+REACTIVE_TREE_GOAL = 'REACTIVE_TREE_GOAL'
+REACTIVE = 'REACTIVE'
 
 # Actions
 A_TERMINATE = 'terminate'

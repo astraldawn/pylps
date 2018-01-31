@@ -4,7 +4,8 @@ Class for the knowledge base
 from ordered_set import OrderedSet
 from pylps.constants import *
 from pylps.utils import *
-from pylps.kb_objects import Causality, MultiGoal
+from pylps.kb_objects import Causality
+from pylps.tree_goal import ReactiveTreeGoal
 
 
 class _KB(object):
@@ -78,7 +79,7 @@ class _KB(object):
         return self._goals
 
     def add_goals(self, goals, subs):
-        self._goals.add(MultiGoal(goals, subs))
+        self._goals.add(ReactiveTreeGoal(goals, subs))
 
     def remove_goals(self, goals):
         new_goals = OrderedSet()

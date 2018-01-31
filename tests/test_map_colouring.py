@@ -18,6 +18,20 @@ def test_map_colouring_no_cons():
     assert actual == expected
 
 
+def test_map_colouring_failure():
+    # GIVEN
+    expected = [
+        action('paint', ['A', 'red'], (1, 2)),
+        action('paint', ['B', 'yellow'], (1, 2))
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('map_colouring', 'failure')
+
+    # THEN
+    assert actual == expected
+
+
 def test_map_colouring():
     # GIVEN
     expected = [
