@@ -8,24 +8,68 @@ from pylps.constants import *
 class TreeGoal(object):
     BaseClass = TREE_GOAL
 
-    def __init__(self, parent, children, subs=[]):
+    def __init__(self, parent, goal, children, subs=[]):
         self._parent = parent
-        self._children = children
+        self._goal = goal
         self._defer_children = []
         self._subs = subs
         self._result = G_NPROCESSED
         self.solved_cnt = 0
 
+        try:
+            self.depth = parent.depth + 1
+        except AttributeError:
+            self.depth = 0
+
+        self._children = None
+        if children:
+            self._children = []
+
+            for child in children:
+                self._children.append(SolverTreeGoal(
+                    parent=self,
+                    goal=child,
+                    children=None,
+                    subs=[]
+                ))
+
+            self._children = tuple(c for c in self._children)
+
     def __repr__(self):
-        ret = self.BaseClass + '\n'
-        ret += "Parent: %s\n" % (self._parent)
-        ret += "Children (goals): %s\n" % \
-            (', '.join(str(c) for c in self._children))
-        ret += "Subs: %s\n" % (self._subs)
-        ret += "Result: %s\n" % (self._result)
-        ret += "Deferred children %s\n" % (self._defer_children)
+        spacer = '   '
+        ret = spacer * self.depth + self.BaseClass + '\n'
+
+        try:
+            parent_goal = self._parent._goal
+        except AttributeError:
+            parent_goal = 'ROOT'
+
+        ret += spacer * self.depth + "Parent: %s\n" % (parent_goal)
+
+        ret += spacer * self.depth + "Goal: %s\n" % (str(self.goal))
+
+        if self._children:
+            ret += spacer * self.depth + "Children: \n"
+            for child in self._children:
+                ret += spacer * self.depth + str(child) + "\n"
+        else:
+            ret += spacer * self.depth + "Children: None\n"
+
+        ret += spacer * self.depth + "Subs: %s\n" % (self._subs)
+        ret += spacer * self.depth + "Result: %s\n" % (self._result)
+
+        if self._defer_children:
+            ret += spacer * self.depth + "Defer Children: \n"
+            for child in self._defer_children:
+                ret += spacer * self.depth + str(child) + "\n"
+        else:
+            ret += spacer * self.depth + "Defer Children: None\n"
 
         return ret
+
+    @property
+    def goal(self):
+        return self._goal
 
     @property
     def subs(self):
@@ -77,7 +121,7 @@ class ReactiveTreeGoal(TreeGoal):
     BaseClass = REACTIVE_TREE_GOAL
 
     def __init__(self, children, subs=[]):
-        TreeGoal.__init__(self, REACTIVE, children, subs)
+        TreeGoal.__init__(self, None, REACTIVE, children, subs)
 
     def __eq__(self, other):
         return self._to_tuple() == other._to_tuple()
@@ -93,3 +137,8 @@ class ReactiveTreeGoal(TreeGoal):
         convert = tuple(c for c in self._children) + \
             tuple((sub, val) for sub, val in self._subs.items())
         return convert
+
+
+class SolverTreeGoal(TreeGoal):
+    BaseClass = SOLVER_TREE_GOAL
+    pass

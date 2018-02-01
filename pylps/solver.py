@@ -68,7 +68,8 @@ def solve_multigoal(multigoal: TreeGoal, cycle_time: int) -> bool:
                 else:
                     raise UnimplementedOutcomeError("solve_multigoal_p_fail")
 
-            response = solve_goal(goal, multigoal.subs, cycle_time)
+            # TODO: goal.goal (should be goal), in the process of switching
+            response = solve_goal(goal.goal, multigoal.subs, cycle_time)
 
             if response.result is G_DISCARD:
                 multigoal.update_result(G_DISCARD)
