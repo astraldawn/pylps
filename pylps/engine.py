@@ -1,6 +1,6 @@
 from pylps.constants import *
 from pylps.kb import KB
-from pylps.solver import solve_multigoal
+from pylps.solver import solve_multigoal, process_cycle_actions
 from pylps.unifier import unify_conds, reify_goals, unify_obs
 
 
@@ -48,36 +48,53 @@ class _ENGINE(object):
         '''
         Work through the goals individually
         '''
-        discarded_goals = set()
-        solved_goals = set()
         solved_group = set()
 
-        for multigoal in KB.goals:
-            # If the goal has been solved, do not attempt further solves
-            # print(multigoal._to_tuple())
-            if multigoal.goals in solved_group:
-                discarded_goals.add(multigoal)
+        cur_goal_pos = 0
+
+        KB_goals = KB.goals.children
+
+        while(cur_goal_pos < len(KB_goals)):
+            multigoal = KB_goals[cur_goal_pos]
+
+            if multigoal in solved_group:
+                multigoal.update_result(G_SOLVED)
+                cur_goal_pos += 1
                 continue
 
-            # print('----- BEGIN MULTIGOAL -----')
-            # print(multigoal)
             solve_multigoal(multigoal, self.current_time)
-            # print(multigoal)
-            # print('----- END MULTIGOAL -----')
+            # print(self.current_time, multigoal)
 
-            if multigoal.result is G_SOLVED:
-                solved_goals.add(multigoal)
-
-                # To review this, it might cause issues
+            if multigoal.result in SOLVED_RESPONSES:
                 solved_group.add(multigoal)
-            elif multigoal.result is G_DISCARD:
-                discarded_goals.add(multigoal)
+            elif multigoal.result is G_CLAUSE_FAIL:  # Go back one
 
-        # print(KB.goals)
-        # print(solved_goals)
-        # print(discarded_goals)
-        KB.remove_goals(solved_goals)
-        KB.remove_goals(discarded_goals)
+                # Cannot solve the original, so discard it and move on
+                # Will not be able to go back anymore
+                if cur_goal_pos == 0:
+                    multigoal.update_result(G_DISCARD)
+                    cur_goal_pos += 1
+                    continue
+
+                prev_goal = KB_goals[cur_goal_pos - 1]
+                if prev_goal.result in SOLVED_RESPONSES:
+                    solved_group.remove(prev_goal)
+                    prev_goal.reset(propagate=True)
+                    continue
+
+            cur_goal_pos += 1
+
+        if KB_goals:
+            # KB.display_cycle_actions()
+            new_children = []
+            for child in KB_goals:
+                if (child.result in SOLVED_RESPONSES or
+                        child.result is G_DISCARD):
+                    continue
+                new_children.append(child)
+
+            KB.set_children(new_children)
+            process_cycle_actions()
 
 
 ENGINE = _ENGINE()

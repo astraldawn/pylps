@@ -1,4 +1,5 @@
 # Replacement for multigoal and solvergoal
+import copy
 from unification import *
 from collections import deque
 
@@ -8,7 +9,7 @@ from pylps.constants import *
 class TreeGoal(object):
     BaseClass = TREE_GOAL
 
-    def __init__(self, parent, goal, children, subs={}):
+    def __init__(self, parent, goal, children=[], subs={}):
         self._parent = parent
         self._goal = goal
         self._defer_children = []
@@ -34,7 +35,7 @@ class TreeGoal(object):
                     subs={}
                 ))
 
-            self._children = tuple(c for c in self._children)
+            # self._children = tuple(c for c in self._children)
 
     def __repr__(self):
         spacer = '    '
@@ -52,9 +53,9 @@ class TreeGoal(object):
         ret += spacer * self.depth + "Subs: %s\n" % (self._subs)
 
         if self._actions:
-            ret += spacer * self.depth + "Actions\n"
+            ret += spacer * self.depth + "Actions: \n"
             for action in self._actions:
-                ret += spacer * self.depth + str(action) + "\n"
+                ret += spacer * (self.depth + 1) + str(action) + "\n"
         else:
             ret += spacer * self.depth + "Actions: None\n"
 
@@ -88,6 +89,12 @@ class TreeGoal(object):
     def subs(self):
         return self._subs
 
+    def clear_subs(self):
+        self._subs = {}
+
+    def set_subs(self, subs):
+        self._subs = subs
+
     def update_subs(self, subs):
         self._subs.update(subs)
 
@@ -108,6 +115,9 @@ class TreeGoal(object):
     def clear_children(self):
         self._children = []
 
+    def set_children(self, children):
+        self._children = children
+
     @property
     def defer_children(self):
         return self._defer_children
@@ -117,6 +127,51 @@ class TreeGoal(object):
 
     def set_defer_children(self, children):
         self._defer_children = children
+
+    @property
+    def actions(self):
+        return self._actions
+
+    def add_action(self, action, propagate=False):
+        self._actions.append(action)
+
+        if propagate and self.parent:
+            self.parent.add_action(action, propagate)
+
+    def clear_actions(self, propagate=False):
+        self._actions = []
+
+    def remove_actions(self, actions, propagate=False):
+        # Remove actions from all parents
+        if propagate and self.parent:
+            self.parent.remove_actions(self.actions, propagate)
+
+        new_actions = []
+        for action in self.actions:
+            if action not in actions:
+                new_actions.append(action)
+
+        self._actions = new_actions
+
+    def reset(self, propagate=False):
+        self.remove_actions(self.actions, propagate)
+        # self.clear_actions()
+
+        # TODO: Selective clearing
+        if self.goal is not REACTIVE:
+            self.clear_children()
+            self.clear_subs()
+        elif self.goal is REACTIVE:
+            for child in self.children:
+                child.reset()
+
+            # Reactive subs should not be modified at all
+            self.set_subs(copy.deepcopy(self._reactive_subs))
+        else:
+            # Do nothing
+            pass
+
+        self._result = G_NPROCESSED
 
     '''
     Compatability with existing code
@@ -143,8 +198,11 @@ class ReactiveTreeGoal(TreeGoal):
     '''
     BaseClass = REACTIVE_TREE_GOAL
 
-    def __init__(self, children, subs={}):
-        TreeGoal.__init__(self, None, REACTIVE, children, subs)
+    def __init__(self, parent, children, subs={}):
+        TreeGoal.__init__(self, parent, REACTIVE, children, subs)
+
+        # Create a copy if there is a need to reset
+        self._reactive_subs = copy.deepcopy(subs)
 
     def __eq__(self, other):
         return self._to_tuple() == other._to_tuple()
@@ -232,6 +290,7 @@ class SolverTreeGoal(TreeGoal):
             return ERROR_NO_SUB_OPTIONS
 
     def reset(self):
+        TreeGoal.reset(self)
         # Must reset for children also
         self.temporal_sub_used = False
 

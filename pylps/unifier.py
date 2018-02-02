@@ -236,13 +236,15 @@ def constraints_satisfied(goal):
 
     for constraint in KB.get_constraints(action):
 
-        c_satis = True  # TODO: This should be true
+        # Assume the constraint is true
+        c_satis = True
 
         for indiv_con in constraint:
 
             if not c_satis:
                 continue
 
+            # Attempt to falsify
             c_satis = check_constraint(
                 action, indiv_con, combined_subs, sub_dict)
 
@@ -263,13 +265,26 @@ def check_constraint(action, constraint, combined_subs, sub_dict):
 
     if obj.BaseClass is ACTION:
         if obj.name == action.name:
-            combined_subs.update(
-                unify_args(obj.args, action.args)
-            )
+            vars_unified = 0
+            vars_cnt = 0
 
-            # This is always true
-            return True
+            for obj_arg, action_arg in zip(obj.args, action.args):
+                try:
+                    if (obj_arg.BaseClass is VARIABLE):
+                        vars_cnt += 1
 
+                        if Var(obj_arg.name) not in sub_dict:
+                            combined_subs.update(
+                                unify_args([obj_arg], [action_arg]))
+                            vars_unified += 1
+                except AttributeError:
+                    pass
+
+            # If every var is unified, it must satisfy
+            if vars_unified == vars_cnt:
+                return True
+
+        # print(obj, action, sub_dict)
         r_obj = reify_obj_args(obj, combined_subs)
 
         '''
@@ -296,33 +311,33 @@ def check_constraint(action, constraint, combined_subs, sub_dict):
 
         t_sub_set = set()
 
+        cycle_actions = KB.get_cycle_actions(r_obj)
+
+        # Action has never occured, so its impossible to sub / falsify
+        if not cycle_actions:
+            return False
+
         # Unsubstituted variable
         if var and var not in sub_dict:
-            cycle_actions = KB.get_cycle_actions(r_obj)
-
-            # Action has never occured, so its impossible to sub
-            if not cycle_actions:
-                return False
-
             for cycle_action in cycle_actions:
                 new_subs = unify_args(r_obj.args, cycle_action.args)
                 for k, v in new_subs.items():
                     sub_dict[k].add(v)
 
-        # Then check if it valid?
+            return True
 
-        # Existing code
+        if var in sub_dict:
+            # print(r_obj, var, action, sub_dict, cycle_actions)
 
-        # for sub in sub_dict[var]:
-        #     combined_subs[var] = sub
-        #     t_obj = reify_obj_args(r_obj, combined_subs)
+            for sub in sub_dict[var]:
+                combined_subs[var] = sub
+                t_obj = reify_obj_args(r_obj, combined_subs)
 
-        #     action_exists = KB.exists_cycle_action(t_obj)
-        #     t_sub_set.add(action_exists)
+                action_exists = KB.exists_cycle_action(t_obj)
+                t_sub_set.add(action_exists)
 
-        # print(t_sub_set)
-        # if state and True not in t_sub_set:
-        #     c_satis = False
+            if state and True not in t_sub_set:
+                return False
 
     elif obj.BaseClass is FACT:
         r_obj = reify_obj_args(obj, combined_subs)

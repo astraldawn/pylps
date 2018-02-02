@@ -92,7 +92,7 @@ def solve_multigoal(multigoal: TreeGoal, cycle_time: int) -> bool:
                 '''
                 goal.reset()
                 if cur_goal_pos == 0:
-                    multigoal.update_result(G_DISCARD)
+                    multigoal.update_result(G_CLAUSE_FAIL)
                     return multigoal
 
                 cur_goal_pos = cur_goal_pos - 1
@@ -147,6 +147,7 @@ def solve_goal(goal: TreeGoal, cycle_time: int) -> TreeGoal:
                 return
     else:
         solve_goal_single(goal, cycle_time)
+        # print(cycle_time, goal)
         return
 
     goal.clear_subs()
@@ -314,6 +315,7 @@ def solve_goal_single(goal: TreeGoal, cycle_time: int) -> TreeGoal:
 
         if goal.obj.BaseClass is ACTION:
             # Unify with the KB (but for now is a simple check)
+            # print(cycle_time, constraints_satisfied(goal), goal)
             if not constraints_satisfied(goal):
 
                 # Goal cannot be solved even after defer, discard
@@ -331,32 +333,8 @@ def solve_goal_single(goal: TreeGoal, cycle_time: int) -> TreeGoal:
 
             KB.add_cycle_action(goal, combined_subs)
 
-            causalities = KB.exists_causality(goal.obj)
-
-            if causalities:
-                for outcome in causalities.outcomes:
-                    if outcome[0] == A_TERMINATE:
-                        KB.remove_fluent(outcome[1])
-                        KB.log_fluent(
-                            outcome[1],
-                            max(goal_temporal_vars),
-                            F_TERMINATE
-                        )
-                    elif outcome[0] == A_INITIATE:
-                        if KB.add_fluent(outcome[1]):
-                            KB.log_fluent(
-                                outcome[1],
-                                max(goal_temporal_vars),
-                                F_INITIATE
-                            )
-                    else:
-                        raise(UnknownOutcomeError(outcome[0]))
-
-                goal.update_result(G_SINGLE_SOLVED)
-                return
-            else:
-                goal.update_result(G_SINGLE_SOLVED)
-                return
+            goal.update_result(G_SINGLE_SOLVED)
+            return
         elif goal.obj.BaseClass is EVENT:
             pass
             # print(goal)
@@ -377,3 +355,28 @@ def solve_goal_single(goal: TreeGoal, cycle_time: int) -> TreeGoal:
     goal.clear_subs()
     goal.update_result(G_UNSOLVED)
     return
+
+
+def process_cycle_actions():
+    for (action, temporal_vars) in KB.cycle_actions:
+        KB.log_action(action.name, action.args, temporal_vars)
+        causalities = KB.exists_causality(action)
+        if causalities:
+            for outcome in causalities.outcomes:
+                if outcome[0] == A_TERMINATE:
+                    KB.remove_fluent(outcome[1])
+                    KB.log_fluent(
+                        outcome[1],
+                        max(temporal_vars),
+                        F_TERMINATE
+                    )
+                elif outcome[0] == A_INITIATE:
+                    if KB.add_fluent(outcome[1]):
+                        KB.log_fluent(
+                            outcome[1],
+                            max(temporal_vars),
+                            F_INITIATE
+                        )
+                else:
+                    raise(UnknownOutcomeError(outcome[0]))
+    KB.clear_cycle_actions()
