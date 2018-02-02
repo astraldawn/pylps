@@ -45,7 +45,7 @@ class TreeGoal(object):
         except AttributeError:
             parent_goal = 'ROOT'
 
-        ret += spacer * self.depth + "Parent goal: %s\n" % (parent_goal)
+        ret += spacer * self.depth + "Parent goal: %s\n" % (str(parent_goal))
 
         ret += spacer * self.depth + "Goal: %s\n" % (str(self.goal))
 
@@ -61,16 +61,16 @@ class TreeGoal(object):
         ret += spacer * self.depth + "Result: %s\n" % (self._result)
 
         if self._children:
-            ret += spacer * self.depth + "Children: \n"
+            ret += spacer * self.depth + "Children:\n"
             for child in self._children:
-                ret += spacer * self.depth + str(child) + "\n"
+                ret += str(child) + "\n"
         else:
             ret += spacer * self.depth + "Children: None\n"
 
         if self._defer_children:
             ret += spacer * self.depth + "Defer Children: \n"
             for child in self._defer_children:
-                ret += spacer * self.depth + str(child) + "\n"
+                ret += str(child) + "\n"
         else:
             ret += spacer * self.depth + "Defer Children: None\n"
 
@@ -97,6 +97,16 @@ class TreeGoal(object):
 
     def update_result(self, result):
         self._result = result
+
+    @property
+    def children(self):
+        return self._children
+
+    def add_child(self, child):
+        self._children.append(child)
+
+    def clear_children(self):
+        self._children = []
 
     @property
     def defer_children(self):

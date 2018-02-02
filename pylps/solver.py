@@ -116,12 +116,8 @@ def solve_multigoal(multigoal: TreeGoal, cycle_time: int) -> bool:
 def solve_goal(goal: TreeGoal, cycle_time: int) -> TreeGoal:
     parent = goal.parent
     goal.update_subs(parent.subs)
-    # print(goal, subs, cycle_time)
 
-    # solver_goal = SolverGoal(
-    #     goal=copy.deepcopy(goal),
-    #     subs=copy.deepcopy(subs)
-    # )
+    # print(goal, subs, cycle_time)
 
     if goal.temporal_vars:
         for temporal_var in goal.temporal_vars:
@@ -141,9 +137,8 @@ def solve_goal(goal: TreeGoal, cycle_time: int) -> TreeGoal:
                 cycle_time
             )
 
-            # print(solver_goal)
-
             if goal.result is G_CLAUSE_FAIL:
+                goal.clear_children()
                 continue
 
             if (goal.result is G_SOLVED or
@@ -152,7 +147,6 @@ def solve_goal(goal: TreeGoal, cycle_time: int) -> TreeGoal:
                 return
     else:
         solve_goal_single(goal, cycle_time)
-
         return
 
     goal.clear_subs()
@@ -215,6 +209,7 @@ def solve_goal_complex(
             subs=copy.deepcopy(combined_subs),
             temporal_sub_used=goal.temporal_sub_used
         )
+        goal.add_child(req_goal)
 
         solve_goal_single(req_goal, cycle_time)
 
@@ -231,8 +226,6 @@ def solve_goal_complex(
             goal.add_defer_goals(req_goal)
 
         if req_goal.new_subs:
-            # print(req_goal.subs)
-            # print(req_goal.new_subs)
             goal.update_subs(req_goal.new_subs)
 
         goal.temporal_sub_used = req_goal.temporal_sub_used

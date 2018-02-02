@@ -62,6 +62,7 @@ class _ENGINE(object):
             # print('----- BEGIN MULTIGOAL -----')
             # print(multigoal)
             solve_multigoal(multigoal, self.current_time)
+            # print(multigoal)
             # print('----- END MULTIGOAL -----')
 
             if multigoal.result is G_SOLVED:
