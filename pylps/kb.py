@@ -153,8 +153,10 @@ class _KB(object):
 
     def get_constraints(self, action):
         relevant_constraints = []
+
+        # TODO: Restore checking for relevant constraints
         for constraint in self._constraints:
-            if (action, True) in constraint:
+            if True:
                 relevant_constraints.append(constraint)
         return relevant_constraints
 
@@ -243,6 +245,13 @@ class _KB(object):
     def clear_cycle_actions(self):
         self._cycle_actions_log.append(list(self._cycle_actions))
         self._cycle_actions = OrderedSet()
+
+    def get_cycle_actions(self, action):
+        ret = []
+        for cycle_action in self._cycle_actions:
+            if cycle_action.name == action.name:
+                ret.append(cycle_action)
+        return ret
 
     def exists_cycle_action(self, action):
         return action in self._cycle_actions

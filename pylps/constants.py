@@ -1,5 +1,6 @@
 # Objects
 CONSTANT = 'constant'
+EXPR = 'expr'
 VARIABLE = 'variable'
 TEMPORAL_VARIABLE = 'temporal_var'
 
