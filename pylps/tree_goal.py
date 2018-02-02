@@ -172,6 +172,7 @@ class TreeGoal(object):
             pass
 
         self._result = G_NPROCESSED
+        self.solved_cnt = 0
 
     '''
     Compatability with existing code
@@ -215,8 +216,8 @@ class ReactiveTreeGoal(TreeGoal):
         # convert = tuple(goal for goal in self._goals) + \
         #     tuple((sub, val) for sub, val in self._subs.items()) + \
         #     tuple(goal for goal in self._defer_goals)
-        convert = tuple(c for c in self._children) + \
-            tuple((sub, val) for sub, val in self._subs.items())
+        convert = tuple(c.goal for c in self._children)
+            # tuple((sub, val) for sub, val in self._subs.items())
         return convert
 
 
@@ -293,6 +294,8 @@ class SolverTreeGoal(TreeGoal):
         TreeGoal.reset(self)
         # Must reset for children also
         self.temporal_sub_used = False
+        self._new_subs = {}
+        self._new_subs_options = deque()
 
     '''
     Compatability

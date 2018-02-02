@@ -22,7 +22,9 @@ def test_map_colouring_failure():
     # GIVEN
     expected = [
         action('paint', ['A', 'red'], (1, 2)),
-        action('paint', ['B', 'yellow'], (1, 2))
+        action('paint', ['B', 'yellow'], (1, 2)),
+        action('paint', ['C', 'red'], (2, 3)),
+        action('paint', ['D', 'red'], (2, 3))
     ]
 
     # WHEN

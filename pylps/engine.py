@@ -63,16 +63,16 @@ class _ENGINE(object):
                 continue
 
             solve_multigoal(multigoal, self.current_time)
-            # print(self.current_time, multigoal)
 
             if multigoal.result in SOLVED_RESPONSES:
                 solved_group.add(multigoal)
+
             elif multigoal.result is G_CLAUSE_FAIL:  # Go back one
 
                 # Cannot solve the original, so discard it and move on
                 # Will not be able to go back anymore
                 if cur_goal_pos == 0:
-                    multigoal.update_result(G_DISCARD)
+                    multigoal.update_result(G_CLAUSE_FAIL)
                     cur_goal_pos += 1
                     continue
 
@@ -86,14 +86,19 @@ class _ENGINE(object):
 
         if KB_goals:
             # KB.display_cycle_actions()
+            # print(KB.goals)
             new_children = []
             for child in KB_goals:
                 if (child.result in SOLVED_RESPONSES or
-                        child.result is G_DISCARD):
+                        child.result is G_DISCARD or
+                        child.result is G_CLAUSE_FAIL):
                     continue
+                elif child.result is G_FAIL_NO_SUBS:
+                    child.reset(propagate=True)
                 new_children.append(child)
 
             KB.set_children(new_children)
+            # print(KB.goals)
             process_cycle_actions()
 
 

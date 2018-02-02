@@ -54,7 +54,7 @@ def solve_multigoal(multigoal: TreeGoal, cycle_time: int) -> bool:
                     new_sub = response.get_new_sub_option()
 
                     if new_sub is ERROR_NO_SUB_OPTIONS:
-                        multigoal.update_result(G_DISCARD)
+                        multigoal.update_result(G_FAIL_NO_SUBS)
                         return
 
                     # Update the subs
