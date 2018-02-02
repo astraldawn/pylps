@@ -59,9 +59,10 @@ class _ENGINE(object):
                 discarded_goals.add(multigoal)
                 continue
 
-            solve_multigoal(multigoal, self.current_time)
-
+            # print('----- BEGIN MULTIGOAL -----')
             # print(multigoal)
+            solve_multigoal(multigoal, self.current_time)
+            # print('----- END MULTIGOAL -----')
 
             if multigoal.result is G_SOLVED:
                 solved_goals.add(multigoal)

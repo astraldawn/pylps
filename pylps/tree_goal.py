@@ -8,12 +8,13 @@ from pylps.constants import *
 class TreeGoal(object):
     BaseClass = TREE_GOAL
 
-    def __init__(self, parent, goal, children, subs=[]):
+    def __init__(self, parent, goal, children, subs={}):
         self._parent = parent
         self._goal = goal
         self._defer_children = []
         self._subs = subs
         self._result = G_NPROCESSED
+        self._actions = []
         self.solved_cnt = 0
 
         try:
@@ -21,7 +22,7 @@ class TreeGoal(object):
         except AttributeError:
             self.depth = 0
 
-        self._children = None
+        self._children = []
         if children:
             self._children = []
 
@@ -30,13 +31,13 @@ class TreeGoal(object):
                     parent=self,
                     goal=child,
                     children=None,
-                    subs=[]
+                    subs={}
                 ))
 
             self._children = tuple(c for c in self._children)
 
     def __repr__(self):
-        spacer = '   '
+        spacer = '    '
         ret = spacer * self.depth + self.BaseClass + '\n'
 
         try:
@@ -44,9 +45,20 @@ class TreeGoal(object):
         except AttributeError:
             parent_goal = 'ROOT'
 
-        ret += spacer * self.depth + "Parent: %s\n" % (parent_goal)
+        ret += spacer * self.depth + "Parent goal: %s\n" % (parent_goal)
 
         ret += spacer * self.depth + "Goal: %s\n" % (str(self.goal))
+
+        ret += spacer * self.depth + "Subs: %s\n" % (self._subs)
+
+        if self._actions:
+            ret += spacer * self.depth + "Actions\n"
+            for action in self._actions:
+                ret += spacer * self.depth + str(action) + "\n"
+        else:
+            ret += spacer * self.depth + "Actions: None\n"
+
+        ret += spacer * self.depth + "Result: %s\n" % (self._result)
 
         if self._children:
             ret += spacer * self.depth + "Children: \n"
@@ -54,9 +66,6 @@ class TreeGoal(object):
                 ret += spacer * self.depth + str(child) + "\n"
         else:
             ret += spacer * self.depth + "Children: None\n"
-
-        ret += spacer * self.depth + "Subs: %s\n" % (self._subs)
-        ret += spacer * self.depth + "Result: %s\n" % (self._result)
 
         if self._defer_children:
             ret += spacer * self.depth + "Defer Children: \n"
@@ -66,6 +75,10 @@ class TreeGoal(object):
             ret += spacer * self.depth + "Defer Children: None\n"
 
         return ret
+
+    @property
+    def parent(self):
+        return self._parent
 
     @property
     def goal(self):
@@ -120,7 +133,7 @@ class ReactiveTreeGoal(TreeGoal):
     '''
     BaseClass = REACTIVE_TREE_GOAL
 
-    def __init__(self, children, subs=[]):
+    def __init__(self, children, subs={}):
         TreeGoal.__init__(self, None, REACTIVE, children, subs)
 
     def __eq__(self, other):
@@ -141,4 +154,80 @@ class ReactiveTreeGoal(TreeGoal):
 
 class SolverTreeGoal(TreeGoal):
     BaseClass = SOLVER_TREE_GOAL
-    pass
+
+    def __init__(self, parent, goal, children, subs={},
+                 temporal_sub_used=False):
+        TreeGoal.__init__(self, parent, goal, children, subs)
+
+        try:
+            self._goal_obj = goal[0]
+            self._temporal_vars = tuple(
+                var(temporal_var.name)
+                for temporal_var in goal[1:]
+            )
+        except TypeError:
+            self._goal_obj = goal
+            self._temporal_vars = None
+
+        self._new_subs = {}
+        self._new_subs_options = deque()
+        self.temporal_sub_used = temporal_sub_used
+
+    def __repr__(self):
+        spacer = '    '
+        ret = TreeGoal.__repr__(self)
+        ret += spacer * self.depth + "Goal temporal vars: %s\n" \
+            % (str(self._temporal_vars))
+        ret += spacer * self.depth + "Temporal sub used: %s\n" % \
+            (self.temporal_sub_used)
+        ret += spacer * self.depth + "New subs: %s\n" % (self._new_subs)
+        ret += spacer * self.depth + "New subs options: %s\n" % \
+            (self._new_subs_options)
+        return ret
+
+    @property
+    def goal_obj(self):
+        return self._goal_obj
+
+    @property
+    def temporal_vars(self):
+        return self._temporal_vars
+
+    @temporal_vars.setter
+    def temporal_vars(self, temporal_vars):
+        self._temporal_vars = temporal_vars
+
+    @property
+    def new_subs(self):
+        return self._new_subs
+
+    def clear_subs(self):
+        self._new_subs = {}
+
+    def update_subs(self, subs):
+        self._new_subs.update(subs)
+
+    @property
+    def new_subs_options(self):
+        return self._new_subs_options
+
+    def set_new_subs_options(self, subs):
+        for sub in subs:
+            self._new_subs_options.append(sub)
+
+    def get_new_sub_option(self):
+        try:
+            return self._new_subs_options.popleft()
+        except IndexError:
+            return ERROR_NO_SUB_OPTIONS
+
+    def reset(self):
+        # Must reset for children also
+        self.temporal_sub_used = False
+
+    '''
+    Compatability
+    '''
+    @property
+    def obj(self):
+        return self._goal_obj
