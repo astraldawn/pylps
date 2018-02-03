@@ -1,5 +1,6 @@
 # Objects
 CONSTANT = 'constant'
+EXPR = 'expr'
 VARIABLE = 'variable'
 TEMPORAL_VARIABLE = 'temporal_var'
 
@@ -17,6 +18,10 @@ LPS_OBJECTS = ['ACTION', 'EVENT', 'FLUENT', 'RULE']
 
 # Solver objects
 SOLVER_GOAL = 'solver_goal'
+TREE_GOAL = 'TREE_GOAL'
+REACTIVE_TREE_GOAL = 'REACTIVE_TREE_GOAL'
+SOLVER_TREE_GOAL = 'SOLVER_TREE_GOAL'
+REACTIVE = 'REACTIVE'
 
 # Actions
 A_TERMINATE = 'terminate'
@@ -29,6 +34,7 @@ G_NPROCESSED = 'goal_not_processed'
 G_DISCARD = 'goal_discard'
 G_SOLVED = 'goal_solved'
 G_UNSOLVED = 'goal_unsolved'
+G_FAIL_NO_SUBS = 'GOAL_FAIL_NO_SUBS'
 G_CLAUSE_FAIL = 'goal_clause_fail'
 G_SINGLE_SOLVED = 'goal_single_solved'
 G_SINGLE_UNSOLVED = 'goal_single_unsolved'

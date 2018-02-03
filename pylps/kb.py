@@ -4,7 +4,8 @@ Class for the knowledge base
 from ordered_set import OrderedSet
 from pylps.constants import *
 from pylps.utils import *
-from pylps.kb_objects import Causality, MultiGoal
+from pylps.kb_objects import Causality
+from pylps.tree_goal import TreeGoal, ReactiveTreeGoal
 
 
 class _KB(object):
@@ -14,7 +15,9 @@ class _KB(object):
     reactive_rules = []
 
     _clauses = {}
-    _goals = OrderedSet()
+    _goals = TreeGoal(
+        parent=None, goal='ROOT'
+    )
     _observations = []
     _constraints = []
     _fact_used_reactive = set()
@@ -78,17 +81,24 @@ class _KB(object):
         return self._goals
 
     def add_goals(self, goals, subs):
-        self._goals.add(MultiGoal(goals, subs))
+        self._goals.add_child(
+            ReactiveTreeGoal(self._goals, goals, subs)
+        )
 
-    def remove_goals(self, goals):
-        new_goals = OrderedSet()
-        for goal in self._goals:
-            if goal not in goals:
-                new_goals.add(goal)
-        self._goals = new_goals
+    def remove_goals(self, children):
+        new_children = []
+        for child in self._goals.children:
+            if child not in children:
+                new_children.append(child)
+        self._goals.set_children(new_children)
+
+    def set_children(self, new_children):
+        self._goals.set_children(new_children)
 
     def reset_goals(self):
-        self._goals = OrderedSet()
+        self._goals = TreeGoal(
+            parent=None, goal='ROOT'
+        )
 
     ''' Clauses '''
 
@@ -152,8 +162,21 @@ class _KB(object):
 
     def get_constraints(self, action):
         relevant_constraints = []
+
+        # TODO: Can this be made more efficient?
         for constraint in self._constraints:
-            if (action, True) in constraint:
+            relevant = False
+            for obj, state in constraint:
+                if relevant:
+                    continue
+
+                try:
+                    if obj.name == action.name:
+                        relevant = True
+                except AttributeError:
+                    pass
+
+            if relevant:
                 relevant_constraints.append(constraint)
         return relevant_constraints
 
@@ -237,22 +260,36 @@ class _KB(object):
 
     @property
     def cycle_actions(self):
-        return self._cycle_actions
-
-    def clear_cycle_actions(self):
-        self._cycle_actions_log.append(list(self._cycle_actions))
-        self._cycle_actions = OrderedSet()
-
-    def exists_cycle_action(self, action):
-        return action in self._cycle_actions
+        return self._goals.actions
 
     def add_cycle_action(self, goal, subs):
         action = goal.obj
         action_args = reify_args(action.args, subs)
         goal_temporal_vars = reify(goal.temporal_vars, subs)
         action.args = action_args
-        self._cycle_actions.add((action))
-        self.log_action(action.name, action_args, goal_temporal_vars)
+
+        # self._cycle_actions.add((action, goal_temporal_vars))
+        goal.add_action((action, goal_temporal_vars), propagate=True)
+        # self.log_action(action.name, action_args, goal_temporal_vars)
+
+    def clear_cycle_actions(self):
+        KB.goals.clear_actions()
+
+    def display_cycle_actions(self):
+        print('\nCYCLE ACTIONS\n')
+        for (cycle_action, temporal_vars) in self.cycle_actions:
+            print(cycle_action, temporal_vars)
+        print('\n')
+
+    def exists_cycle_action(self, action):
+        return action in [action for (action, _) in self.cycle_actions]
+
+    def get_cycle_actions(self, action):
+        ret = []
+        for (cycle_action, temporal_vars) in self.cycle_actions:
+            if cycle_action.name == action.name:
+                ret.append(cycle_action)
+        return ret
 
     ''' Logs '''
 
