@@ -9,11 +9,10 @@ from pylps.config import CONFIG
 from pylps.kb import KB
 
 from pylps.tree_goal import TreeGoal, SolverTreeGoal
-# from pylps.solver_objects import SolverGoal
-from pylps.lps_objects import LPSObject, GoalClause
+from pylps.lps_objects import GoalClause
 
-
-from pylps.unifier import constraints_satisfied, unify_fact
+from pylps.unifier import unify_fact
+from pylps.constraints import constraints_satisfied
 
 
 def solve_multigoal(multigoal: TreeGoal, cycle_time: int) -> bool:
@@ -98,7 +97,7 @@ def solve_multigoal(multigoal: TreeGoal, cycle_time: int) -> bool:
                 cur_goal_pos = cur_goal_pos - 1
                 failed_prev = True
             else:
-                print(cycle_time, response)
+                print(multigoal)
                 raise UnimplementedOutcomeError("solve_multigoal")
 
         # multigoal.update_result(G_UNSOLVED)
@@ -210,11 +209,10 @@ def solve_goal_complex(
             subs=copy.deepcopy(combined_subs),
             temporal_sub_used=goal.temporal_sub_used
         )
+
         goal.add_child(req_goal)
 
         solve_goal_single(req_goal, cycle_time)
-
-        # print(req_goal)
 
         if (req_goal.result is G_DISCARD or
                 req_goal.result is G_CLAUSE_FAIL):
@@ -249,6 +247,7 @@ def solve_goal_complex(
                 goal.update_result(G_DEFER)
             else:
                 goal.update_result(G_SOLVED)
+                # print('WE ARE HERE', goal)
             return
 
         goal.clear_subs()
@@ -336,8 +335,8 @@ def solve_goal_single(goal: TreeGoal, cycle_time: int) -> TreeGoal:
             goal.update_result(G_SINGLE_SOLVED)
             return
         elif goal.obj.BaseClass is EVENT:
-            pass
-            # print(goal)
+            solve_goal(goal, cycle_time)
+            return
         elif goal.obj.BaseClass is FACT:
             unify_fact_res = unify_fact(goal.obj)
             if unify_fact_res:
