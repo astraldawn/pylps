@@ -4,12 +4,12 @@ WIP, pending refactor into trees
 from pylps.core import *
 
 
-initialise(max_time=5)  # Assume all time variables created here
+initialise(max_time=10)  # Assume all time variables created here
 
 create_fluents('fire', 'water', 'p')
 create_actions('eliminate', 'escape', 'refill', 'ignite(_)',
                'delay', 'delay_more')
-create_events('deal_with_fire')
+create_events('deal_with_fire', 'deal_with_fire_1', 'deal_with_fire_2')
 create_variables('X')
 create_facts('flammable(_)')
 
@@ -23,16 +23,17 @@ flammable('sofa')
 flammable('bed')
 
 reactive_rule(fire.at(T1)).then(
-    deal_with_fire.frm(T2, T3))
+    deal_with_fire_1.frm(T2, T3))
 
-goal(deal_with_fire.frm(T1, T4)).requires(
-    eliminate.frm(T1, T2),
-    delay.frm(T2, T3),
-    delay_more.frm(T3, T4))
+goal(deal_with_fire_1.frm(T1, T2)).requires(
+    deal_with_fire_2.frm(T1, T2))
+
+goal(deal_with_fire_2.frm(T1, T2)).requires(
+    deal_with_fire.frm(T1, T2))
 
 goal(deal_with_fire.frm(T1, T2)).requires(
-    escape.frm(T1, T2)
-)
+    eliminate.frm(T1, T2))
+
 
 ignite(X).initiates(fire).iff(flammable(X))
 
