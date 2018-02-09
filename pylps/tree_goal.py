@@ -77,6 +77,23 @@ class TreeGoal(object):
 
         return ret
 
+    '''
+    Use to manage state
+    '''
+
+    def __eq__(self, other):
+        return self._to_tuple() == other._to_tuple()
+
+    def __hash__(self):
+        return hash(self._to_tuple())
+
+    def _to_tuple(self):
+        convert = tuple(action for action in self._actions)
+        convert += tuple(child.result for child in self.children)
+        for child in self.children:
+            convert += tuple((k, v) for k, v in child.subs.items())
+        return convert
+
     @property
     def parent(self):
         return self._parent
@@ -217,7 +234,7 @@ class ReactiveTreeGoal(TreeGoal):
         #     tuple((sub, val) for sub, val in self._subs.items()) + \
         #     tuple(goal for goal in self._defer_goals)
         convert = tuple(c.goal for c in self._children)
-            # tuple((sub, val) for sub, val in self._subs.items())
+        # tuple((sub, val) for sub, val in self._subs.items())
         return convert
 
 
@@ -241,6 +258,7 @@ class SolverTreeGoal(TreeGoal):
         self._new_subs = {}
         self._new_subs_options = deque()
         self.temporal_sub_used = temporal_sub_used
+        self.temporal_satisfied = None
 
     def __repr__(self):
         spacer = '    '
@@ -249,6 +267,8 @@ class SolverTreeGoal(TreeGoal):
             % (str(self._temporal_vars))
         ret += spacer * self.depth + "Temporal sub used: %s\n" % \
             (self.temporal_sub_used)
+        ret += spacer * self.depth + "Temporal satisfied: %s\n" % \
+            (self.temporal_satisfied)
         ret += spacer * self.depth + "New subs: %s\n" % (self._new_subs)
         ret += spacer * self.depth + "New subs options: %s\n" % \
             (self._new_subs_options)

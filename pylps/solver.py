@@ -29,7 +29,7 @@ def solve_multigoal(multigoal: TreeGoal, cycle_time: int) -> bool:
             elif defer_goal.result is G_DEFER:
                 continue
             else:
-                print(multigoal)
+                # print(multigoal)
                 raise UnimplementedOutcomeError("multigoal_defer")
 
     else:
@@ -97,7 +97,7 @@ def solve_multigoal(multigoal: TreeGoal, cycle_time: int) -> bool:
                 cur_goal_pos = cur_goal_pos - 1
                 failed_prev = True
             else:
-                print(multigoal)
+                # print(multigoal)
                 raise UnimplementedOutcomeError("solve_multigoal")
 
         # multigoal.update_result(G_UNSOLVED)
@@ -128,6 +128,7 @@ def solve_goal(goal: TreeGoal, cycle_time: int) -> TreeGoal:
     if CONFIG.single_clause:
         KB_clauses = KB_clauses[:1]
 
+    # Handling a complex
     if KB_clauses:
         for clause in KB_clauses:
             solve_goal_complex(
@@ -140,8 +141,12 @@ def solve_goal(goal: TreeGoal, cycle_time: int) -> TreeGoal:
                 goal.clear_children()
                 continue
 
-            if (goal.result is G_SOLVED or
-                    goal.result is G_DISCARD or
+            if goal.result is G_SOLVED:
+                KB.add_cycle_action(goal, goal.new_subs)
+                # print(goal)
+                return
+
+            if(goal.result is G_DISCARD or
                     goal.result is G_DEFER):
                 return
     else:
@@ -229,17 +234,34 @@ def solve_goal_complex(
 
         goal.temporal_sub_used = req_goal.temporal_sub_used
 
-    # Check if can meet all the temporal reqs for clause
-    combined_subs = {**goal.subs, **goal.new_subs}
-    temporal_satisfied_cnt = 0
-    for temporal_var in clause_goal[1:]:
-        if var(temporal_var.name) in combined_subs:
-            temporal_satisfied_cnt += 1
+    temporal_satisfied = goal_temporal_satisfied(goal, clause_goal)
 
-    temporal_satisfied = (temporal_satisfied_cnt == len(clause_goal[1:]))
+    if not temporal_satisfied:
+        combined_subs = {**goal.subs, **goal.new_subs}
+        goal.temporal_satisfied = False
+
+        children_temporal_satisifed = True
+        for child in goal.children:
+            if not child.temporal_satisfied:
+                children_temporal_satisifed = False
+
+        if children_temporal_satisifed:
+            reify_goal = reify(goal.temporal_vars, combined_subs)
+            if isinstance(reify_goal[0], int):
+                reify_goal = (reify_goal[0], reify_goal[0] + 1)
+                goal.update_subs(unify(goal.temporal_vars, reify_goal))
+                temporal_satisfied = True
+            else:
+                raise UnknownOutcomeError(reify_goal)
+        else:
+            raise UnknownOutcomeError('children_temporal_satisifed')
+
+    temporal_satisfied = goal_temporal_satisfied(goal, clause_goal)
 
     if temporal_satisfied:
+        combined_subs = {**goal.subs, **goal.new_subs}
         goal_temporal_vars = reify(clause_temporal_vars, combined_subs)
+        goal.temporal_satisfied = True
 
         if strictly_increasing(goal_temporal_vars):
             goal.temporal_vars = goal_temporal_vars
@@ -247,7 +269,6 @@ def solve_goal_complex(
                 goal.update_result(G_DEFER)
             else:
                 goal.update_result(G_SOLVED)
-                # print('WE ARE HERE', goal)
             return
 
         goal.clear_subs()
@@ -260,11 +281,11 @@ def solve_goal_complex(
 def solve_goal_single(goal: TreeGoal, cycle_time: int) -> TreeGoal:
 
     reify_goal = None
-    goal_temporal_satisfied = True
+    goal.temporal_satisfied = True
     combined_subs = {**goal.subs, **goal.new_subs}
 
     if goal.temporal_vars:
-        goal_temporal_satisfied = False
+        goal.temporal_satisfied = False
         if not goal.temporal_sub_used:
             for temporal_var in goal.temporal_vars:
                 if temporal_var in goal.subs:
@@ -281,23 +302,10 @@ def solve_goal_single(goal: TreeGoal, cycle_time: int) -> TreeGoal:
             reify_goal = reify(goal.temporal_vars, combined_subs)
             if isinstance(reify_goal[0], int):
                 reify_goal = (reify_goal[0], reify_goal[0] + 1)
-
-                # This should be reviewed if fails
                 goal.update_subs(unify(goal.temporal_vars, reify_goal))
-                # new_subs.update(unify(req_temporal_vars, reify_req))
-
-                # reify_valid = reify_goal[0] == cycle_time
-
-                # TODO: Should defer evaluation based on the maximum cycle time
-
-                # if not reify_valid:
-                #     goal.clear_subs()
-                #     goal.update_result(G_DISCARD)
-                #     return goal
             else:
                 raise UnknownOutcomeError(reify_goal)
         else:
-            # print(goal)
             raise UnknownOutcomeError("Temporal var without action")
 
         goal_temporal_satisfied_cnt = 0
@@ -305,10 +313,10 @@ def solve_goal_single(goal: TreeGoal, cycle_time: int) -> TreeGoal:
             if isinstance(item, int):
                 goal_temporal_satisfied_cnt += 1
 
-        goal_temporal_satisfied = (
+        goal.temporal_satisfied = (
             goal_temporal_satisfied_cnt == len(goal.temporal_vars))
 
-    if goal_temporal_satisfied:
+    if goal.temporal_satisfied:
         combined_subs = {**goal.subs, **goal.new_subs}
         goal_temporal_vars = reify(goal.temporal_vars, combined_subs)
 
@@ -335,6 +343,7 @@ def solve_goal_single(goal: TreeGoal, cycle_time: int) -> TreeGoal:
             goal.update_result(G_SINGLE_SOLVED)
             return
         elif goal.obj.BaseClass is EVENT:
+            # print(goal)
             solve_goal(goal, cycle_time)
             return
         elif goal.obj.BaseClass is FACT:
@@ -358,7 +367,7 @@ def solve_goal_single(goal: TreeGoal, cycle_time: int) -> TreeGoal:
 
 def process_cycle_actions():
     for (action, temporal_vars) in KB.cycle_actions:
-        KB.log_action(action.name, action.args, temporal_vars)
+        KB.log_action(action, temporal_vars)
         causalities = KB.exists_causality(action)
         if causalities:
             for outcome in causalities.outcomes:

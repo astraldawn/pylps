@@ -103,8 +103,8 @@ def show_kb_fluents():
     return KB.show_fluents()
 
 
-def show_kb_log():
-    return KB.show_log()
+def show_kb_log(show_events=False):
+    return KB.show_log(show_events=show_events)
 
 
 def show_kb_rules():

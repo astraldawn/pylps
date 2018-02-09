@@ -95,6 +95,9 @@ class _KB(object):
     def set_children(self, new_children):
         self._goals.set_children(new_children)
 
+    def set_goals(self, goals):
+        self._goals = goals
+
     def reset_goals(self):
         self._goals = TreeGoal(
             parent=None, goal='ROOT'
@@ -293,17 +296,17 @@ class _KB(object):
 
     ''' Logs '''
 
-    def log_action_obs(self, action, temporal_vars):
-        self.log.append([ACTION, action.name, action.args, temporal_vars])
-
-    def log_action(self, action_name, action_args, goal_temporal_vars):
-        self.log.append([ACTION, action_name, action_args, goal_temporal_vars])
+    def log_action(self, action, temporal_vars):
+        self.log.append(
+            [action.BaseClass, action.name, action.args, temporal_vars])
 
     def log_fluent(self, fluent, time, action_type):
         self.log.append([action_type, fluent.name, fluent.args, time])
 
-    def show_log(self):
+    def show_log(self, show_events=False):
         for item in self.log:
+            if item[0] is EVENT and not show_events:
+                continue
             print(item)
 
 

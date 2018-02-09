@@ -186,7 +186,7 @@ def unify_obs(observation):
     end = observation.end
     causality = KB.exists_causality(action)
 
-    KB.log_action_obs(action, (start, end))
+    KB.log_action(action, (start, end))
 
     # If there is causality, need to make the check
     if causality:

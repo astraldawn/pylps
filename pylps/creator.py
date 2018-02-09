@@ -1,13 +1,15 @@
 import inspect
 from pylps.constants import *
+from pylps.exceptions import *
 from pylps.lps_objects import Action, Event, Fact, Fluent
 from pylps.logic_objects import Variable, TemporalVar
 from pylps.kb import KB
 
 types_dict = {
     ACTION: Action,
+    EVENT: Event,
     FACT: Fact,
-    FLUENT: Fluent
+    FLUENT: Fluent,
 }
 valid_dynamic_types = types_dict.keys()
 
@@ -20,7 +22,7 @@ def ClassFactory(name, arity, base_type):
     BaseClass = types_dict[base_type]
     attrs = {}
 
-    if base_type == ACTION or base_type == FLUENT:
+    if base_type == ACTION or base_type == EVENT or base_type == FLUENT:
 
         def __init__(self, *args):
             if len(args) != arity:
@@ -36,6 +38,9 @@ def ClassFactory(name, arity, base_type):
             self.args = [arg for arg in args]
             self.created = True
             KB.add_fact(self)  # Add the declared fact straight to KB
+
+    else:
+        raise UnimplementedOutcomeError(base_type)
 
     attrs['__init__'] = __init__
     attrs['name'] = name
@@ -60,9 +65,7 @@ def create_objects(args, object_type):
         Tweak the argument string to accept arguments
         '''
 
-        if object_type == EVENT:
-            locals_[arg] = Event(arg)
-        elif object_type == VARIABLE:
+        if object_type == VARIABLE:
             locals_[arg] = Variable(arg)
         elif object_type == TEMPORAL_VARIABLE:
             locals_[arg] = TemporalVar(arg)

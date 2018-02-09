@@ -50,3 +50,15 @@ def reify_obj_args(o_obj, substitutions):
     obj = copy.deepcopy(o_obj)
     obj.args = reify_args(obj.args, substitutions)
     return obj
+
+
+def goal_temporal_satisfied(goal, clause_goal):
+    combined_subs = {**goal.subs, **goal.new_subs}
+    temporal_satisfied_cnt = 0
+    for temporal_var in clause_goal[1:]:
+        if var(temporal_var.name) in combined_subs:
+            temporal_satisfied_cnt += 1
+
+    temporal_satisfied = (temporal_satisfied_cnt == len(clause_goal[1:]))
+
+    return temporal_satisfied
