@@ -251,7 +251,8 @@ class _KB(object):
                         arg_match = False
 
             if arg_match:
-                ret_facts.append(kb_fact)
+                # ret_facts.append(kb_fact)
+                yield kb_fact
 
         return ret_facts
 

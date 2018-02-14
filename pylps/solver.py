@@ -347,10 +347,10 @@ def solve_goal_single(goal: TreeGoal, cycle_time: int) -> TreeGoal:
             solve_goal(goal, cycle_time)
             return
         elif goal.obj.BaseClass is FACT:
-            unify_fact_res = unify_fact(goal.obj)
-            if unify_fact_res:
-                goal.update_subs(unify_fact_res[0])
-                goal.set_new_subs_options(unify_fact_res[1:])
+            unify_fact_gen = unify_fact(goal.obj)
+            if unify_fact_gen:
+                goal.set_new_subs_options(unify_fact_gen)
+                goal.update_subs(goal.get_new_sub_option())
                 goal.update_result(G_SINGLE_SOLVED)
                 return
 

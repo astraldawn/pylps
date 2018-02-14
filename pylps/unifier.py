@@ -33,8 +33,10 @@ def unify_conds(conds, cycle_time):
                 raise UnhandledObjectError(cond_object.BaseClass)
         else:
             if cond_object.BaseClass is FACT:
-                substitutions.extend(
-                    unify_fact(cond_object, reactive_rule=True))
+                unify_res = unify_fact(cond_object, reactive_rule=True)
+
+                for res in unify_res:
+                    substitutions.append(res)
             else:
                 raise UnhandledObjectError(cond_object.BaseClass)
 
@@ -60,9 +62,14 @@ def unify_fluent(cond, cycle_time):
 def unify_fact(fact, reactive_rule=False):
     substitutions = []
     kb_facts = KB.get_facts(fact, reactive_rule)
+
     for kb_fact in kb_facts:
         unify_res = unify_args(fact.args, kb_fact.args)
-        substitutions.append(unify_res)
+        yield unify_res
+
+    # for kb_fact in kb_facts:
+    #     unify_res = unify_args(fact.args, kb_fact.args)
+    #     substitutions.append(unify_res)
     return substitutions
 
 
