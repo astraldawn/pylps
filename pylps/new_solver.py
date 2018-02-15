@@ -10,7 +10,6 @@ from pylps.exceptions import *
 from pylps.utils import *
 from pylps.kb import KB
 
-from pylps.tree_goal import TreeGoal
 from pylps.state import State
 
 from pylps.unifier import unify_fact
@@ -34,25 +33,23 @@ class _Solver(object):
         self.current_time = current_time
         self.cycle_actions = []
 
-        cur_goal_pos = 0
-        KB_goals = KB.goals.children
-        end = False
-        back = False
-        reactive_soln = {}
         actions_stack = []
         states_stack = []
-        cnt = 0
+        reactive_soln = {}
+
+        cur_goal_pos = 0
+        end = False
+        back = False
+
         max_soln = 0
         soln_cnt = 0
         solutions = []
 
         while not end:
 
-            cnt += 1
-
             # FORWARD
             while not back:
-                if cur_goal_pos >= len(KB_goals):
+                if cur_goal_pos >= len(KB.goals):
 
                     if len(self.cycle_actions) >= max_soln:
                         # self.display_cycle_actions()
@@ -72,7 +69,7 @@ class _Solver(object):
 
                 # print('FORWARD', cur_goal_pos)
 
-                multigoal = KB_goals[cur_goal_pos]
+                multigoal = KB.goals[cur_goal_pos]
 
                 reactive_soln[cur_goal_pos] = self.backtrack_solve(multigoal)
 
@@ -213,7 +210,7 @@ class _Solver(object):
             print(item)
         print()
 
-    def backtrack_solve(self, start: TreeGoal, pos=0):
+    def backtrack_solve(self, start: State, pos=0):
         '''
         AND step of solving
         Solve all inside here, except for the case when deferring
@@ -221,9 +218,9 @@ class _Solver(object):
         '''
         states = deque()
 
-        s_goals = deque([child.goal for child in start.children])
-        s_subs = start.subs
-        start_state = State(s_goals, s_subs)
+        # s_goals = deque([child.goal for child in start.children])
+        # s_subs = start.subs
+        start_state = copy.deepcopy(start)
         states.append(start_state)
 
         while states:
@@ -318,12 +315,6 @@ class _Solver(object):
             # new_state.remove_first_goal()
             new_state.update_subs(sub)
             states.append(new_state)
-
-    def _extract_goal(self, tree_goal: TreeGoal):
-        if tree_goal.temporal_vars:
-            return tree_goal.goal[0]
-
-        return tree_goal.goal
 
 
 # def backtrack_solve(start, cycle_time, cycle_actions, pos=0):

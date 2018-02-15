@@ -5,7 +5,7 @@ from ordered_set import OrderedSet
 from pylps.constants import *
 from pylps.utils import *
 from pylps.kb_objects import Causality
-from pylps.tree_goal import TreeGoal, ReactiveTreeGoal
+from pylps.state import State
 
 
 class _KB(object):
@@ -15,9 +15,8 @@ class _KB(object):
     reactive_rules = []
 
     _clauses = {}
-    _goals = TreeGoal(
-        parent=None, goal='ROOT'
-    )
+    _goals = OrderedSet()
+
     _observations = []
     _constraints = []
     _fact_used_reactive = set()
@@ -81,27 +80,13 @@ class _KB(object):
         return self._goals
 
     def add_goals(self, goals, subs):
-        self._goals.add_child(
-            ReactiveTreeGoal(self._goals, goals, subs)
-        )
-
-    def remove_goals(self, children):
-        new_children = []
-        for child in self._goals.children:
-            if child not in children:
-                new_children.append(child)
-        self._goals.set_children(new_children)
-
-    def set_children(self, new_children):
-        self._goals.set_children(new_children)
+        self._goals.add(State(goals, subs))
 
     def set_goals(self, goals):
         self._goals = goals
 
     def reset_goals(self):
-        self._goals = TreeGoal(
-            parent=None, goal='ROOT'
-        )
+        self._goals = OrderedSet()
 
     ''' Clauses '''
 

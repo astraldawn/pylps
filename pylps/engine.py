@@ -1,8 +1,4 @@
-import copy
-
-from pylps.constants import *
 from pylps.kb import KB
-from pylps.solver import solve_multigoal, process_cycle_actions
 from pylps.unifier import unify_conds, reify_goals, unify_obs
 from pylps.new_solver import SOLVER
 from pylps.solver_utils import process_solutions
@@ -21,7 +17,7 @@ class _ENGINE(object):
         KB.reset_goals()
 
         while self.current_time <= self.max_time:
-            KB.clear_cycle_actions()
+            # KB.clear_cycle_actions()
             self._check_observations()
             self._check_rules()
             self._check_goals()
