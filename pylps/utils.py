@@ -31,7 +31,7 @@ def reify_args(args_with_var, substitutions):
             reify_args.append(arg)
             continue
 
-        if arg.BaseClass == VARIABLE:
+        if arg.BaseClass == VARIABLE or arg.BaseClass == TEMPORAL_VARIABLE:
             res = reify(var(arg.name), substitutions)
             if isinstance(res, Var):
                 reify_args.append(arg)

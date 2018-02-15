@@ -22,7 +22,17 @@ def ClassFactory(name, arity, base_type):
     BaseClass = types_dict[base_type]
     attrs = {}
 
-    if base_type == ACTION or base_type == EVENT or base_type == FLUENT:
+    if base_type == ACTION or base_type == EVENT:
+
+        def __init__(self, *args):
+            if len(args) != arity:
+                raise TypeError('Please supply %s arguments' % arity)
+            self.args = [arg for arg in args]
+            self.created = True
+            self._start_time = None
+            self._end_time = None
+
+    elif base_type == FLUENT:
 
         def __init__(self, *args):
             if len(args) != arity:

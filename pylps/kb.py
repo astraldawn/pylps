@@ -301,6 +301,11 @@ class _KB(object):
         self.log.append(
             [action.BaseClass, action.name, action.args, temporal_vars])
 
+    def log_action_new(self, action):
+        self.log.append(
+            [action.BaseClass, action.name, action.args,
+             (action.start_time, action.end_time)])
+
     def log_fluent(self, fluent, time, action_type):
         self.log.append([action_type, fluent.name, fluent.args, time])
 

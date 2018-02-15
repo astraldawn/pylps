@@ -19,8 +19,7 @@ reactive_rule(g(X)).then(
     p2(X).frm(T1, T2)
 )
 
-false_if(p1(X), p1(Y), X != Y)
-# false_if(p1(1), p2(1))
+false_if(p1(1), p2(1))
 
 execute()
 

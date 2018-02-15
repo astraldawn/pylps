@@ -5,6 +5,7 @@ from pylps.kb import KB
 from pylps.solver import solve_multigoal, process_cycle_actions
 from pylps.unifier import unify_conds, reify_goals, unify_obs
 from pylps.new_solver import SOLVER
+from pylps.solver_utils import process_solutions
 
 
 class _ENGINE(object):
@@ -28,8 +29,8 @@ class _ENGINE(object):
             '''
             DEBUGGING, REMOVE
             '''
-            if self.current_time >= 1:
-                return
+            # if self.current_time >= 1:
+            #     return
 
             self.current_time += 1
 
@@ -54,7 +55,8 @@ class _ENGINE(object):
                 KB.add_goals(new_goals, substitution)
 
     def _check_goals(self):
-        SOLVER.solve_goals(self.current_time)
+        solutions = SOLVER.solve_goals(self.current_time)
+        process_solutions(solutions)
 
 
 ENGINE = _ENGINE()
