@@ -37,7 +37,7 @@ def initially(*args):
 
 def observe(obs):
     # TODO: Make observations iterable?
-    obs = Observation(obs[0], obs[1], obs[2])
+    obs = Observation(obs, obs.start_time, obs.end_time)
     KB.add_observation(obs)
 
 

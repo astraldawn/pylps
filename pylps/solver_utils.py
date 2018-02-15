@@ -65,4 +65,6 @@ def process_solutions(solutions, preference=None):
         elif state.result is G_NPROCESSED:
             new_kb_goals.append(goal)
 
+    # print(new_kb_goals)
+
     KB.set_children(new_kb_goals)

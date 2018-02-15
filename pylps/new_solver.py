@@ -227,7 +227,7 @@ class _Solver(object):
         states.append(start_state)
 
         while states:
-            cur_state = states.popleft()
+            cur_state = states.pop()
 
             # Nothing left
             goal = cur_state.get_next_goal()
@@ -291,7 +291,10 @@ class _Solver(object):
             states.append(new_state)
 
     def expand_event(self, goal, cur_state, states):
-        KB_clauses = KB.get_clauses(goal)
+
+        # Need to reverse here for DFS like iteration
+        KB_clauses = list(KB.get_clauses(goal))
+        KB_clauses.reverse()
 
         if KB_clauses:
             for clause in KB_clauses:
@@ -305,7 +308,12 @@ class _Solver(object):
 
     def expand_fact(self, goal, cur_state, states):
         # Check if variables are needed
-        for sub in unify_fact(goal):
+
+        # Need to reverse here for DFS like iteration
+        subs = list(unify_fact(goal))
+        subs.reverse()
+
+        for sub in subs:
             new_state = copy.deepcopy(cur_state)
             # new_state.remove_first_goal()
             new_state.update_subs(sub)
