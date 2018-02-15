@@ -1,6 +1,6 @@
 from pylps.kb import KB
 from pylps.unifier import unify_conds, reify_goals, unify_obs
-from pylps.new_solver import SOLVER
+from pylps.solver import SOLVER
 from pylps.solver_utils import process_solutions
 
 
@@ -17,16 +17,9 @@ class _ENGINE(object):
         KB.reset_goals()
 
         while self.current_time <= self.max_time:
-            # KB.clear_cycle_actions()
             self._check_observations()
             self._check_rules()
             self._check_goals()
-
-            '''
-            DEBUGGING, REMOVE
-            '''
-            # if self.current_time >= 1:
-            #     return
 
             self.current_time += 1
 
