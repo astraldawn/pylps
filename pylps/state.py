@@ -24,6 +24,19 @@ class State(object):
         ret += "Temporal used: %s\n" % self._temporal_used
         return ret
 
+    # COMPARISON
+
+    def __eq__(self, other):
+        return self._to_tuple() == other._to_tuple()
+
+    def __hash__(self):
+        return hash(self._to_tuple())
+
+    def _to_tuple(self):
+        convert = tuple(goal for goal in self.goals) + \
+            tuple((sub, val) for sub, val in self.subs.items())
+        return convert
+
     @property
     def actions(self):
         return self._actions

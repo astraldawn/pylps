@@ -9,6 +9,7 @@ from pylps.constants import *
 from pylps.exceptions import *
 from pylps.utils import *
 from pylps.kb import KB
+from pylps.config import CONFIG
 
 from pylps.state import State
 
@@ -294,6 +295,9 @@ class _Solver(object):
         KB_clauses.reverse()
 
         if KB_clauses:
+            if CONFIG.single_clause:
+                KB_clauses = [KB_clauses[-1]]
+
             for clause in KB_clauses:
                 '''
                 TODO: Actually resolving the temporal requirements correctly
