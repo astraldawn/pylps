@@ -39,6 +39,12 @@ def process_solutions(solutions, preference=None):
 
         if state.result is G_SOLVED:
             continue
+        elif state.result is G_DEFER:
+            new_state = copy.deepcopy(state)
+            new_state.clear_actions()
+            new_state.set_result(G_NPROCESSED)
+            new_state.set_temporal_used(False)
+            new_kb_goals.append(new_state)
         elif state.result is G_NPROCESSED:
             new_kb_goals.append(start_state)
 

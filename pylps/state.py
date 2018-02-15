@@ -44,6 +44,9 @@ class State(object):
     def add_action(self, action):
         self._actions.append(action)
 
+    def clear_actions(self):
+        self._actions = []
+
     @property
     def goals(self):
         return self._goals
@@ -92,6 +95,9 @@ class State(object):
     @property
     def temporal_used(self):
         return self._temporal_used
+
+    def set_temporal_used(self, new_temporal_used):
+        self._temporal_used = new_temporal_used
 
     def temporal_used_true(self):
         self._temporal_used = True

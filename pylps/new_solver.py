@@ -120,81 +120,7 @@ class _Solver(object):
                 except StopIteration:
                     continue
 
-                # print(actions_stack)
-
-                # if actions_stack:
-                #     actions_stack.pop()
-                #     self.cycle_actions = actions_stack[-1]
-
-                # for item in actions_stack:
-                #     print(item)
-
-            # end = True
-
-            # DEBUG
-            # return
-
-            # if KB.goals not in states:
-            #     states.add(copy.deepcopy(KB.goals))
-            # else:
-            #     # print(KB.goals)
-            #     # print('DUPLICATE STATE')
-            #     cur_goal_pos += 1
-            #     continue
-
-            # if multigoal.result in SOLVED_RESPONSES:
-            #     solved_group.add(multigoal)
-            #     backtracking_counter = 1
-
-            # if multigoal.result is G_CLAUSE_FAIL:  # Go back one
-            #     prev_pos = cur_goal_pos - backtracking_counter
-
-            #     if prev_pos < 0:
-            #         backtracking_counter = 1
-            #         multigoal.update_result(G_DISCARD)
-            #         cur_goal_pos += 1
-            #         continue
-
-            #     prev_goal = KB_goals[prev_pos]
-            #     solved_group.remove(prev_goal)
-            #     prev_goal.reset(propagate=True)
-            #     backtracking_counter += 1
-            #     continue
-            # print(multigoal.result, cur_goal_pos)
-            # print(goal_stk)
-
         return solutions
-
-        # print(KB.goals)
-        # max_solved = 0
-        # for state in states:
-        #     # print(self.current_time, state._to_tuple())
-        #     solved = 0
-        #     for child in state.children:
-        #         if child.result in SOLVED_RESPONSES:
-        #             solved += 1
-
-        #     if solved > max_solved:
-        #         KB.set_goals(state)
-        #         max_solved = solved
-
-        # if KB.goals:
-        #     # KB.display_cycle_actions()
-        #     new_children = []
-        #     for child in KB.goals.children:
-        #         if (child.result in SOLVED_RESPONSES or
-        #                 child.result is G_DISCARD):
-        #             continue
-        #         # if(child.result in SOLVED_RESPONSES or
-        #         #         child.result is G_DISCARD):
-        #         #     continue
-        #         elif child.result is G_FAIL_NO_SUBS:
-        #             child.reset(propagate=True)
-        #         new_children.append(child)
-
-        #     KB.set_children(new_children)
-        #     # print(KB.goals)
-        #     process_cycle_actions()
 
     def add_cycle_actions(self, state):
         for action in state.actions:
@@ -227,6 +153,10 @@ class _Solver(object):
         while states:
             cur_state = states.pop()
 
+            if cur_state.result is G_DEFER:
+                yield cur_state
+                continue
+
             # Nothing left
             goal = cur_state.get_next_goal()
             if not goal:
@@ -254,6 +184,7 @@ class _Solver(object):
             raise UnimplementedOutcomeError(goal.BaseClass)
 
     def expand_action(self, goal, cur_state, states):
+        defer = False
         new_state = copy.deepcopy(cur_state)
 
         # new_state.remove_first_goal()
@@ -273,8 +204,18 @@ class _Solver(object):
                 new_state.update_subs(unify_end)
                 new_state.temporal_used_true()
         else:
-            print('START HAS ALREADY BEEN UNIFIED')
-            pass
+            # print('START HAS ALREADY BEEN UNIFIED')
+            # print(cur_state)
+
+            unify_end = unify(end_time, cur_state.subs[start_time] + 1)
+            new_state.update_subs(unify_end)
+            temporal_valid = new_state.subs[end_time] <= self.current_time + 1
+
+            if not temporal_valid:
+                new_state._goal_pos -= 1
+                new_state.set_result(G_DEFER)
+                states.append(new_state)
+                return
 
         # If we execute the action, is it valid here?
         valid = constraints_satisfied_new(
