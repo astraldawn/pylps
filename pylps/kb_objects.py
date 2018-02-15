@@ -34,3 +34,23 @@ class Causality(object):
 
     def add_req(self, req):
         self._reqs.append(req)
+
+
+class Constraint(object):
+    BaseClass = CONSTRAINT
+
+    def __init__(self, goal, outcome):
+        self._goal = goal
+        self._outcome = outcome
+
+    def __repr__(self):
+        ret = "Constraint %s %s\n" % (self.goal, self.outcome)
+        return ret
+
+    @property
+    def goal(self):
+        return self._goal
+
+    @property
+    def outcome(self):
+        return self._outcome

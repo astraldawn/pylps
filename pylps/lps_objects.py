@@ -22,6 +22,9 @@ class LPSObject(object):
     def __hash__(self):
         return hash(self.to_tuple())
 
+    def __invert__(self):
+        return (self, False)
+
     def to_tuple(self):
         return (
             self.BaseClass, self.name,
@@ -109,9 +112,6 @@ class Fluent(LPSObject):
     def __repr__(self):
         ret = "[%s %s, args: %s]" % (self.BaseClass, self.name, self.args)
         return ret
-
-    def __invert__(self):
-        return (self, False)
 
     def at(self, time):
         return (self, time)

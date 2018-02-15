@@ -15,7 +15,7 @@ from pylps.state import State
 
 from pylps.unifier import unify_fact
 # from pylps.solver import solve_multigoal
-from pylps.constraints import constraints_satisfied_new
+from pylps.constraints import constraints_satisfied
 
 
 class _Solver(object):
@@ -217,7 +217,7 @@ class _Solver(object):
                 return
 
         # If we execute the action, is it valid here?
-        valid = constraints_satisfied_new(
+        valid = constraints_satisfied(
             goal, new_state, self.cycle_actions)
 
         # print(goal, new_state.subs, valid)

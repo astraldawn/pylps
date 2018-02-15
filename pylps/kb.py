@@ -4,7 +4,7 @@ Class for the knowledge base
 from ordered_set import OrderedSet
 from pylps.constants import *
 from pylps.utils import *
-from pylps.kb_objects import Causality
+from pylps.kb_objects import Causality, Constraint
 from pylps.state import State
 
 
@@ -146,6 +146,10 @@ class _KB(object):
         return self._constraints
 
     def add_constraint(self, constraint):
+        constraint = [
+            Constraint(indiv_con[0], indiv_con[1])
+            for indiv_con in constraint
+        ]
         self._constraints.append(constraint)
 
     def get_constraints(self, action):
@@ -154,9 +158,11 @@ class _KB(object):
         # TODO: Can this be made more efficient?
         for constraint in self._constraints:
             relevant = False
-            for obj, state in constraint:
+            for indiv_con in constraint:
                 if relevant:
                     continue
+
+                obj = indiv_con.goal
 
                 try:
                     if obj.name == action.name:

@@ -41,9 +41,14 @@ def process_solutions(solutions, preference=None):
             continue
         elif state.result is G_DEFER:
             new_state = copy.deepcopy(state)
+
+            # Clear actions and set to unprocessed
             new_state.clear_actions()
             new_state.set_result(G_NPROCESSED)
+
+            # Allow another temporal sub
             new_state.set_temporal_used(False)
+
             new_kb_goals.append(new_state)
         elif state.result is G_NPROCESSED:
             new_kb_goals.append(start_state)
