@@ -17,11 +17,13 @@ def constraints_satisfied(o_goal, state, cycle_actions):
     # Create copy
     goal = reify_obj_args(o_goal, state.subs)
 
+    # TODO: Handle these as a set
+
     # Proposed actions from the cycle
-    all_actions = copy.deepcopy(cycle_actions)
+    all_actions = list(copy.deepcopy(cycle_actions.actions))
 
     # Actions for the current reactive rule
-    all_actions.extend(state.actions)
+    all_actions.extend(list(state.actions))
 
     # The proposed action
     all_actions.append(goal)

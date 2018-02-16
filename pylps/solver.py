@@ -11,7 +11,7 @@ from pylps.utils import *
 from pylps.kb import KB
 from pylps.config import CONFIG
 
-from pylps.state import State
+from pylps.state import State, Proposed
 
 from pylps.unifier import unify_fact
 from pylps.constraints import constraints_satisfied
@@ -21,7 +21,7 @@ class _Solver(object):
 
     def __init__(self):
         self.current_time = None
-        self.cycle_actions = []
+        self.cycle_proposed = Proposed()
 
     def solve_goals(self, current_time):
         '''
@@ -31,9 +31,9 @@ class _Solver(object):
         rule
         '''
         self.current_time = current_time
-        self.cycle_actions = []
+        self.cycle_proposed = Proposed()
 
-        actions_stack = []
+        proposed_stack = []
         states_stack = []
         reactive_soln = {}
 
@@ -52,13 +52,13 @@ class _Solver(object):
             while not back:
                 if cur_goal_pos >= len(KB.goals):
 
-                    if len(self.cycle_actions) >= max_soln:
-                        # self.display_cycle_actions()
+                    if len(self.cycle_proposed.actions) >= max_soln:
+                        # self.display_cycle_proposed()
                         solutions.append((
-                            copy.deepcopy(self.cycle_actions),
+                            copy.deepcopy(self.cycle_proposed),
                             copy.deepcopy(states_stack)
                         ))
-                        max_soln = len(self.cycle_actions)
+                        max_soln = len(self.cycle_proposed.actions)
 
                     soln_cnt += 1
                     if soln_cnt >= n_solutions:
@@ -75,13 +75,13 @@ class _Solver(object):
                 reactive_soln[cur_goal_pos] = self.backtrack_solve(multigoal)
 
                 new_state = next(reactive_soln[cur_goal_pos])
-                self.add_cycle_actions(new_state)
-                actions_stack.append(copy.deepcopy(self.cycle_actions))
+                self.add_cycle_proposed(new_state)
+                proposed_stack.append(copy.deepcopy(self.cycle_proposed))
                 states_stack.append(copy.deepcopy(new_state))
 
                 cur_goal_pos += 1
 
-                # self.display_cycle_actions()
+                # self.display_cycle_proposed()
 
             if end:
                 break
@@ -97,24 +97,24 @@ class _Solver(object):
                     break
 
                 # GO BACK TO PREV STATE
-                if actions_stack:
+                if proposed_stack:
 
-                    actions_stack.pop()
+                    proposed_stack.pop()
                     states_stack.pop()
 
                     try:
-                        self.cycle_actions = copy.deepcopy(actions_stack[-1])
+                        self.cycle_proposed = copy.deepcopy(proposed_stack[-1])
                     except IndexError:
-                        self.cycle_actions = []
+                        self.cycle_proposed = Proposed()
                 else:
-                    self.cycle_actions = []
+                    self.cycle_proposed = Proposed()
 
                 try:
                     # Do we have another solution?
                     new_state = next(reactive_soln[cur_goal_pos])
                     back = False
-                    self.add_cycle_actions(new_state)
-                    actions_stack.append(copy.deepcopy(self.cycle_actions))
+                    self.add_cycle_proposed(new_state)
+                    proposed_stack.append(copy.deepcopy(self.cycle_proposed))
                     states_stack.append(copy.deepcopy(new_state))
                     cur_goal_pos += 1
                 except StopIteration:
@@ -122,7 +122,7 @@ class _Solver(object):
 
         return solutions
 
-    def add_cycle_actions(self, state):
+    def add_cycle_proposed(self, state):
         for action in state.actions:
             action.args = reify_args(action.args, state.subs)
             action.update_start_time(
@@ -130,11 +130,11 @@ class _Solver(object):
             action.update_end_time(
                 reify_args([action.end_time], state.subs)[0])
 
-            self.cycle_actions.append(action)
+            self.cycle_proposed.add_action(action)
 
-    def display_cycle_actions(self):
-        for item in self.cycle_actions:
-            print(item)
+    def display_cycle_proposed(self):
+        for action in self.cycle_proposed.actions:
+            print(action)
         print()
 
     def backtrack_solve(self, start: State, pos=0):
@@ -217,7 +217,7 @@ class _Solver(object):
 
         # If we execute the action, is it valid here?
         valid = constraints_satisfied(
-            goal, new_state, self.cycle_actions)
+            goal, new_state, self.cycle_proposed)
 
         # print(goal, new_state.subs, valid)
         # print()
@@ -257,9 +257,6 @@ class _Solver(object):
             new_state = copy.deepcopy(cur_state)
             new_state.update_subs(sub)
             states.append(new_state)
-
-
-# def backtrack_solve(start, cycle_time, cycle_actions, pos=0):
 
 
 SOLVER = _Solver()

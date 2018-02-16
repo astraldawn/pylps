@@ -16,7 +16,7 @@ def process_solutions(solutions):
     max_actions = 0
     # Take the first avaliable solution
     for solution in solutions:
-        actions, states = solution[0], solution[1]
+        actions, states = solution[0].actions, solution[1]
 
         if preference is SOLN_PREF_FIRST:
             solution_actions, solution_states = actions, states
@@ -30,6 +30,7 @@ def process_solutions(solutions):
         KB.log_action_new(action)
         causalities = KB.exists_causality(action)
         if causalities:
+            # print(causalities)
             for outcome in causalities.outcomes:
                 if outcome[0] == A_TERMINATE:
                     KB.remove_fluent(outcome[1])
