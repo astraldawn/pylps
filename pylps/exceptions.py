@@ -17,3 +17,8 @@ class UnimplementedOutcomeError(Exception):
 class UnknownOutcomeError(Exception):
     def __init__(self, outcome_type):
         self.outcome_type = outcome_type
+
+
+class PylpsUnimplementedOutcomeError(Exception):
+    def __init__(self, outcome_type):
+        self.outcome_type = outcome_type

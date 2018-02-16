@@ -1,7 +1,7 @@
-from pylps.constants import *
 from pylps.kb import KB
-from pylps.solver import solve_multigoal, process_cycle_actions
 from pylps.unifier import unify_conds, reify_goals, unify_obs
+from pylps.solver import SOLVER
+from pylps.solver_utils import process_solutions
 
 
 class _ENGINE(object):
@@ -17,7 +17,6 @@ class _ENGINE(object):
         KB.reset_goals()
 
         while self.current_time <= self.max_time:
-            KB.clear_cycle_actions()
             self._check_observations()
             self._check_rules()
             self._check_goals()
@@ -45,61 +44,9 @@ class _ENGINE(object):
                 KB.add_goals(new_goals, substitution)
 
     def _check_goals(self):
-        '''
-        Work through the goals individually
-        '''
-        solved_group = set()
 
-        cur_goal_pos = 0
-
-        KB_goals = KB.goals.children
-
-        while(cur_goal_pos < len(KB_goals)):
-            multigoal = KB_goals[cur_goal_pos]
-
-            if multigoal in solved_group:
-                multigoal.update_result(G_SOLVED)
-                cur_goal_pos += 1
-                continue
-
-            solve_multigoal(multigoal, self.current_time)
-
-            if multigoal.result in SOLVED_RESPONSES:
-                solved_group.add(multigoal)
-
-            elif multigoal.result is G_CLAUSE_FAIL:  # Go back one
-
-                # Cannot solve the original, so discard it and move on
-                # Will not be able to go back anymore
-                if cur_goal_pos == 0:
-                    multigoal.update_result(G_CLAUSE_FAIL)
-                    cur_goal_pos += 1
-                    continue
-
-                prev_goal = KB_goals[cur_goal_pos - 1]
-                if prev_goal.result in SOLVED_RESPONSES:
-                    solved_group.remove(prev_goal)
-                    prev_goal.reset(propagate=True)
-                    continue
-
-            cur_goal_pos += 1
-
-        if KB_goals:
-            # KB.display_cycle_actions()
-            # print(KB.goals)
-            new_children = []
-            for child in KB_goals:
-                if (child.result in SOLVED_RESPONSES or
-                        child.result is G_DISCARD or
-                        child.result is G_CLAUSE_FAIL):
-                    continue
-                elif child.result is G_FAIL_NO_SUBS:
-                    child.reset(propagate=True)
-                new_children.append(child)
-
-            KB.set_children(new_children)
-            # print(KB.goals)
-            process_cycle_actions()
+        solutions = SOLVER.solve_goals(self.current_time)
+        process_solutions(solutions)
 
 
 ENGINE = _ENGINE()

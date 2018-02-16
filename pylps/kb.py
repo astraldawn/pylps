@@ -4,8 +4,8 @@ Class for the knowledge base
 from ordered_set import OrderedSet
 from pylps.constants import *
 from pylps.utils import *
-from pylps.kb_objects import Causality
-from pylps.tree_goal import TreeGoal, ReactiveTreeGoal
+from pylps.kb_objects import Causality, Constraint
+from pylps.state import State
 
 
 class _KB(object):
@@ -15,9 +15,8 @@ class _KB(object):
     reactive_rules = []
 
     _clauses = {}
-    _goals = TreeGoal(
-        parent=None, goal='ROOT'
-    )
+    _goals = OrderedSet()
+
     _observations = []
     _constraints = []
     _fact_used_reactive = set()
@@ -81,24 +80,13 @@ class _KB(object):
         return self._goals
 
     def add_goals(self, goals, subs):
-        self._goals.add_child(
-            ReactiveTreeGoal(self._goals, goals, subs)
-        )
+        self._goals.add(State(goals, subs))
 
-    def remove_goals(self, children):
-        new_children = []
-        for child in self._goals.children:
-            if child not in children:
-                new_children.append(child)
-        self._goals.set_children(new_children)
-
-    def set_children(self, new_children):
-        self._goals.set_children(new_children)
+    def set_goals(self, goals):
+        self._goals = goals
 
     def reset_goals(self):
-        self._goals = TreeGoal(
-            parent=None, goal='ROOT'
-        )
+        self._goals = OrderedSet()
 
     ''' Clauses '''
 
@@ -158,6 +146,10 @@ class _KB(object):
         return self._constraints
 
     def add_constraint(self, constraint):
+        constraint = [
+            Constraint(indiv_con[0], indiv_con[1])
+            for indiv_con in constraint
+        ]
         self._constraints.append(constraint)
 
     def get_constraints(self, action):
@@ -166,9 +158,11 @@ class _KB(object):
         # TODO: Can this be made more efficient?
         for constraint in self._constraints:
             relevant = False
-            for obj, state in constraint:
+            for indiv_con in constraint:
                 if relevant:
                     continue
+
+                obj = indiv_con.goal
 
                 try:
                     if obj.name == action.name:
@@ -248,7 +242,8 @@ class _KB(object):
                         arg_match = False
 
             if arg_match:
-                ret_facts.append(kb_fact)
+                # ret_facts.append(kb_fact)
+                yield kb_fact
 
         return ret_facts
 
@@ -293,17 +288,22 @@ class _KB(object):
 
     ''' Logs '''
 
-    def log_action_obs(self, action, temporal_vars):
-        self.log.append([ACTION, action.name, action.args, temporal_vars])
+    def log_action(self, action, temporal_vars):
+        self.log.append(
+            [action.BaseClass, action.name, action.args, temporal_vars])
 
-    def log_action(self, action_name, action_args, goal_temporal_vars):
-        self.log.append([ACTION, action_name, action_args, goal_temporal_vars])
+    def log_action_new(self, action):
+        self.log.append(
+            [action.BaseClass, action.name, action.args,
+             (action.start_time, action.end_time)])
 
     def log_fluent(self, fluent, time, action_type):
         self.log.append([action_type, fluent.name, fluent.args, time])
 
-    def show_log(self):
+    def show_log(self, show_events=False):
         for item in self.log:
+            if item[0] is EVENT and not show_events:
+                continue
             print(item)
 
 

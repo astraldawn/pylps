@@ -22,6 +22,9 @@ class LPSObject(object):
     def __hash__(self):
         return hash(self.to_tuple())
 
+    def __invert__(self):
+        return (self, False)
+
     def to_tuple(self):
         return (
             self.BaseClass, self.name,
@@ -32,8 +35,29 @@ class LPSObject(object):
 class Action(LPSObject):
     BaseClass = ACTION
 
+    def __repr__(self):
+        ret = LPSObject.__repr__(self)
+        ret += "| Temporal %s %s |" % (self.start_time, self.end_time)
+        return ret
+
+    @property
+    def start_time(self):
+        return self._start_time
+
+    def update_start_time(self, new_start_time):
+        self._start_time = new_start_time
+
+    @property
+    def end_time(self):
+        return self._end_time
+
+    def update_end_time(self, new_end_time):
+        self._end_time = new_end_time
+
     def frm(self, start_time, end_time):
-        return (self, start_time, end_time)
+        self._start_time = start_time
+        self._end_time = end_time
+        return self
 
     def initiates(self, fluent):
         KB.add_causality_outcome(self, fluent, A_INITIATE)
@@ -57,13 +81,29 @@ class Action(LPSObject):
 class Event(LPSObject):
     BaseClass = EVENT
 
-    def __init__(self, name, args=[]):
-        self.name = name
-        self.args = args
-        self.created = True
+    def __repr__(self):
+        ret = LPSObject.__repr__(self)
+        ret += "| Temporal %s %s |" % (self.start_time, self.end_time)
+        return ret
+
+    @property
+    def start_time(self):
+        return self._start_time
+
+    def update_start_time(self, new_start_time):
+        self._start_time = new_start_time
+
+    @property
+    def end_time(self):
+        return self._end_time
+
+    def update_end_time(self, new_end_time):
+        self._end_time = new_end_time
 
     def frm(self, start_time, end_time):
-        return (self, start_time, end_time)
+        self._start_time = start_time
+        self._end_time = end_time
+        return self
 
 
 class Fluent(LPSObject):
@@ -72,9 +112,6 @@ class Fluent(LPSObject):
     def __repr__(self):
         ret = "[%s %s, args: %s]" % (self.BaseClass, self.name, self.args)
         return ret
-
-    def __invert__(self):
-        return (self, False)
 
     def at(self, time):
         return (self, time)
@@ -122,7 +159,7 @@ class GoalClause(object):
         try:
             self.name = goal.name
         except AttributeError:
-            self.name = goal[0][0].name
+            self.name = goal[0].name
 
     def __repr__(self):
         ret = "Goal clause\n"

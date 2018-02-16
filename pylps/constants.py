@@ -9,6 +9,7 @@ ACTION = 'action'
 CLAUSE = 'clause'
 EVENT = 'event'
 CAUSALITY = 'causality'
+CONSTRAINT = 'constraint'
 FACT = 'fact'
 FLUENT = 'fluent'
 FLUENTS = 'fluents'
@@ -49,3 +50,8 @@ SOLVED_RESPONSES = set([G_SOLVED, G_SINGLE_SOLVED])
 
 # ERROR CONSTANTS
 ERROR_NO_SUB_OPTIONS = 'ERROR_NO_SUB_OPTIONS'
+
+# CONFIG
+CONFIG_DEFAULT_N_SOLUTIONS = 1
+SOLN_PREF_FIRST = 'first'
+SOLN_PREF_MAX = 'maximum'

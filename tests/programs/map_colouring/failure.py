@@ -28,7 +28,6 @@ reactive_rule(country(X)).then(
 false_if(
     paint(X, C),
     adjacent(X, Y),
-    adjacent(Y, X),
     paint(Y, C)
 )
 
