@@ -33,7 +33,7 @@ goal(p2(X).frm(T1, T2)).requires(
     p2a(X).frm(T1, T2)
 )
 
-false_if(p1a(1), p2a(1))
+false_if(p1(X), p2(Y), X != Y)
 
 execute(solution_preference='maximum')
 
@@ -60,8 +60,8 @@ then p2(X) from T1 to T2.
 p1(X) from T1 to T2 if f(X), p1a(X) from T1 to T2.
 p2(X) from T1 to T2 if g(X), p2a(X) from T1 to T2.
 
-false p1a(1), p2a(1).
+false p1a(X), p2a(Y), X \= Y.
 
-1-2: p1a(2), p2a(1)
-2-3: p1a(2), p2a(1)
+1-2: p1a(1), p2a(1)
+2-3: p1a(1), p2a(1)
 '''

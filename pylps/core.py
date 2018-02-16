@@ -72,10 +72,35 @@ def initialise(max_time=5):
     ENGINE.set_params(max_time=max_time)
 
 
-def execute(single_clause=True):
+def execute(
+        n_solutions=CONFIG_DEFAULT_N_SOLUTIONS,
+        single_clause=True,
+        solution_preference=SOLN_PREF_FIRST):
+    '''Execute pyLPS program
+
+    Keyword arguments:
+    n_solutions -- the number of solutions, use -1 for all solutions
+    (default 1)
+    single_clause -- only consider the first clause for an event (default true)
+    solutions_preference -- the type of solution to favour (defaults to first)
+
+    '''
+
+    if solution_preference is SOLN_PREF_MAX:
+        # If we want maximum solutions, override n_solutions if it is default
+        if n_solutions == CONFIG_DEFAULT_N_SOLUTIONS:
+            n_solutions = -1
+
+    # All solutions if -1
+    if n_solutions == -1:
+        n_solutions = 10000000
+
     options_dict = {
-        'single_clause': single_clause
+        'n_solutions': n_solutions,
+        'single_clause': single_clause,
+        'solution_preference': solution_preference
     }
+
     CONFIG.set_options(options_dict)
     ENGINE.run()
 

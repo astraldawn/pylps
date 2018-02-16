@@ -5,12 +5,26 @@ from pylps.exceptions import *
 from pylps.utils import *
 
 from pylps.kb import KB
+from pylps.config import CONFIG
 
 
-def process_solutions(solutions, preference=None):
+def process_solutions(solutions):
+
+    solution_actions, solution_states = None, None
+
+    preference = CONFIG.solution_preference
+    max_actions = 0
     # Take the first avaliable solution
-    solution_actions = solutions[0][0]  # actions
-    solution_states = solutions[0][1]   # reactive rule states
+    for solution in solutions:
+        actions, states = solution[0], solution[1]
+
+        if preference is SOLN_PREF_FIRST:
+            solution_actions, solution_states = actions, states
+            break
+        elif preference is SOLN_PREF_MAX:
+            if len(actions) > max_actions:
+                solution_actions, solution_states = actions, states
+                max_actions = len(actions)
 
     for action in solution_actions:
         KB.log_action_new(action)

@@ -44,6 +44,7 @@ class _ENGINE(object):
                 KB.add_goals(new_goals, substitution)
 
     def _check_goals(self):
+
         solutions = SOLVER.solve_goals(self.current_time)
         process_solutions(solutions)
 

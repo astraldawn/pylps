@@ -14,7 +14,6 @@ from pylps.config import CONFIG
 from pylps.state import State
 
 from pylps.unifier import unify_fact
-# from pylps.solver import solve_multigoal
 from pylps.constraints import constraints_satisfied
 
 
@@ -24,7 +23,7 @@ class _Solver(object):
         self.current_time = None
         self.cycle_actions = []
 
-    def solve_goals(self, current_time, n_solutions=1):
+    def solve_goals(self, current_time):
         '''
         Entry point, attempt to solve reactive rules
         Note that reactive rules R1 .. RN are not ANDs
@@ -45,6 +44,7 @@ class _Solver(object):
         max_soln = 0
         soln_cnt = 0
         solutions = []
+        n_solutions = CONFIG.n_solutions
 
         while not end:
 
@@ -178,7 +178,6 @@ class _Solver(object):
         elif goal.BaseClass is EVENT:
             self.expand_event(goal, cur_state, states)
         elif goal.BaseClass is FACT:
-            # Check if a sub is needed
             self.expand_fact(goal, cur_state, states)
         else:
             raise UnimplementedOutcomeError(goal.BaseClass)
@@ -247,16 +246,15 @@ class _Solver(object):
                 new_state.replace_event(goal, clause.reqs)
                 states.append(new_state)
 
-    def expand_fact(self, goal, cur_state, states):
+    def expand_fact(self, fact, cur_state, states):
         # Check if variables are needed
 
         # Need to reverse here for DFS like iteration
-        subs = list(unify_fact(goal))
+        subs = list(unify_fact(fact))
         subs.reverse()
 
         for sub in subs:
             new_state = copy.deepcopy(cur_state)
-            # new_state.remove_first_goal()
             new_state.update_subs(sub)
             states.append(new_state)
 
