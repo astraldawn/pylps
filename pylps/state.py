@@ -34,7 +34,7 @@ class Proposed(object):
         self._fluents.add(fluent)
 
     def clear_fluents(self):
-        self._actions = OrderedSet()
+        self._fluents = OrderedSet()
 
 
 class State(object):
@@ -78,6 +78,16 @@ class State(object):
 
     def clear_actions(self):
         self._proposed.clear_actions()
+
+    @property
+    def fluents(self):
+        return self._proposed.fluents
+
+    def add_fluent(self, fluent):
+        self._proposed.add_fluent(fluent)
+
+    def clear_fluents(self):
+        self._proposed.clear_fluents()
 
     @property
     def goals(self):

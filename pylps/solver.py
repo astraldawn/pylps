@@ -54,6 +54,7 @@ class _Solver(object):
 
                     if len(self.cycle_proposed.actions) >= max_soln:
                         # self.display_cycle_proposed()
+                        # print(self.cycle_proposed)
                         solutions.append((
                             copy.deepcopy(self.cycle_proposed),
                             copy.deepcopy(states_stack)
@@ -132,6 +133,12 @@ class _Solver(object):
 
             self.cycle_proposed.add_action(action)
 
+        for fluent in state.fluents:
+            # May not need this actually
+            fluent[1].args = reify_args(fluent[1].args, state.subs)
+
+            self.cycle_proposed.add_fluent(fluent)
+
     def display_cycle_proposed(self):
         for action in self.cycle_proposed.actions:
             print(action)
@@ -161,6 +168,7 @@ class _Solver(object):
             goal = cur_state.get_next_goal()
             if not goal:
                 cur_state.set_result(G_SOLVED)
+                # print(cur_state)
                 yield cur_state
             else:
                 self.expand_goal(goal, cur_state, states)
@@ -225,6 +233,13 @@ class _Solver(object):
         # Done
         if valid:
             new_state.add_action(goal)
+
+            causalities = KB.exists_causality(goal)
+
+            if causalities:
+                for outcome in causalities.outcomes:
+                    new_state.add_fluent(tuple(outcome))
+
             states.append(new_state)
 
     def expand_event(self, goal, cur_state, states):
