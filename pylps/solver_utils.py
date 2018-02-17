@@ -61,10 +61,10 @@ def _process_state(state):
         if CONFIG.cycle_fluents:
             continue
 
-        causaulties = KB.exists_causality(action)
+        causalities = KB.exists_causality(action)
 
-        if causaulties:
-            for causality_outcome in causaulties.outcomes:
+        if causalities:
+            for causality_outcome in causalities.outcomes:
                 outcome = causality_outcome.outcome
                 fluent = copy.deepcopy(causality_outcome.fluent)
 

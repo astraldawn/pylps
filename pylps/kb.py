@@ -56,6 +56,17 @@ class _KB(object):
         except KeyError:
             return False
 
+    def get_fluents(self, fluent):
+        ret = []
+        if not self.fluents.get(fluent.name):
+            return ret
+
+        for kb_fluent in self.fluents[fluent.name]:
+            if len(kb_fluent.args) == len(fluent.args):
+                ret.append(kb_fluent)
+
+        return ret
+
     def remove_fluent(self, fluent):
 
         if not self.fluents[fluent.name]:

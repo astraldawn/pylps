@@ -50,20 +50,24 @@ def test_map_colouring_individual():
     assert actual == expected
 
 
-# def test_map_colouring_individual_solve():
-#     # GIVEN
-#     expected = [
-#         action('paint', ['A', 'red'], (1, 2)),
-#         action('paint', ['B', 'yellow'], (1, 2)),
-#         action('paint', ['C', 'red'], (2, 3)),
-#         action('paint', ['D', 'red'], (2, 3))
-#     ]
+def test_map_colouring_individual_solve():
+    # GIVEN
+    expected = [
+        action('paint', ['A', 'red'], (1, 2)),
+        fluent_initiate('painted', ['A', 'red'], 2),
+        action('paint', ['B', 'yellow'], (2, 3)),
+        fluent_initiate('painted', ['B', 'yellow'], 3),
+        action('paint', ['C', 'blue'], (3, 4)),
+        fluent_initiate('painted', ['C', 'blue'], 4),
+        action('paint', ['D', 'blue'], (4, 5)),
+        fluent_initiate('painted', ['D', 'blue'], 5),
+    ]
 
-#     # WHEN
-#     actual = run_pylps_test_program('map_colouring', 'individual_solve')
+    # WHEN
+    actual = run_pylps_test_program('map_colouring', 'individual_solve')
 
-#     # THEN
-#     assert actual == expected
+    # THEN
+    assert actual == expected
 
 
 def test_map_colouring():
