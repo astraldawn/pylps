@@ -9,30 +9,25 @@ from pylps.constants import *
 from pylps.exceptions import *
 from pylps.utils import *
 
-from pylps.state import State
+from pylps.state import State, Proposed
 from pylps.unifier import unify_fact
 
 
-def constraints_satisfied(o_goal, state, cycle_actions):
+def constraints_satisfied(o_goal, state, cycle_proposed: Proposed):
     # Create copy
     goal = reify_obj_args(o_goal, state.subs)
 
-    # TODO: Handle these as a set
-
     # Proposed actions from the cycle
-    all_actions = list(copy.deepcopy(cycle_actions.actions))
+    all_proposed = copy.deepcopy(cycle_proposed)
 
-    # Actions for the current reactive rule
-    all_actions.extend(list(state.actions))
+    # Action for current rule + the new action
+    all_proposed._actions.update(state.actions)
+    all_proposed._actions.add(goal)
 
-    # The proposed action
-    all_actions.append(goal)
-
-    # combined_subs = {}
     for constraint in KB.get_constraints(goal):
 
         try:
-            next(check_constraint(constraint, all_actions))
+            next(check_constraint(constraint, all_proposed))
             return False
         except StopIteration:
             continue
@@ -40,7 +35,7 @@ def constraints_satisfied(o_goal, state, cycle_actions):
     return True
 
 
-def check_constraint(constraint, all_actions):
+def check_constraint(constraint, all_proposed):
     states = deque()
 
     start_state = State(
@@ -57,15 +52,15 @@ def check_constraint(constraint, all_actions):
         if not constraint:
             yield cur_state
         else:
-            expand_constraint(constraint, cur_state, states, all_actions)
+            expand_constraint(constraint, cur_state, states, all_proposed)
 
 
-def expand_constraint(constraint, cur_state, states, all_actions):
+def expand_constraint(constraint, cur_state, states, all_proposed):
 
     goal = constraint.goal
 
     if goal.BaseClass is ACTION:
-        expand_action(constraint, cur_state, states, all_actions)
+        expand_action(constraint, cur_state, states, all_proposed)
     elif goal.BaseClass is EXPR:
         expand_expr(constraint, cur_state, states)
     elif goal.BaseClass is FACT:
@@ -76,7 +71,7 @@ def expand_constraint(constraint, cur_state, states, all_actions):
         raise PylpsUnimplementedOutcomeError(goal.BaseClass)
 
 
-def expand_action(constraint, cur_state, states, all_actions):
+def expand_action(constraint, cur_state, states, all_proposed):
     '''
     TODO: Handle outcome correctly
     '''
@@ -92,7 +87,7 @@ def expand_action(constraint, cur_state, states, all_actions):
         except AttributeError:
             continue
 
-    for action in all_actions:
+    for action in all_proposed.actions:
         if action.name != cons_action.name:
             continue
 

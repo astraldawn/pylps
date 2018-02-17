@@ -59,9 +59,7 @@ adjacent(iz,uz).
 adjacent(oz,uz).
 
 if country(X)
-then
-    colour(C),
-    paint(X,C) from T1 to T2.
+then colour(C), paint(X,C) from T1 to T2.
 
 paint(X,C) initiates painted(X,C).
 
