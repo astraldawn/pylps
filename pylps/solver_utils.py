@@ -29,7 +29,29 @@ def process_solutions(solutions, cycle_time):
     for action in chosen_solution[0].actions:
         KB.log_action_new(action)
 
+        if CONFIG.cycle_fluents:
+            continue
+
+        causaulties = KB.exists_causality(action)
+
+        if causaulties:
+            for causality_outcome in causaulties.outcomes:
+                outcome = causality_outcome.outcome
+                fluent = causality_outcome.fluent
+
+                if outcome == A_TERMINATE:
+                    if KB.remove_fluent(fluent):
+                        KB.log_fluent(fluent, action.end_time, F_TERMINATE)
+                elif outcome == A_INITIATE:
+                    if KB.add_fluent(fluent):
+                        KB.log_fluent(fluent, action.end_time, F_INITIATE)
+                else:
+                    raise UnknownOutcomeError(outcome)
+
     for fluent_outcome in chosen_solution[0].fluents:
+        if not CONFIG.cycle_fluents:
+            continue
+
         outcome, fluent = fluent_outcome.outcome, fluent_outcome.fluent
 
         if outcome == A_TERMINATE:

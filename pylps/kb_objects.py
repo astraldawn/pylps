@@ -47,6 +47,15 @@ class CausalityOutcome(object):
         ret = "Causality outcome %s %s\n" % (self.fluent, self.outcome)
         return ret
 
+    def __eq__(self, other):
+        return self._to_tuple() == other._to_tuple()
+
+    def __hash__(self):
+        return hash(self._to_tuple())
+
+    def _to_tuple(self):
+        return tuple((self.outcome, self.fluent.to_tuple()))
+
     @property
     def fluent(self):
         return self._fluent

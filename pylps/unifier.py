@@ -7,10 +7,12 @@ import copy
 from unification import *
 
 from pylps.constants import *
-from pylps.logic_objects import TemporalVar
-from pylps.kb import KB
 from pylps.exceptions import *
 from pylps.utils import *
+
+from pylps.kb import KB
+
+from pylps.logic_objects import TemporalVar
 
 
 def unify_conds(conds, cycle_time):

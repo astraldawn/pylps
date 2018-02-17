@@ -3,6 +3,7 @@ from pylps.core import *
 initialise(max_time=10)
 
 create_facts('country(_)', 'colour(_)', 'adjacent(_, _)')
+create_fluents('painted(_,_)')
 create_actions('paint(_, _)')
 create_variables('X', 'Y', 'C')
 
@@ -26,8 +27,11 @@ reactive_rule(country(X)).then(
     paint(X, C).frm(T1, T2)
 )
 
+paint(X, C).initiates(painted(X, C))
+
 false_if(paint(X, C), adjacent(X, Y), paint(Y, C))
 false_if(paint(X, _), paint(Y, _), X != Y)
+false_if(painted(X, C), adjacent(X, Y), painted(Y, C))
 
 execute()
 
@@ -36,6 +40,7 @@ show_kb_log()
 '''
 maxTime(5).
 
+fluents painted(_,_).
 actions paint(_,_).
 
 country(iz).
@@ -61,5 +66,6 @@ then
 paint(X,C) initiates painted(X,C).
 
 false paint(X,C), adjacent(X,Y), paint(Y,C).
+false painted(X,C), adjacent(X,Y), painted(Y,C).
 false paint(X,_), paint(Y,_), X\=Y.
 '''

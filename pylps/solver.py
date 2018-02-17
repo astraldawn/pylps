@@ -133,6 +133,9 @@ class _Solver(object):
 
             self.cycle_proposed.add_action(action)
 
+        if not CONFIG.cycle_fluents:
+            return
+
         for fluent_outcome in state.fluents:
             # May not need this actually
             fluent = fluent_outcome.fluent
@@ -233,13 +236,14 @@ class _Solver(object):
 
         # Done
         if valid:
-            new_state.add_action(goal)
+            new_state.add_action(copy.deepcopy(goal))
 
-            causalities = KB.exists_causality(goal)
+            if CONFIG.cycle_fluents:
+                causalities = KB.exists_causality(goal)
 
-            if causalities:
-                for outcome in causalities.outcomes:
-                    new_state.add_fluent(outcome)
+                if causalities:
+                    for outcome in causalities.outcomes:
+                        new_state.add_fluent(copy.deepcopy(outcome))
 
             states.append(new_state)
 
