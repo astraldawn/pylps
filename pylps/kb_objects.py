@@ -36,6 +36,29 @@ class Causality(object):
         self._reqs.append(req)
 
 
+class CausalityOutcome(object):
+    BaseClass = CAUSALITY_OUTCOME
+
+    def __init__(self, fluent, outcome):
+        self._fluent = fluent
+        self._outcome = outcome
+
+    def __repr__(self):
+        ret = "Causality outcome %s %s\n" % (self.fluent, self.outcome)
+        return ret
+
+    @property
+    def fluent(self):
+        return self._fluent
+
+    def update_fluent(self, new_fluent):
+        self._fluent = new_fluent
+
+    @property
+    def outcome(self):
+        return self._outcome
+
+
 class Constraint(object):
     BaseClass = CONSTRAINT
 

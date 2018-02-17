@@ -202,14 +202,16 @@ def unify_obs(observation):
         if not check_reqs(causality.reqs, substitutions):
             return
 
-    for outcome in causality.outcomes:
-        if outcome[0] == A_TERMINATE:
-            raise UnhandledOutcomeError(A_TERMINATE)
-        elif outcome[0] == A_INITIATE:
-            if KB.add_fluent(outcome[1]):
-                KB.log_fluent(outcome[1], end, F_INITIATE)
+    for causality_outcome in causality.outcomes:
+        outcome, fluent = causality_outcome.outcome, causality_outcome.fluent
+        if outcome == A_TERMINATE:
+            if KB.remove_fluent(fluent):
+                KB.log_fluent(fluent, end, F_TERMINATE)
+        elif outcome == A_INITIATE:
+            if KB.add_fluent(fluent):
+                KB.log_fluent(fluent, end, F_INITIATE)
         else:
-            raise UnknownOutcomeError(outcome[0])
+            raise UnknownOutcomeError(outcome)
 
 
 def check_reqs(reqs, substitutions):

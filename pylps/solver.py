@@ -133,11 +133,12 @@ class _Solver(object):
 
             self.cycle_proposed.add_action(action)
 
-        for fluent in state.fluents:
+        for fluent_outcome in state.fluents:
             # May not need this actually
-            fluent[1].args = reify_args(fluent[1].args, state.subs)
+            fluent = fluent_outcome.fluent
+            fluent.args = reify_args(fluent.args, state.subs)
 
-            self.cycle_proposed.add_fluent(fluent)
+            self.cycle_proposed.add_fluent(fluent_outcome)
 
     def display_cycle_proposed(self):
         for action in self.cycle_proposed.actions:
@@ -238,7 +239,7 @@ class _Solver(object):
 
             if causalities:
                 for outcome in causalities.outcomes:
-                    new_state.add_fluent(tuple(outcome))
+                    new_state.add_fluent(outcome)
 
             states.append(new_state)
 
