@@ -1,15 +1,47 @@
 import copy
 
 from collections import deque
+from ordered_set import OrderedSet
 
 from pylps.constants import *
 
 
+class Proposed(object):
+    def __init__(self):
+        self._actions = OrderedSet()
+        self._fluents = OrderedSet()
+
+    def __repr__(self):
+        ret = "Proposed Actions: %s\n" % (str(self._actions))
+        ret += "Proposed Fluents: %s\n" % (str(self._fluents))
+        return ret
+
+    @property
+    def actions(self):
+        return self._actions
+
+    def add_action(self, action):
+        self._actions.add(action)
+
+    def clear_actions(self):
+        self._actions = OrderedSet()
+
+    @property
+    def fluents(self):
+        return self._fluents
+
+    def add_fluent(self, fluent):
+        self._fluents.add(fluent)
+
+    def clear_fluents(self):
+        self._fluents = OrderedSet()
+
+
 class State(object):
-    def __init__(self, goals, subs, actions=[]):
+    def __init__(self, goals, subs, proposed=Proposed()):
         self._goals = goals
         self._subs = subs
-        self._actions = actions
+        self._proposed = proposed
         self._temporal_used = False
         self._goal_pos = 0
         self._result = G_NPROCESSED
@@ -20,7 +52,7 @@ class State(object):
             str(self.goal_pos), self.result)
         ret += "Goals %s\n" % (str(self._goals))
         ret += "Subs: %s\n" % (str(self._subs))
-        ret += "Actions: %s\n" % (str(self._actions))
+        ret += "%s\n" % (str(self._proposed))
         ret += "Temporal used: %s\n" % self._temporal_used
         return ret
 
@@ -39,13 +71,23 @@ class State(object):
 
     @property
     def actions(self):
-        return self._actions
+        return self._proposed.actions
 
     def add_action(self, action):
-        self._actions.append(action)
+        self._proposed.add_action(action)
 
     def clear_actions(self):
-        self._actions = []
+        self._proposed.clear_actions()
+
+    @property
+    def fluents(self):
+        return self._proposed.fluents
+
+    def add_fluent(self, fluent):
+        self._proposed.add_fluent(fluent)
+
+    def clear_fluents(self):
+        self._proposed.clear_fluents()
 
     @property
     def goals(self):

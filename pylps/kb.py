@@ -4,7 +4,7 @@ Class for the knowledge base
 from ordered_set import OrderedSet
 from pylps.constants import *
 from pylps.utils import *
-from pylps.kb_objects import Causality, Constraint
+from pylps.kb_objects import *
 from pylps.state import State
 
 
@@ -55,6 +55,17 @@ class _KB(object):
             return fluent in self.fluents[fluent.name]
         except KeyError:
             return False
+
+    def get_fluents(self, fluent):
+        ret = []
+        if not self.fluents.get(fluent.name):
+            return ret
+
+        for kb_fluent in self.fluents[fluent.name]:
+            if len(kb_fluent.args) == len(fluent.args):
+                ret.append(kb_fluent)
+
+        return ret
 
     def remove_fluent(self, fluent):
 
@@ -110,12 +121,15 @@ class _KB(object):
 
     ''' Causality '''
 
-    def add_causality_outcome(self, action, fluent, causality_type):
+    def add_causality_outcome(self, action, fluent, outcome):
         if action.name not in self.causalities:
             self.causalities[action.name] = Causality(action)
 
         self.causalities[action.name].add_outcome(
-            [causality_type, fluent])
+            CausalityOutcome(
+                fluent=fluent,
+                outcome=outcome
+            ))
 
     def add_causality_req(self, action, items):
         if action.name not in self.causalities:
