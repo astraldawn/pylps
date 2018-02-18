@@ -1,3 +1,5 @@
+import inspect
+
 from pylps.constants import *
 from pylps.config import CONFIG
 from pylps.creator import *
@@ -30,6 +32,13 @@ def create_variables(*args):
 
 
 def initially(*args):
+    stack = inspect.stack()
+
+    for i, s in enumerate(stack):
+        print(i, s)
+
+    print('\n\n')
+
     for arg in args:
         KB.add_fluent(arg)
         KB.log_fluent(arg, 0, F_INITIATE)
@@ -68,8 +77,9 @@ def false_if(*args):
 
 def initialise(max_time=5):
     # Must call create object directly due to stack issues
-    create_objects(['T1', 'T2', 'T3', 'T4', 'T5'], TEMPORAL_VARIABLE)
-    create_variables('_')
+    create_objects(['T1', 'T2', 'T3', 'T4', 'T5'],
+                   TEMPORAL_VARIABLE)
+    create_objects(['_'], VARIABLE)
     ENGINE.set_params(max_time=max_time)
 
 

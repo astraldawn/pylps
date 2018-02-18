@@ -58,11 +58,18 @@ def ClassFactory(name, arity, base_type):
     return type(name, (BaseClass,), attrs)
 
 
-def create_objects(args, object_type):
+def create_objects(args, object_type, call_level=3):
     stack = inspect.stack()
 
     # TODO: This is mega hacky
-    locals_ = stack[-1][0].f_locals
+    locals_ = stack[call_level][0].f_locals
+
+    # for i, s in enumerate(stack):
+    #     print(i, s)
+
+    # print('\n\n')
+
+    print('CREATE', stack[call_level - 1])
 
     # for item in stack:
     #     print(item)
