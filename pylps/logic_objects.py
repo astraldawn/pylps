@@ -1,5 +1,16 @@
 import operator
-from pylps.constants import VARIABLE, TEMPORAL_VARIABLE, EXPR
+from pylps.constants import CONSTANT, VARIABLE, TEMPORAL_VARIABLE, EXPR
+
+
+class Constant(object):
+    BaseClass = CONSTANT
+
+    def __init__(self, const):
+        self.const = const
+
+    def __repr__(self):
+        ret = '%s: %s' % (self.BaseClass, self.const)
+        return ret
 
 
 class Variable(object):

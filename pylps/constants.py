@@ -18,6 +18,9 @@ OBS = 'obs'
 RULE = 'rule'
 LPS_OBJECTS = ['ACTION', 'EVENT', 'FLUENT', 'RULE']
 
+# List
+LIST = 'list'
+
 # Solver objects
 SOLVER_GOAL = 'solver_goal'
 TREE_GOAL = 'TREE_GOAL'

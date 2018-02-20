@@ -39,6 +39,9 @@ def unify_conds(conds, cycle_time):
 
                 for res in unify_res:
                     substitutions.append(res)
+            elif cond_object.BaseClass is CONSTANT:
+                if cond_object.const is True:
+                    substitutions.append({})
             else:
                 raise UnhandledObjectError(cond_object.BaseClass)
 
@@ -77,7 +80,7 @@ def unify_fact(fact, reactive_rule=False):
 
 def reify_goals(goals, subs, defer=False):
     '''
-    Note that goals are interative
+    Note that goals are iterative
 
     E.g.
 
@@ -105,7 +108,7 @@ def reify_goals(goals, subs, defer=False):
             try:
                 if arg.BaseClass is VARIABLE:
                     used_var.add(var(arg.name))
-            except TypeError:
+            except (AttributeError, TypeError):
                 pass
 
         if temporal:

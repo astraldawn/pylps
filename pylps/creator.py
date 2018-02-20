@@ -3,6 +3,7 @@ from pylps.constants import *
 from pylps.exceptions import *
 from pylps.lps_objects import Action, Event, Fact, Fluent
 from pylps.logic_objects import Variable, TemporalVar
+from pylps.lists import LPSList
 from pylps.kb import KB
 
 types_dict = {
@@ -12,6 +13,13 @@ types_dict = {
     FLUENT: Fluent,
 }
 valid_dynamic_types = types_dict.keys()
+
+
+def ConvertArg(arg):
+    if isinstance(arg, list):
+        return LPSList(arg)
+
+    return arg
 
 
 def ClassFactory(name, arity, base_type):
@@ -27,7 +35,7 @@ def ClassFactory(name, arity, base_type):
         def __init__(self, *args):
             if len(args) != arity:
                 raise TypeError('Please supply %s arguments' % arity)
-            self.args = [arg for arg in args]
+            self.args = [ConvertArg(arg) for arg in args]
             self.created = True
             self._start_time = None
             self._end_time = None
@@ -37,7 +45,7 @@ def ClassFactory(name, arity, base_type):
         def __init__(self, *args):
             if len(args) != arity:
                 raise TypeError('Please supply %s arguments' % arity)
-            self.args = [arg for arg in args]
+            self.args = [ConvertArg(arg) for arg in args]
             self.created = True
 
     elif base_type == FACT:
@@ -45,7 +53,7 @@ def ClassFactory(name, arity, base_type):
         def __init__(self, *args):
             if len(args) != arity:
                 raise TypeError('Please supply %s arguments' % arity)
-            self.args = [arg for arg in args]
+            self.args = [ConvertArg(arg) for arg in args]
             self.created = True
             KB.add_fact(self)  # Add the declared fact straight to KB
 
