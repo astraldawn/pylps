@@ -45,6 +45,7 @@ class State(object):
         self._temporal_used = False
         self._goal_pos = 0
         self._result = G_NPROCESSED
+        self._counter = 0
 
     def __repr__(self):
         ret = "STATE\n"
@@ -52,8 +53,9 @@ class State(object):
             str(self.goal_pos), self.result)
         ret += "Goals %s\n" % (str(self._goals))
         ret += "Subs: %s\n" % (str(self._subs))
-        ret += "%s\n" % (str(self._proposed))
         ret += "Temporal used: %s\n" % self._temporal_used
+        ret += "Counter %s\n" % self._counter
+        ret += "%s\n" % (str(self._proposed))
         return ret
 
     # COMPARISON
@@ -78,6 +80,10 @@ class State(object):
 
     def clear_actions(self):
         self._proposed.clear_actions()
+
+    @property
+    def counter(self):
+        return self._counter
 
     @property
     def fluents(self):

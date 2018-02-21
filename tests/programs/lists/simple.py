@@ -1,6 +1,6 @@
 from pylps.core import *
 
-initialise(max_time=1)
+initialise(max_time=10)
 
 create_actions('show(_)')
 

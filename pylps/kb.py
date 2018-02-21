@@ -307,8 +307,21 @@ class _KB(object):
             [action.BaseClass, action.name, action.args, temporal_vars])
 
     def log_action_new(self, action):
+        converted_args = []
+
+        # Argument conversion for final display
+        for arg in action.args:
+            try:
+                if arg.BaseClass is LIST:
+                    converted_args.append(arg.to_python_list())
+                    continue
+            except AttributeError:
+                pass
+
+            converted_args.append(arg)
+
         self.log.append(
-            [action.BaseClass, action.name, action.args,
+            [action.BaseClass, action.name, converted_args,
              (action.start_time, action.end_time)])
 
     def log_fluent(self, fluent, time, action_type):

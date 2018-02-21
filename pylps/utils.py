@@ -67,3 +67,11 @@ def goal_temporal_satisfied(goal, clause_goal):
     temporal_satisfied = (temporal_satisfied_cnt == len(clause_goal[1:]))
 
     return temporal_satisfied
+
+
+def same_var_name(var_a, var_b):
+    return True
+
+
+def is_constant(arg):
+    return isinstance(arg, str) or isinstance(arg, int)

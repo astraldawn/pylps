@@ -35,7 +35,7 @@ goal(p2(X).frm(T1, T2)).requires(
 
 false_if(p1a(1), p2a(1))
 
-execute(solution_preference='first')
+execute(solution_preference='maximum')
 
 show_kb_log()
 
@@ -62,6 +62,6 @@ p2(X) from T1 to T2 if g(X), p2a(X) from T1 to T2.
 
 false p1a(1), p2a(1).
 
-1-2: p1a(1)
+1-2: p2a(1), p1a(2)
 2-3: p2a(1), p1a(2)
 '''

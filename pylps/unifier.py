@@ -15,17 +15,27 @@ from pylps.kb import KB
 from pylps.logic_objects import TemporalVar
 
 
-def unify_conds(conds, cycle_time):
+def unify_conds(rule, cycle_time):
+    conds = rule.conds
     substitutions = []
     for cond in conds:
         temporal = False
 
         # Temporal check
         try:
-            cond_object = cond[0]
+            o_cond_object = cond[0]
             temporal = True
         except TypeError:
-            cond_object = cond
+            o_cond_object = cond
+
+        cond_object = copy.deepcopy(o_cond_object)
+
+        for arg in cond_object.args:
+            if is_constant(arg):
+                continue
+
+            if arg.BaseClass is VARIABLE:
+                arg.name += '_0'
 
         if temporal:
             if cond_object.BaseClass is FLUENT:
@@ -42,6 +52,10 @@ def unify_conds(conds, cycle_time):
             elif cond_object.BaseClass is CONSTANT:
                 if cond_object.const is True:
                     substitutions.append({})
+                else:
+                    raise UnimplementedOutcomeError(cond_object.const)
+
+                rule._constant_trigger = True
             else:
                 raise UnhandledObjectError(cond_object.BaseClass)
 
@@ -78,7 +92,7 @@ def unify_fact(fact, reactive_rule=False):
     return substitutions
 
 
-def reify_goals(goals, subs, defer=False):
+def reify_goals(goals, subs):
     '''
     Note that goals are iterative
 
@@ -91,86 +105,128 @@ def reify_goals(goals, subs, defer=False):
 
     If consequent rules are swapped, should raise some error
     '''
-    temporal = False
-    used_var = set()
+    sub_constant = '_0'
+
+    new_goals = []
+
+    for goal in goals:
+        new_goal = copy.deepcopy(goal)
+
+        for arg in new_goal.args:
+            try:
+                if arg.BaseClass is VARIABLE:
+                    arg.name += sub_constant
+            except AttributeError:
+                continue
+
+        if new_goal.BaseClass is ACTION or new_goal.BaseClass is EVENT:
+            new_goal._start_time.name += sub_constant
+            new_goal._end_time.name += sub_constant
+
+        # print(new_goal.args, subs)
+        # new_goal.args = reify_args(new_goal.args, subs)
+        new_goals.append(new_goal)
+
+    return copy.deepcopy(new_goals)
+
+    # temporal = False
+    # used_var = set()
 
     # Checking whether or not a variable is used
     # Look to combine these
-    for goal in goals:
-        # Temporal check
-        try:
-            goal_object_original = goal[0]
-            temporal = True
-        except TypeError:
-            goal_object_original = goal
+    # for goal in goals:
+    #     # Temporal check
+    #     try:
+    #         goal_object_original = goal[0]
+    #         temporal = True
+    #     except TypeError:
+    #         goal_object_original = goal
 
-        for arg in goal_object_original.args:
-            try:
-                if arg.BaseClass is VARIABLE:
-                    used_var.add(var(arg.name))
-            except (AttributeError, TypeError):
-                pass
+    #     for arg in goal_object_original.args:
+    #         try:
+    #             if arg.BaseClass is VARIABLE:
+    #                 used_var.add(var(arg.name))
+    #         except (AttributeError, TypeError):
+    #             pass
 
-        if temporal:
-            for temporal_var in goal[1:]:
-                used_var.add(var(temporal_var.name))
+    #     if temporal:
+    #         for temporal_var in goal[1:]:
+    #             used_var.add(var(temporal_var.name))
 
-    sub_vars = list(subs.keys())
-    for variable in sub_vars:
-        if variable not in used_var:
-            del subs[variable]
+    # sub_vars = list(subs.keys())
+    # for variable in sub_vars:
+    #     if variable not in used_var:
+    #         del subs[variable]
 
     if defer:
-        return copy.deepcopy(goals)
+        new_goals = []
 
-    new_goals_set = set()  # To prevent repeat goals
-    new_goals = []         # To keep ordering constant
+        for goal in goals:
+            new_goal = copy.deepcopy(goal)
 
-    for goal in goals:
-        temporal = False
-        goal_res = None
+            for arg in new_goal.args:
+                try:
+                    if arg.BaseClass is VARIABLE:
+                        arg.name = arg.name + '_0'
+                except AttributeError:
+                    continue
 
-        # Temporal check
-        try:
-            goal_object_original = goal[0]
-            temporal = True
-        except TypeError:
-            goal_object_original = goal
+                print(reify)
 
-        goal_object = copy.deepcopy(goal_object_original)
+            new_goals.append(new_goal)
 
-        goal_object.args = reify_args(
-            goal_object.args, subs)
+        print(new_goals)
 
-        if temporal:
-            if goal_object.BaseClass is ACTION:
-                goal_res = _reify_event(goal, subs)
-            elif goal_object.BaseClass is EVENT:
-                goal_res = _reify_event(goal, subs)
-            else:
-                raise UnhandledObjectError(goal_object.BaseClass)
-        else:
-            if (goal_object.BaseClass is FACT and
-                    goal_object not in new_goals_set):
-                new_goals_set.add(goal_object)
-                new_goals.append(goal_object)
-            else:
-                raise UnhandledObjectError(goal_object.BaseClass)
+        return copy.deepcopy(new_goals)
 
-        if goal_res:
-            converted_goals = []
-            for goal_re in goal_res:
-                if isinstance(goal_re, Var):
-                    converted_goals.append(TemporalVar(goal_re.token))
-                else:
-                    converted_goals.append(goal_re)
+    # new_goals_set = set()  # To prevent repeat goals
+    # new_goals = []         # To keep ordering constant
 
-            converted_goals = tuple(goal for goal in converted_goals)
-            combined_goal = (goal_object,) + converted_goals
-            if combined_goal not in new_goals_set:
-                new_goals.append(combined_goal)
+    # for goal in goals:
+    #     temporal = False
+    #     goal_res = None
 
-    return tuple(g for g in new_goals)
+    #     # Temporal check
+    #     try:
+    #         goal_object_original = goal[0]
+    #         temporal = True
+    #     except TypeError:
+    #         goal_object_original = goal
+
+    #     goal_object = copy.deepcopy(goal_object_original)
+
+    #     goal_object.args = reify_args(
+    #         goal_object.args, subs)
+
+    #     if temporal:
+    #         if goal_object.BaseClass is ACTION:
+    #             goal_res = _reify_event(goal, subs)
+    #         elif goal_object.BaseClass is EVENT:
+    #             goal_res = _reify_event(goal, subs)
+    #         else:
+    #             raise UnhandledObjectError(goal_object.BaseClass)
+    #     else:
+    #         if (goal_object.BaseClass is FACT and
+    #                 goal_object not in new_goals_set):
+    #             new_goals_set.add(goal_object)
+    #             new_goals.append(goal_object)
+    #         else:
+    #             raise UnhandledObjectError(goal_object.BaseClass)
+
+    #     if goal_res:
+    #         converted_goals = []
+    #         for goal_re in goal_res:
+    #             if isinstance(goal_re, Var):
+    #                 converted_goals.append(TemporalVar(goal_re.token))
+    #             else:
+    #                 converted_goals.append(goal_re)
+
+    #         converted_goals = tuple(goal for goal in converted_goals)
+    #         combined_goal = (goal_object,) + converted_goals
+    #         if combined_goal not in new_goals_set:
+    #             new_goals.append(combined_goal)
+
+    # return tuple(g for g in new_goals)
 
 
 def _reify_event(goal, substitution):

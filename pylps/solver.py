@@ -11,6 +11,7 @@ from pylps.utils import *
 from pylps.kb import KB
 from pylps.config import CONFIG
 
+from pylps.lists import LPSList
 from pylps.state import State, Proposed
 
 from pylps.unifier import unify_fact
@@ -22,6 +23,7 @@ class _Solver(object):
     def __init__(self):
         self.current_time = None
         self.cycle_proposed = Proposed()
+        self.iterations = 0
 
     def solve_goals(self, current_time):
         '''
@@ -30,8 +32,10 @@ class _Solver(object):
         This prevents the reuse of the solver for each indivdual reactive
         rule
         '''
+
         self.current_time = current_time
         self.cycle_proposed = Proposed()
+        self.iterations = 0
 
         proposed_stack = []
         states_stack = []
@@ -164,12 +168,21 @@ class _Solver(object):
         while states:
             cur_state = states.pop()
 
-            if cur_state.result is G_DEFER:
+            self.iterations += 1
+
+            if cur_state.result is G_DEFER or cur_state.result is G_DISCARD:
                 yield cur_state
                 continue
 
             # Nothing left
             goal = cur_state.get_next_goal()
+
+            # if self.iterations > 5:
+            #     break
+
+            # print(self.iterations, goal)
+            # print(cur_state)
+
             if not goal:
                 cur_state.set_result(G_SOLVED)
                 # print(cur_state)
@@ -227,6 +240,13 @@ class _Solver(object):
                 states.append(new_state)
                 return
 
+            temporal_exceed = new_state.subs[end_time] - self.current_time < 1
+
+            if temporal_exceed:
+                new_state.set_result(G_DISCARD)
+                states.append(new_state)
+                return
+
         # If we execute the action, is it valid here?
         valid = constraints_satisfied(
             goal, new_state, self.cycle_proposed)
@@ -262,15 +282,107 @@ class _Solver(object):
                 TODO: Actually resolving the temporal requirements correctly
                 Simple replacement for now
                 '''
-                new_state = copy.deepcopy(cur_state)
-                new_state.replace_event(goal, clause.reqs)
-                states.append(new_state)
+
+                '''Experimental list handling'''
+                self.match_event(goal, clause, cur_state, states)
+                # if goal.args[0].BaseClass is LIST:
+                #     if isinstance(clause.goal[0].args[0], tuple):
+                #         print(clause)
+                #         print('hello')
+                #         continue
+
+                #     if clause.goal[0].args[0].BaseClass is VARIABLE:
+                #         if len(goal.args[0]) != 1:
+                #             continue
+
+                # new_state = copy.deepcopy(cur_state)
+                # new_state.replace_event(goal, clause.reqs)
+                # states.append(new_state)
+
+    def match_event(self, goal, clause, cur_state, states):
+        # has_args = len(goal.args) > 0
+        cur_subs = cur_state.subs
+
+        # Reify?
+        # print(goal, clause, cur_state.subs)
+
+        new_state = copy.deepcopy(cur_state)
+        new_state._counter += 1
+        new_reqs = []
+        new_subs = {}
+        counter = new_state.counter
+
+        # print('GOAL')
+        # print(clause.goal)
+        # print(goal)
+
+        for clause_arg, goal_arg in zip(clause.goal[0].args, goal.args):
+            new_subs.update({
+                var(clause_arg.name + '_' + str(counter)): var(goal_arg.name)
+            })
+
+        # print(new_subs)
+
+        for req in clause.reqs:
+            new_req = copy.deepcopy(req)
+
+            for arg in new_req.args:
+                if isinstance(arg, int):
+                    continue
+
+                if arg.BaseClass is VARIABLE:
+                    arg.name += '_' + str(counter)
+
+            new_reqs.append(new_req)
+
+        new_state.update_subs(new_subs)
+
+        # if has_args and goal.args[0].BaseClass is LIST:
+        #     if isinstance(clause.goal[0].args[0], tuple):
+        #         clause_goal_arg = clause.goal[0].args[0]
+
+        #         # print(clause_goal_arg, goal.args[0])
+
+        #         if clause_goal_arg[0] is MATCH_LIST_HEAD:
+        #             subs = {
+        #                 var(clause_goal_arg[1].name): goal.args[0].head,
+        #                 var(clause_goal_arg[2].name):
+        #                     LPSList(goal.args[0].rest)
+        #             }
+        #             new_state = copy.deepcopy(cur_state)
+        #             new_state.update_subs(subs)
+        #             new_state.replace_event(goal, clause.reqs)
+        #             states.append(new_state)
+        #         return
+
+        #     if clause.goal[0].args[0].BaseClass is VARIABLE:
+        #         if len(goal.args[0]) != 1:
+        #             return
+
+        new_state.replace_event(goal, copy.deepcopy(new_reqs))
+        states.append(new_state)
 
     def expand_fact(self, fact, cur_state, states):
-        # Check if variables are needed
+        cur_subs = cur_state.subs
+        all_subs = list(unify_fact(fact))
+        subs = []
 
-        # Need to reverse here for DFS like iteration
-        subs = list(unify_fact(fact))
+        # print(all_subs)
+
+        for sub in all_subs:
+            valid_sub = True
+            for k, v in sub.items():
+                if not valid_sub:
+                    continue
+
+                if cur_subs.get(k):
+                    res = reify(k, cur_subs)
+                    if v != res and not isinstance(res, Var):
+                        valid_sub = False
+
+            if valid_sub:
+                subs.append(sub)
+
         subs.reverse()
 
         for sub in subs:

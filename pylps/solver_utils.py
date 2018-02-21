@@ -45,8 +45,12 @@ def process_solutions(solutions, cycle_time):
             new_state.set_temporal_used(False)
 
             new_kb_goals.append(new_state)
+        elif state.result is G_DISCARD:
+            continue
         elif state.result is G_NPROCESSED:
-            new_kb_goals.append(start_state)
+            new_state = copy.deepcopy(start_state)
+
+            new_kb_goals.append(new_state)
 
     # print(new_kb_goals)
 
@@ -64,11 +68,15 @@ def _process_state(state):
         causalities = KB.exists_causality(action)
 
         if causalities:
+            action_subs = unify_args(causalities.action.args, action.args)
+
             for causality_outcome in causalities.outcomes:
                 outcome = causality_outcome.outcome
                 fluent = copy.deepcopy(causality_outcome.fluent)
 
-                fluent.args = reify_args(fluent.args, state.subs)
+                fluent.args = reify_args(fluent.args, action_subs)
+
+                print(fluent)
 
                 if outcome == A_TERMINATE:
                     if KB.remove_fluent(fluent):

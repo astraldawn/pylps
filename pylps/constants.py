@@ -18,8 +18,9 @@ OBS = 'obs'
 RULE = 'rule'
 LPS_OBJECTS = ['ACTION', 'EVENT', 'FLUENT', 'RULE']
 
-# List
+# List operations
 LIST = 'list'
+MATCH_LIST_HEAD = 'MATCH_LIST_HEAD'
 
 # Solver objects
 SOLVER_GOAL = 'solver_goal'

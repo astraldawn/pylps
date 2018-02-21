@@ -1,3 +1,30 @@
+from pylps.core import *
+
+initialise(max_time=1)
+
+create_actions('show(_)')
+create_events('handle_list(_)')
+create_variables('X', 'XS')
+
+reactive_rule(True).then(
+    handle_list(['a', 'b', 'c', 'd']).frm(T1, T2)
+)
+
+goal(handle_list(X).frm(T1, T2)).requires(
+    show(X).frm(T1, T2)
+)
+
+goal(handle_list(X | XS).frm(T1, T2)).requires(
+    show(X).frm(T1, T2),
+    handle_list(XS).frm(T1, T2)
+)
+
+# show_kb_clauses()
+
+execute(single_clause=False)
+
+show_kb_log()
+
 '''
 actions show(_).
 

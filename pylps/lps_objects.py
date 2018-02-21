@@ -132,12 +132,17 @@ class ReactiveRule(object):
 
         self._conds = conds
         self._goals = None
+        self._constant_trigger = False
 
     def __repr__(self):
         ret = "Reactive rule\n"
-        ret += "Cond: %s\n" % (self.conds)
+        ret += "Conds: %s\n" % (self.conds)
         ret += "Goals: %s\n" % (', '.join(str(g) for g in self.goals))
         return ret
+
+    @property
+    def constant_trigger(self):
+        return self._constant_trigger
 
     @property
     def conds(self):
@@ -169,7 +174,7 @@ class GoalClause(object):
     def __repr__(self):
         ret = "Goal clause\n"
         ret += "Goal: %s\n" % (self._goal)
-        ret += "Requires: %s\n" % (self._requires)
+        ret += "Requires: %s\n" % (str(self._requires))
         return ret
 
     @property

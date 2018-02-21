@@ -1,5 +1,7 @@
 import operator
-from pylps.constants import CONSTANT, VARIABLE, TEMPORAL_VARIABLE, EXPR
+from pylps.constants import *
+from pylps.exceptions import *
+from pylps.lists import LPSList
 
 
 class Constant(object):
@@ -39,6 +41,9 @@ class Variable(object):
 
     def __ne__(self, other):
         return Expr(operator.ne, self, other)
+
+    def __or__(self, other):
+        return (MATCH_LIST_HEAD, self, other)
 
 
 class TemporalVar(Variable):

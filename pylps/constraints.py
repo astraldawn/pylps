@@ -188,6 +188,8 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
         except AttributeError:
             continue
 
+    print('FROM KB', fluents, cur_subs)
+
     for causality_outcome in all_proposed.fluents:
         if causality_outcome.outcome == A_INITIATE:
             if causality_outcome.fluent in fluents:
@@ -202,6 +204,7 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
         #         continue
         #     fluents.remove(causality_outcome.fluent)
 
+    print('FROM KB AFTER ADD', fluents, cur_subs)
     # print(cons_fluent)
     # print(fluents, outcome, cur_subs, grounded)
     # print(KB.fluents)
@@ -225,7 +228,9 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
     for fluent in fluents:
         if grounded:
             # Outcome must be handled correctly here
+            print(cons_fluent.args, cur_subs)
             res = reify_args(cons_fluent.args, cur_subs)
+            print(res, fluent)
             if res == fluent.args:
                 new_state = copy.deepcopy(cur_state)
                 states.append(new_state)
