@@ -52,8 +52,6 @@ def process_solutions(solutions, cycle_time):
 
             new_kb_goals.append(new_state)
 
-    # print(new_kb_goals)
-
     KB.set_goals(new_kb_goals)
 
 
@@ -76,7 +74,7 @@ def _process_state(state):
 
                 fluent.args = reify_args(fluent.args, action_subs)
 
-                print(fluent)
+                debug_display(fluent)
 
                 if outcome == A_TERMINATE:
                     if KB.remove_fluent(fluent):

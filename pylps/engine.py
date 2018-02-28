@@ -51,7 +51,7 @@ class _ENGINE(object):
                 KB.add_goals(new_goals, substitution)
 
     def _check_goals(self):
-        # print(self.current_time, KB.goals)
+        # debug_display(self.current_time, KB.goals)
 
         solutions = SOLVER.solve_goals(self.current_time)
         process_solutions(solutions, self.current_time)

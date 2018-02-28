@@ -36,7 +36,7 @@ class _KB(object):
 
     def show_reactive_rules(self):
         for rule in self.reactive_rules:
-            print(rule)
+            display(rule)
 
     ''' Fluent control '''
 
@@ -82,7 +82,7 @@ class _KB(object):
 
     def show_fluents(self):
         for _, fluent in self.fluents.items():
-            print(fluent)
+            display(fluent)
 
     ''' Goal control '''
 
@@ -117,7 +117,7 @@ class _KB(object):
 
     def show_clauses(self):
         for name, clause in self._clauses.items():
-            print(clause)
+            display(clause)
 
     ''' Causality '''
 
@@ -142,7 +142,7 @@ class _KB(object):
 
     def show_causalities(self):
         for action_name, causality in self.causalities.items():
-            print(causality)
+            display(causality)
 
     ''' Observations '''
 
@@ -190,7 +190,7 @@ class _KB(object):
 
     def show_constraints(self):
         for constraint in self._constraints:
-            print(constraint)
+            display(constraint)
 
     ''' Facts '''
 
@@ -263,7 +263,7 @@ class _KB(object):
 
     def show_facts(self):
         for _, fact in self.facts.items():
-            print(fact)
+            display(fact)
 
     ''' Cycle actions '''
 
@@ -285,10 +285,10 @@ class _KB(object):
         KB.goals.clear_actions()
 
     def display_cycle_actions(self):
-        print('\nCYCLE ACTIONS\n')
+        display('\nCYCLE ACTIONS\n')
         for (cycle_action, temporal_vars) in self.cycle_actions:
-            print(cycle_action, temporal_vars)
-        print('\n')
+            display(cycle_action, temporal_vars)
+        display('\n')
 
     def exists_cycle_action(self, action):
         return action in [action for (action, _) in self.cycle_actions]
@@ -331,7 +331,7 @@ class _KB(object):
         for item in self.log:
             if item[0] is EVENT and not show_events:
                 continue
-            print(item)
+            display(item)
 
 
 KB = _KB()

@@ -57,8 +57,6 @@ class _Solver(object):
                 if cur_goal_pos >= len(KB.goals):
 
                     if len(self.cycle_proposed.actions) >= max_soln:
-                        # self.display_cycle_proposed()
-                        # print(self.cycle_proposed)
                         solutions.append((
                             copy.deepcopy(self.cycle_proposed),
                             copy.deepcopy(states_stack)
@@ -73,7 +71,7 @@ class _Solver(object):
                     back = True
                     continue
 
-                # print('FORWARD', cur_goal_pos)
+                # debug_display('FORWARD', cur_goal_pos)
 
                 multigoal = KB.goals[cur_goal_pos]
 
@@ -86,15 +84,13 @@ class _Solver(object):
 
                 cur_goal_pos += 1
 
-                # self.display_cycle_proposed()
-
             if end:
                 break
 
             # BACK
             while back:
                 cur_goal_pos -= 1
-                # print('BACK', cur_goal_pos)
+                # debug_display('BACK', cur_goal_pos)
 
                 # No more options, even for the first goal
                 if cur_goal_pos < 0:
@@ -149,8 +145,8 @@ class _Solver(object):
 
     def display_cycle_proposed(self):
         for action in self.cycle_proposed.actions:
-            print(action)
-        print()
+            display(action)
+        display()
 
     def backtrack_solve(self, start: State, pos=0):
         '''
@@ -160,8 +156,6 @@ class _Solver(object):
         '''
         states = deque()
 
-        # s_goals = deque([child.goal for child in start.children])
-        # s_subs = start.subs
         start_state = copy.deepcopy(start)
         states.append(start_state)
 
@@ -180,12 +174,11 @@ class _Solver(object):
             # if self.iterations > 5:
             #     break
 
-            # print(self.iterations, goal)
-            # print(cur_state)
+            # debug_display(self.iterations, goal)
+            # debug_display(cur_state)
 
             if not goal:
                 cur_state.set_result(G_SOLVED)
-                # print(cur_state)
                 yield cur_state
             else:
                 self.expand_goal(goal, cur_state, states)
@@ -227,8 +220,8 @@ class _Solver(object):
                 new_state.update_subs(unify_end)
                 new_state.temporal_used_true()
         else:
-            # print('START HAS ALREADY BEEN UNIFIED')
-            # print(cur_state)
+            # debug_display('START HAS ALREADY BEEN UNIFIED')
+            # debug_display(cur_state)
 
             unify_end = unify(end_time, cur_state.subs[start_time] + 1)
             new_state.update_subs(unify_end)
@@ -251,8 +244,8 @@ class _Solver(object):
         valid = constraints_satisfied(
             goal, new_state, self.cycle_proposed)
 
-        # print(goal, new_state.subs, valid)
-        # print()
+        # debug_display(goal, new_state.subs, valid)
+        # debug_display()
 
         # Done
         if valid:
@@ -287,8 +280,7 @@ class _Solver(object):
                 self.match_event(goal, clause, cur_state, states)
                 # if goal.args[0].BaseClass is LIST:
                 #     if isinstance(clause.goal[0].args[0], tuple):
-                #         print(clause)
-                #         print('hello')
+                #         debug_display('LIST', clause)
                 #         continue
 
                 #     if clause.goal[0].args[0].BaseClass is VARIABLE:
@@ -304,7 +296,7 @@ class _Solver(object):
         cur_subs = cur_state.subs
 
         # Reify?
-        # print(goal, clause, cur_state.subs)
+        # debug_display(goal, clause, cur_state.subs)
 
         new_state = copy.deepcopy(cur_state)
         new_state._counter += 1
@@ -312,16 +304,10 @@ class _Solver(object):
         new_subs = {}
         counter = new_state.counter
 
-        # print('GOAL')
-        # print(clause.goal)
-        # print(goal)
-
         for clause_arg, goal_arg in zip(clause.goal[0].args, goal.args):
             new_subs.update({
                 var(clause_arg.name + '_' + str(counter)): var(goal_arg.name)
             })
-
-        # print(new_subs)
 
         for req in clause.reqs:
             new_req = copy.deepcopy(req)
@@ -341,7 +327,7 @@ class _Solver(object):
         #     if isinstance(clause.goal[0].args[0], tuple):
         #         clause_goal_arg = clause.goal[0].args[0]
 
-        #         # print(clause_goal_arg, goal.args[0])
+        #         # debug_display(clause_goal_arg, goal.args[0])
 
         #         if clause_goal_arg[0] is MATCH_LIST_HEAD:
         #             subs = {
@@ -366,8 +352,6 @@ class _Solver(object):
         cur_subs = cur_state.subs
         all_subs = list(unify_fact(fact))
         subs = []
-
-        # print(all_subs)
 
         for sub in all_subs:
             valid_sub = True

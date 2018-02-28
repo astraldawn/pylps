@@ -123,7 +123,6 @@ def reify_goals(goals, subs):
             new_goal._start_time.name += sub_constant
             new_goal._end_time.name += sub_constant
 
-        # print(new_goal.args, subs)
         # new_goal.args = reify_args(new_goal.args, subs)
         new_goals.append(new_goal)
 
@@ -171,11 +170,7 @@ def reify_goals(goals, subs):
                 except AttributeError:
                     continue
 
-                print(reify)
-
             new_goals.append(new_goal)
-
-        print(new_goals)
 
         return copy.deepcopy(new_goals)
 
@@ -279,7 +274,6 @@ def check_reqs(reqs, substitutions):
     if reqs == []:
         return True
 
-    # print(reqs, substitutions)
     for req in reqs:
         true_satis = True
         # false_satis = True

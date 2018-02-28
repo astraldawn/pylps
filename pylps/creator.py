@@ -72,10 +72,6 @@ def create_objects(args, object_type):
     # TODO: This is mega hacky
     locals_ = stack[-1][0].f_locals
 
-    # for item in stack:
-    #     print(item)
-    # print()
-
     for arg in args:
         '''
         TODO: PROPER ARGUMENT HANDLING

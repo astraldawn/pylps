@@ -33,7 +33,7 @@ false_if(paint(X, C), adjacent(X, Y), paint(Y, C))
 false_if(paint(X, _), paint(Y, _), X != Y)
 false_if(painted(X, C), adjacent(X, Y), painted(Y, C))
 
-execute()
+execute(debug=True)
 
 show_kb_log()
 

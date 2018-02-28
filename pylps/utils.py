@@ -2,6 +2,7 @@ import copy
 from unification import *
 
 from pylps.constants import *
+from pylps.config import CONFIG
 
 
 def strictly_increasing(iterable):
@@ -75,3 +76,12 @@ def same_var_name(var_a, var_b):
 
 def is_constant(arg):
     return isinstance(arg, str) or isinstance(arg, int)
+
+
+def display(item):
+    print(item)
+
+
+def debug_display(*args):
+    if CONFIG.debug:
+        print('DEBUG', args)

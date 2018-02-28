@@ -2,13 +2,14 @@ from pylps.constants import *
 from pylps.exceptions import *
 
 VALID_OPTIONS = {
+    'debug': set([False, True]),
     'cycle_fluents': set([False, True]),
     'single_clause': set([False, True]),
-    'solution_preference': set([SOLN_PREF_FIRST, SOLN_PREF_MAX])
+    'solution_preference': set([SOLN_PREF_FIRST, SOLN_PREF_MAX]),
 }
 
 VALID_OPTIONS_TYPE = {
-    'n_solutions': int
+    'n_solutions': int,
 }
 
 
@@ -34,6 +35,10 @@ class _CONFIG(object):
                     continue
 
             raise ConfigError(k, v)
+
+    @property
+    def debug(self):
+        return self._options['debug']
 
     @property
     def cycle_fluents(self):
