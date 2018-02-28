@@ -35,7 +35,7 @@ def unify_conds(rule, cycle_time):
                 continue
 
             if arg.BaseClass is VARIABLE:
-                arg.name += '_0'
+                arg.name += VAR_SEPARATOR + '0'
 
         if temporal:
             if cond_object.BaseClass is FLUENT:
@@ -105,7 +105,7 @@ def reify_goals(goals, subs):
 
     If consequent rules are swapped, should raise some error
     '''
-    sub_constant = '_0'
+    sub_constant = VAR_SEPARATOR + '0'
 
     new_goals = []
 
@@ -166,7 +166,7 @@ def reify_goals(goals, subs):
             for arg in new_goal.args:
                 try:
                     if arg.BaseClass is VARIABLE:
-                        arg.name = arg.name + '_0'
+                        arg.name = arg.name + VAR_SEPARATOR + '0'
                 except AttributeError:
                     continue
 

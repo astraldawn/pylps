@@ -74,7 +74,7 @@ def _process_state(state):
 
                 fluent.args = reify_args(fluent.args, action_subs)
 
-                debug_display(fluent)
+                # debug_display(action)
 
                 if outcome == A_TERMINATE:
                     if KB.remove_fluent(fluent):

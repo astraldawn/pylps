@@ -34,7 +34,7 @@ def constraints_satisfied(o_goal, state, cycle_proposed: Proposed):
     if causalities:
         for causality_outcome in causalities.outcomes:
             reify_outcome = copy.deepcopy(causality_outcome)
-            reify_outcome.fluent.args = reify_args(
+            reify_outcome.fluent.args = reify_args_constraint_causality(
                 reify_outcome.fluent.args, state.subs)
 
             if reify_outcome in all_proposed.fluents:
@@ -44,6 +44,8 @@ def constraints_satisfied(o_goal, state, cycle_proposed: Proposed):
             co_cons = KB.get_constraints(causality_outcome.fluent)
             if co_cons:
                 constraints.extend(co_cons)
+
+    # debug_display(state.subs, all_proposed.fluents)
 
     for constraint in constraints:
 
@@ -188,12 +190,15 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
         except AttributeError:
             continue
 
-    debug_display('FROM KB', fluents, cur_subs)
+    # debug_display('CONS_FLUENT', cons_fluent)
+    # debug_display('CUR_SUBS', cur_subs)
+    # debug_display('FROM KB', fluents, all_proposed)
 
     for causality_outcome in all_proposed.fluents:
         if causality_outcome.outcome == A_INITIATE:
             if causality_outcome.fluent in fluents:
                 continue
+            # debug_display('CFLUENT', causality_outcome.fluent)
             fluents.append(causality_outcome.fluent)
 
         # TODO: Why does this work?
@@ -204,7 +209,7 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
         #         continue
         #     fluents.remove(causality_outcome.fluent)
 
-    debug_display('FROM KB AFTER ADD', fluents, cur_subs)
+    # debug_display('FROM KB AFTER ADD', fluents)
 
     # No fluents found
     if not fluents:
@@ -223,10 +228,11 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
     for fluent in fluents:
         if grounded:
             # Outcome must be handled correctly here
-            debug_display(cons_fluent.args, cur_subs)
+            # debug_display(cons_fluent.args, cur_subs)
             res = reify_args(cons_fluent.args, cur_subs)
-            debug_display(res, fluent)
+            # debug_display('RES', res, fluent)
             if res == fluent.args:
+                # debug_display('PROCEED')
                 new_state = copy.deepcopy(cur_state)
                 states.append(new_state)
             continue

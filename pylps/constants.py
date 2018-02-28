@@ -3,6 +3,7 @@ CONSTANT = 'constant'
 EXPR = 'expr'
 VARIABLE = 'variable'
 TEMPORAL_VARIABLE = 'temporal_var'
+VAR_SEPARATOR = '_'
 
 # LPS Objects
 ACTION = 'action'
