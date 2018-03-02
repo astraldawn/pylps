@@ -1,22 +1,18 @@
 from pylps.core import *
 
-initialise(max_time=1)
+initialise(max_time=5)
 
 create_actions('say(_, _)')
 create_events('respond(_, _)')
 create_facts('arc(_, _)', 'ask(_, _)')
 create_variables('X', 'Y', 'Z')
 
-# observe(ask('a', 'b').frm(1, 2))
-# observe(ask('a', 'e').frm(4, 5))
-
 arc('a', 'b')
 arc('b', 'c')
-arc('a', 'd')
-arc('d', 'c')
-arc('e', 'c')
+arc('c', 'd')
+arc('d', 'e')
 
-ask('a', 'c')
+ask('a', 'e')
 
 reactive_rule(ask(X, Y)).then(
     respond(X, Y).frm(T1, T2))
@@ -24,25 +20,24 @@ reactive_rule(ask(X, Y)).then(
 goal(respond(X, Y).frm(T1, T2)).requires(
     arc(X, Y), say(X, Y).frm(T1, T2))
 
-goal(respond(X, Y).frm(T1, T2)).requires(
+goal(respond(X, Y).frm(T1, T3)).requires(
     arc(X, Z),
     respond(Z, Y).frm(T1, T2),
-    say(X, Z).frm(T1, T2))
+    say(X, Z).frm(T2, T3))
 
 execute(single_clause=False)
 
 show_kb_log()
 
 '''
-actions say(_, _), ask(_, _).
-
-observe ask(a, c) from 1 to 2.
+actions say(_, _).
 
 arc(a, b).
 arc(b, c).
-arc(a, d).
-arc(d, c).
-arc(e, c).
+arc(c, d).
+arc(d, e).
+
+ask(a, e).
 
 if ask(X, Y) then respond(X, Y) from T1 to T2.
 

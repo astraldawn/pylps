@@ -9,6 +9,7 @@ class Constant(object):
 
     def __init__(self, const):
         self.const = const
+        self.args = []
 
     def __repr__(self):
         ret = '%s: %s' % (self.BaseClass, self.const)

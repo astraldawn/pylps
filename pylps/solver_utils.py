@@ -12,6 +12,10 @@ def process_solutions(solutions, cycle_time):
 
     chosen_solution = None
 
+    # debug_display(cycle_time)
+    # debug_display(solutions)
+    # debug_display(KB.goals)
+
     preference = CONFIG.solution_preference
     max_actions = 0
     # Take the first avaliable solution
@@ -27,12 +31,16 @@ def process_solutions(solutions, cycle_time):
                 max_actions = len(actions)
 
     new_kb_goals = OrderedSet()
+
+    # Ensure that actions executed per cycle are unique
+    unique_actions = set()
+
     for state, start_state in zip(chosen_solution[1], KB.goals):
 
         if state.result is G_SOLVED:
-            _process_state(state)
+            _process_state(state, unique_actions)
         elif state.result is G_DEFER:
-            _process_state(state)
+            _process_state(state, unique_actions)
 
             new_state = copy.deepcopy(state)
 
@@ -55,10 +63,14 @@ def process_solutions(solutions, cycle_time):
     KB.set_goals(new_kb_goals)
 
 
-def _process_state(state):
+def _process_state(state, unique_actions):
 
     for action in state.actions:
+        if action in unique_actions:
+            continue
+
         KB.log_action_new(action)
+        unique_actions.add(action)
 
         if CONFIG.cycle_fluents:
             continue

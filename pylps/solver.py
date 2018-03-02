@@ -202,17 +202,20 @@ class _Solver(object):
 
     def expand_action(self, goal, cur_state, states):
         new_state = copy.deepcopy(cur_state)
-
-        # new_state.remove_first_goal()
+        cur_subs = cur_state.subs
 
         # Handle temporal variables (atomic action)
         start_time = var(goal.start_time.name)
         end_time = var(goal.end_time.name)
 
-        if start_time not in cur_state.subs:
+        if not cur_subs.get(start_time)  \
+                or not isinstance(cur_subs[start_time], int):
             # Start time has not been substituted
             if cur_state.temporal_used:
-                print('TEMPORAL VAR USED')
+                new_state._goal_pos -= 1
+                new_state.set_result(G_DEFER)
+                states.append(new_state)
+                return
             else:
                 unify_start = unify(start_time, self.current_time)
                 unify_end = unify(end_time, self.current_time + 1)
@@ -292,6 +295,7 @@ class _Solver(object):
                 # states.append(new_state)
 
     def match_event(self, goal, clause, cur_state, states):
+        debug_display(goal)
         # has_args = len(goal.args) > 0
         cur_subs = cur_state.subs
 
@@ -306,8 +310,17 @@ class _Solver(object):
 
         for clause_arg, goal_arg in zip(clause.goal[0].args, goal.args):
             new_subs.update({
-                var(clause_arg.name + '_' + str(counter)): var(goal_arg.name)
+                var(clause_arg.name + VAR_SEPARATOR +
+                    str(counter)): var(goal_arg.name)
             })
+
+        # Temporal variable updating
+        new_subs.update({
+            var(clause.goal[0].start_time.name + VAR_SEPARATOR + str(counter)):
+            var(goal.start_time.name),
+            var(clause.goal[0].end_time.name + VAR_SEPARATOR + str(counter)):
+            var(goal.end_time.name)
+        })
 
         for req in clause.reqs:
             new_req = copy.deepcopy(req)
@@ -317,7 +330,11 @@ class _Solver(object):
                     continue
 
                 if arg.BaseClass is VARIABLE:
-                    arg.name += '_' + str(counter)
+                    arg.name += VAR_SEPARATOR + str(counter)
+
+            if req.BaseClass is ACTION or req.BaseClass is EVENT:
+                new_req.start_time.name += VAR_SEPARATOR + str(counter)
+                new_req.end_time.name += VAR_SEPARATOR + str(counter)
 
             new_reqs.append(new_req)
 

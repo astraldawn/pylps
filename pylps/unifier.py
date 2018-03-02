@@ -12,8 +12,6 @@ from pylps.utils import *
 
 from pylps.kb import KB
 
-from pylps.logic_objects import TemporalVar
-
 
 def unify_conds(rule, cycle_time):
     conds = rule.conds
@@ -73,7 +71,9 @@ def unify_fluent(cond, cycle_time):
         return substitutions
 
     # Unify with temporal vars, return the substitution
-    substitutions.append(unify(var(temporal_var.name), cycle_time))
+    substitutions.append(unify(
+        var(temporal_var.name + VAR_SEPARATOR + '0'),
+        cycle_time))
 
     return substitutions
 
