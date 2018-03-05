@@ -10,55 +10,49 @@ from pylps.config import CONFIG
 
 def process_solutions(solutions, cycle_time):
 
-    chosen_solution = None
-
     # debug_display(cycle_time)
-    # debug_display(solutions)
+    debug_display(cycle_time, solutions)
     # debug_display(KB.goals)
 
     preference = CONFIG.solution_preference
-    max_actions = 0
-    # Take the first avaliable solution
-    for solution in solutions:
-        actions = solution[0].actions
 
-        if preference is SOLN_PREF_FIRST:
-            chosen_solution = solution
-            break
-        elif preference is SOLN_PREF_MAX:
-            if len(actions) > max_actions:
-                chosen_solution = solution
-                max_actions = len(actions)
+    if preference is SOLN_PREF_MAX:
+        solutions = sorted(
+            solutions,
+            key=lambda x: len(x[0].actions),
+            reverse=True)
 
     new_kb_goals = OrderedSet()
 
     # Ensure that actions executed per cycle are unique
     unique_actions = set()
 
-    for state, start_state in zip(chosen_solution[1], KB.goals):
+    for solution in solutions:
 
-        if state.result is G_SOLVED:
-            _process_state(state, unique_actions)
-        elif state.result is G_DEFER:
-            _process_state(state, unique_actions)
+        for state, start_state in zip(solution[1], KB.goals):
 
-            new_state = copy.deepcopy(state)
+            if state.result is G_SOLVED:
+                _process_state(state, unique_actions)
+            elif state.result is G_DEFER:
+                _process_state(state, unique_actions)
 
-            # Clear actions / fluents and set to unprocessed
-            new_state.clear_actions()
-            new_state.clear_fluents()
-            new_state.set_result(G_NPROCESSED)
+                new_state = copy.deepcopy(state)
 
-            # Allow another temporal sub
-            new_state.set_temporal_used(False)
+                # Clear actions / fluents and set to unprocessed
+                new_state.clear_actions()
+                new_state.clear_fluents()
+                new_state.set_result(G_NPROCESSED)
 
-            new_kb_goals.append(new_state)
-        elif state.result is G_DISCARD:
-            continue
-        elif state.result is G_NPROCESSED:
-            new_state = copy.deepcopy(start_state)
+                # Allow another temporal sub
+                new_state.set_temporal_used(False)
 
-            new_kb_goals.append(new_state)
+                new_kb_goals.add(new_state)
+            elif state.result is G_DISCARD:
+                continue
+            elif state.result is G_NPROCESSED:
+                new_state = copy.deepcopy(start_state)
+
+                new_kb_goals.add(new_state)
 
     KB.set_goals(new_kb_goals)
 
@@ -111,3 +105,16 @@ def _process_state(state, unique_actions):
                 KB.log_fluent(fluent, cycle_time + 1, F_INITIATE)
         else:
             raise UnknownOutcomeError(outcome)
+
+
+def reify_actions(state):
+    actions = OrderedSet()
+    for action in state.actions:
+        action.args = reify_args(action.args, state.subs)
+        action.update_start_time(
+            reify_args([action.start_time], state.subs)[0])
+        action.update_end_time(
+            reify_args([action.end_time], state.subs)[0])
+        actions.add(action)
+
+    return actions

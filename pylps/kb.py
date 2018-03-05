@@ -91,7 +91,7 @@ class _KB(object):
         return self._goals
 
     def add_goals(self, goals, subs):
-        self._goals.add(State(goals, subs))
+        self._goals.add(State(goals, subs, from_reactive=True))
 
     def set_goals(self, goals):
         self._goals = goals

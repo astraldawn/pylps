@@ -19,6 +19,9 @@ class _CONFIG(object):
         self._options = {}
         self._n_solutions = 1
 
+        # Counter for reactive ID
+        self.reactive_id = 0
+
     @property
     def options(self):
         return self._options

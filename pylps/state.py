@@ -3,6 +3,7 @@ import copy
 from collections import deque
 from ordered_set import OrderedSet
 
+from pylps.config import CONFIG
 from pylps.constants import *
 
 
@@ -23,6 +24,9 @@ class Proposed(object):
     def add_action(self, action):
         self._actions.add(action)
 
+    def add_actions(self, actions):
+        self._actions.update(actions)
+
     def clear_actions(self):
         self._actions = OrderedSet()
 
@@ -38,7 +42,8 @@ class Proposed(object):
 
 
 class State(object):
-    def __init__(self, goals, subs, proposed=Proposed()):
+    def __init__(self, goals, subs,
+                 proposed=Proposed(), from_reactive=False):
         self._goals = goals
         self._subs = subs
         self._proposed = proposed
@@ -46,9 +51,15 @@ class State(object):
         self._goal_pos = 0
         self._result = G_NPROCESSED
         self._counter = 0
+        self.reactive_id = None
+
+        if from_reactive:
+            self.reactive_id = CONFIG.reactive_id
+            CONFIG.reactive_id += 1
 
     def __repr__(self):
         ret = "STATE\n"
+        ret += "Reactive ID %s\n" % self.reactive_id
         ret += "Goal pos %s     Result %s\n" % (
             str(self.goal_pos), self.result)
         ret += "Goals %s\n" % (str(self._goals))

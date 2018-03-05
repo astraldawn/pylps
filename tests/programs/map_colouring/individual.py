@@ -58,8 +58,6 @@ then
     colour(C),
     paint(X,C) from T1 to T2.
 
-paint(X,C) initiates painted(X,C).
-
 false paint(X,C), adjacent(X,Y), paint(Y,C).
 false paint(X,_), paint(Y,_), X\=Y.
 '''

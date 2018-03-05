@@ -11,6 +11,7 @@ arc('a', 'b')
 arc('b', 'c')
 arc('a', 'd')
 arc('d', 'c')
+arc('a', 'c')
 
 ask('a', 'c')
 
@@ -36,6 +37,7 @@ arc(a, b).
 arc(b, c).
 arc(a, d).
 arc(d, c).
+arc(a, c).
 
 ask(a, c).
 
@@ -47,6 +49,5 @@ respond(X, Y) from T1 to T3 if
     respond(Z, Y) from T1 to T2,
     say(X, Z) from T2 to T3.
 
-1 - 2: say(b, c), say(d, c)
-2 - 3: say(a, b), say(a, d)
+1 - 2: say(a, c).
 '''

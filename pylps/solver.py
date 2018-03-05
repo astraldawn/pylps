@@ -2,6 +2,8 @@
 Revised solver that will recursively yield solutions
 '''
 import copy
+
+from more_itertools import peekable
 from unification import *
 from collections import deque
 
@@ -16,6 +18,8 @@ from pylps.state import State, Proposed
 
 from pylps.unifier import unify_fact
 from pylps.constraints import constraints_satisfied
+
+import pylps.solver_utils as s_utils
 
 
 class _Solver(object):
@@ -75,10 +79,13 @@ class _Solver(object):
 
                 multigoal = KB.goals[cur_goal_pos]
 
-                reactive_soln[cur_goal_pos] = self.backtrack_solve(multigoal)
+                reactive_soln[cur_goal_pos] = peekable(
+                    self.backtrack_solve(multigoal))
 
                 new_state = next(reactive_soln[cur_goal_pos])
-                self.add_cycle_proposed(new_state)
+
+                self.add_cycle_proposed(
+                    new_state, reactive_soln[cur_goal_pos])
                 proposed_stack.append(copy.deepcopy(self.cycle_proposed))
                 states_stack.append(copy.deepcopy(new_state))
 
@@ -114,7 +121,8 @@ class _Solver(object):
                     # Do we have another solution?
                     new_state = next(reactive_soln[cur_goal_pos])
                     back = False
-                    self.add_cycle_proposed(new_state)
+                    self.add_cycle_proposed(
+                        new_state, reactive_soln[cur_goal_pos])
                     proposed_stack.append(copy.deepcopy(self.cycle_proposed))
                     states_stack.append(copy.deepcopy(new_state))
                     cur_goal_pos += 1
@@ -123,15 +131,10 @@ class _Solver(object):
 
         return solutions
 
-    def add_cycle_proposed(self, state):
-        for action in state.actions:
-            action.args = reify_args(action.args, state.subs)
-            action.update_start_time(
-                reify_args([action.start_time], state.subs)[0])
-            action.update_end_time(
-                reify_args([action.end_time], state.subs)[0])
-
-            self.cycle_proposed.add_action(action)
+    def add_cycle_proposed(self, state, future_solutions):
+        # Add current state
+        self.cycle_proposed.add_actions(
+            s_utils.reify_actions(state))
 
         if not CONFIG.cycle_fluents:
             return
