@@ -52,6 +52,7 @@ class Solution(object):
     def __repr__(self):
         ret = "Solution\n"
         ret += "Solved: %s\n" % (self.solved)
+        ret += "States: %s\n" % (str(self.states))
         return ret
 
     @property
@@ -82,10 +83,10 @@ class State(object):
         self._goal_pos = 0
         self._result = G_NPROCESSED
         self._counter = 0
-        self.reactive_id = None
+        self._reactive_id = None
 
         if from_reactive:
-            self.reactive_id = CONFIG.reactive_id
+            self._reactive_id = CONFIG.reactive_id
             CONFIG.reactive_id += 1
 
     def __repr__(self):
@@ -99,6 +100,12 @@ class State(object):
         ret += "Counter %s\n" % self._counter
         ret += "%s\n" % (str(self._proposed))
         return ret
+
+    # IDENTITY
+
+    @property
+    def reactive_id(self):
+        return self._reactive_id
 
     # COMPARISON
 

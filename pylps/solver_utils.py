@@ -15,26 +15,35 @@ def process_solutions(solutions, cycle_time):
 
     preference = CONFIG.solution_preference
 
+    maximum_solved = max([sol.solved for sol in solutions])
+
     if preference is SOLN_PREF_MAX:
         solutions = sorted(
             solutions,
-            key=lambda sol: len(sol.proposed.actions),
+            key=lambda sol: sol.solved,
             reverse=True)
 
-    debug_display(cycle_time, solutions)
+    debug_display(maximum_solved)
 
     new_kb_goals = OrderedSet()
 
     # Ensure that actions executed per cycle are unique
     unique_actions = set()
+    processed = set()
+    solved = False
 
     for solution in solutions:
 
-        for state, start_state in zip(solution.states, KB.goals):
+        if maximum_solved != 0 and solution.solved == maximum_solved:
+            solved = True
+
+        for state in solution.states:
 
             if state.result is G_SOLVED:
+                processed.add(state.reactive_id)
                 _process_state(state, unique_actions)
             elif state.result is G_DEFER:
+                processed.add(state.reactive_id)
                 _process_state(state, unique_actions)
 
                 new_state = copy.deepcopy(state)
@@ -51,11 +60,22 @@ def process_solutions(solutions, cycle_time):
             elif state.result is G_DISCARD:
                 continue
             elif state.result is G_NPROCESSED:
-                new_state = copy.deepcopy(start_state)
+                continue
 
-                new_kb_goals.add(new_state)
+        if preference is SOLN_PREF_MAX or solved:
+            break
 
-    KB.set_goals(new_kb_goals)
+    unsolved_existing_goals = OrderedSet()
+
+    for start_state in KB.goals:
+        if start_state.reactive_id in processed:
+            continue
+
+        unsolved_existing_goals.add(start_state)
+
+    unsolved_existing_goals.update(new_kb_goals)
+
+    KB.set_goals(unsolved_existing_goals)
 
 
 def _process_state(state, unique_actions):

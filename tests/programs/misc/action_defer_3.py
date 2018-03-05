@@ -35,7 +35,7 @@ goal(p2(X).frm(T1, T2)).requires(
 
 false_if(p1a(1), p2a(1))
 
-execute(solution_preference='maximum', debug=True)
+execute(solution_preference='maximum')
 
 show_kb_log()
 
