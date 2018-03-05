@@ -11,7 +11,6 @@ from pylps.config import CONFIG
 def process_solutions(solutions, cycle_time):
 
     # debug_display(cycle_time)
-    debug_display(cycle_time, solutions)
     # debug_display(KB.goals)
 
     preference = CONFIG.solution_preference
@@ -19,8 +18,10 @@ def process_solutions(solutions, cycle_time):
     if preference is SOLN_PREF_MAX:
         solutions = sorted(
             solutions,
-            key=lambda x: len(x[0].actions),
+            key=lambda sol: len(sol.proposed.actions),
             reverse=True)
+
+    debug_display(cycle_time, solutions)
 
     new_kb_goals = OrderedSet()
 
@@ -29,7 +30,7 @@ def process_solutions(solutions, cycle_time):
 
     for solution in solutions:
 
-        for state, start_state in zip(solution[1], KB.goals):
+        for state, start_state in zip(solution.states, KB.goals):
 
             if state.result is G_SOLVED:
                 _process_state(state, unique_actions)

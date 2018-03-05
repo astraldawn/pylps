@@ -14,7 +14,7 @@ from pylps.kb import KB
 from pylps.config import CONFIG
 
 from pylps.lists import LPSList
-from pylps.state import State, Proposed
+from pylps.state import State, Proposed, Solution
 
 from pylps.unifier import unify_fact
 from pylps.constraints import constraints_satisfied
@@ -61,9 +61,9 @@ class _Solver(object):
                 if cur_goal_pos >= len(KB.goals):
 
                     if len(self.cycle_proposed.actions) >= max_soln:
-                        solutions.append((
-                            copy.deepcopy(self.cycle_proposed),
-                            copy.deepcopy(states_stack)
+                        solutions.append(Solution(
+                            proposed=copy.deepcopy(self.cycle_proposed),
+                            states=copy.deepcopy(states_stack)
                         ))
                         max_soln = len(self.cycle_proposed.actions)
 

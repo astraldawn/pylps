@@ -41,6 +41,37 @@ class Proposed(object):
         self._fluents = OrderedSet()
 
 
+class Solution(object):
+    def __init__(self, proposed: Proposed, states):
+        self._proposed = proposed
+        self._states = states
+        self._solved = 0
+
+        self._process()
+
+    def __repr__(self):
+        ret = "Solution\n"
+        ret += "Solved: %s\n" % (self.solved)
+        return ret
+
+    @property
+    def proposed(self):
+        return self._proposed
+
+    @property
+    def states(self):
+        return self._states
+
+    @property
+    def solved(self):
+        return self._solved
+
+    def _process(self):
+        for state in self.states:
+            if state.result is G_SOLVED:
+                self._solved += 1
+
+
 class State(object):
     def __init__(self, goals, subs,
                  proposed=Proposed(), from_reactive=False):
