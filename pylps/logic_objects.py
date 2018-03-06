@@ -1,5 +1,18 @@
 import operator
-from pylps.constants import VARIABLE, TEMPORAL_VARIABLE, EXPR
+from pylps.constants import *
+from pylps.exceptions import *
+
+
+class Constant(object):
+    BaseClass = CONSTANT
+
+    def __init__(self, const):
+        self.const = const
+        self.args = []
+
+    def __repr__(self):
+        ret = '%s: %s' % (self.BaseClass, self.const)
+        return ret
 
 
 class Variable(object):
@@ -28,6 +41,9 @@ class Variable(object):
 
     def __ne__(self, other):
         return Expr(operator.ne, self, other)
+
+    def __or__(self, other):
+        return (MATCH_LIST_HEAD, self, other)
 
 
 class TemporalVar(Variable):

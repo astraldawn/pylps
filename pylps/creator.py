@@ -3,6 +3,7 @@ from pylps.constants import *
 from pylps.exceptions import *
 from pylps.lps_objects import Action, Event, Fact, Fluent
 from pylps.logic_objects import Variable, TemporalVar
+from pylps.lps_data_structures import convert_arg
 from pylps.kb import KB
 
 types_dict = {
@@ -27,7 +28,7 @@ def ClassFactory(name, arity, base_type):
         def __init__(self, *args):
             if len(args) != arity:
                 raise TypeError('Please supply %s arguments' % arity)
-            self.args = [arg for arg in args]
+            self.args = [convert_arg(arg) for arg in args]
             self.created = True
             self._start_time = None
             self._end_time = None
@@ -37,7 +38,7 @@ def ClassFactory(name, arity, base_type):
         def __init__(self, *args):
             if len(args) != arity:
                 raise TypeError('Please supply %s arguments' % arity)
-            self.args = [arg for arg in args]
+            self.args = [convert_arg(arg) for arg in args]
             self.created = True
 
     elif base_type == FACT:
@@ -45,7 +46,7 @@ def ClassFactory(name, arity, base_type):
         def __init__(self, *args):
             if len(args) != arity:
                 raise TypeError('Please supply %s arguments' % arity)
-            self.args = [arg for arg in args]
+            self.args = [convert_arg(arg) for arg in args]
             self.created = True
             KB.add_fact(self)  # Add the declared fact straight to KB
 
@@ -63,10 +64,6 @@ def create_objects(args, object_type):
 
     # TODO: This is mega hacky
     locals_ = stack[-1][0].f_locals
-
-    # for item in stack:
-    #     print(item)
-    # print()
 
     for arg in args:
         '''

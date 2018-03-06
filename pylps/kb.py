@@ -36,7 +36,7 @@ class _KB(object):
 
     def show_reactive_rules(self):
         for rule in self.reactive_rules:
-            print(rule)
+            display(rule)
 
     ''' Fluent control '''
 
@@ -82,7 +82,7 @@ class _KB(object):
 
     def show_fluents(self):
         for _, fluent in self.fluents.items():
-            print(fluent)
+            display(fluent)
 
     ''' Goal control '''
 
@@ -91,7 +91,7 @@ class _KB(object):
         return self._goals
 
     def add_goals(self, goals, subs):
-        self._goals.add(State(goals, subs))
+        self._goals.add(State(goals, subs, from_reactive=True))
 
     def set_goals(self, goals):
         self._goals = goals
@@ -117,7 +117,7 @@ class _KB(object):
 
     def show_clauses(self):
         for name, clause in self._clauses.items():
-            print(clause)
+            display(clause)
 
     ''' Causality '''
 
@@ -142,7 +142,7 @@ class _KB(object):
 
     def show_causalities(self):
         for action_name, causality in self.causalities.items():
-            print(causality)
+            display(causality)
 
     ''' Observations '''
 
@@ -190,7 +190,7 @@ class _KB(object):
 
     def show_constraints(self):
         for constraint in self._constraints:
-            print(constraint)
+            display(constraint)
 
     ''' Facts '''
 
@@ -263,7 +263,7 @@ class _KB(object):
 
     def show_facts(self):
         for _, fact in self.facts.items():
-            print(fact)
+            display(fact)
 
     ''' Cycle actions '''
 
@@ -285,10 +285,10 @@ class _KB(object):
         KB.goals.clear_actions()
 
     def display_cycle_actions(self):
-        print('\nCYCLE ACTIONS\n')
+        display('\nCYCLE ACTIONS\n')
         for (cycle_action, temporal_vars) in self.cycle_actions:
-            print(cycle_action, temporal_vars)
-        print('\n')
+            display(cycle_action, temporal_vars)
+        display('\n')
 
     def exists_cycle_action(self, action):
         return action in [action for (action, _) in self.cycle_actions]
@@ -307,8 +307,21 @@ class _KB(object):
             [action.BaseClass, action.name, action.args, temporal_vars])
 
     def log_action_new(self, action):
+        converted_args = []
+
+        # Argument conversion for final display
+        for arg in action.args:
+            try:
+                if arg.BaseClass is LIST:
+                    converted_args.append(arg.to_python_list())
+                    continue
+            except AttributeError:
+                pass
+
+            converted_args.append(arg)
+
         self.log.append(
-            [action.BaseClass, action.name, action.args,
+            [action.BaseClass, action.name, converted_args,
              (action.start_time, action.end_time)])
 
     def log_fluent(self, fluent, time, action_type):
@@ -318,7 +331,7 @@ class _KB(object):
         for item in self.log:
             if item[0] is EVENT and not show_events:
                 continue
-            print(item)
+            display(item)
 
 
 KB = _KB()

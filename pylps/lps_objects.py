@@ -1,6 +1,7 @@
 from pylps.constants import *
 from pylps.exceptions import *
 from pylps.kb import KB
+from pylps.logic_objects import Constant
 
 
 class LPSObject(object):
@@ -28,7 +29,7 @@ class LPSObject(object):
     def to_tuple(self):
         return (
             self.BaseClass, self.name,
-            tuple(arg for arg in self.args)
+            tuple(str(arg) for arg in self.args)
         )
 
 
@@ -125,14 +126,23 @@ class ReactiveRule(object):
     BaseClass = RULE
 
     def __init__(self, conds):
+        if len(conds) == 1:
+            if isinstance(conds[0], bool):
+                conds = [Constant(conds[0])]
+
         self._conds = conds
         self._goals = None
+        self._constant_trigger = False
 
     def __repr__(self):
         ret = "Reactive rule\n"
-        ret += "Cond: %s\n" % (self.conds)
+        ret += "Conds: %s\n" % (self.conds)
         ret += "Goals: %s\n" % (', '.join(str(g) for g in self.goals))
         return ret
+
+    @property
+    def constant_trigger(self):
+        return self._constant_trigger
 
     @property
     def conds(self):
@@ -164,7 +174,7 @@ class GoalClause(object):
     def __repr__(self):
         ret = "Goal clause\n"
         ret += "Goal: %s\n" % (self._goal)
-        ret += "Requires: %s\n" % (self._requires)
+        ret += "Requires: %s\n" % (str(self._requires))
         return ret
 
     @property

@@ -2,6 +2,7 @@ import copy
 from unification import *
 
 from pylps.constants import *
+from pylps.config import CONFIG
 
 
 def strictly_increasing(iterable):
@@ -28,6 +29,46 @@ def reify_args(args_with_var, substitutions):
     reify_args = []
     for arg in args_with_var:
         if isinstance(arg, str) or isinstance(arg, int):
+            reify_args.append(arg)
+            continue
+
+        # TODO: Should unfold the list
+        if isinstance(arg, list):
+            reify_args.append(arg)
+            continue
+
+        if arg.BaseClass == VARIABLE or arg.BaseClass == TEMPORAL_VARIABLE:
+            res = reify(var(arg.name), substitutions)
+            if isinstance(res, Var):
+                reify_args.append(arg)
+            else:
+                reify_args.append(res)
+        else:
+            reify_args.append(arg)
+
+    return reify_args
+
+
+def reify_args_constraint_causality(args_with_var, o_substitutions):
+    reify_args = []
+
+    substitutions = {}
+
+    for v, s in o_substitutions.items():
+        tokens = v.token.split(VAR_SEPARATOR)
+        if len(tokens) == 1:
+            substitutions[v] = s
+            continue
+
+        substitutions[var(VAR_SEPARATOR.join(tokens[:-1]))] = s
+
+    for arg in args_with_var:
+        if isinstance(arg, str) or isinstance(arg, int):
+            reify_args.append(arg)
+            continue
+
+        # TODO: Should unfold the list
+        if isinstance(arg, list):
             reify_args.append(arg)
             continue
 
@@ -62,3 +103,20 @@ def goal_temporal_satisfied(goal, clause_goal):
     temporal_satisfied = (temporal_satisfied_cnt == len(clause_goal[1:]))
 
     return temporal_satisfied
+
+
+def same_var_name(var_a, var_b):
+    return True
+
+
+def is_constant(arg):
+    return isinstance(arg, str) or isinstance(arg, int)
+
+
+def display(item):
+    print(item)
+
+
+def debug_display(*args):
+    if CONFIG.debug:
+        print('DEBUG', args)

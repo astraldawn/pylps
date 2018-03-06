@@ -3,6 +3,7 @@ import copy
 from collections import deque
 from ordered_set import OrderedSet
 
+from pylps.config import CONFIG
 from pylps.constants import *
 
 
@@ -23,6 +24,9 @@ class Proposed(object):
     def add_action(self, action):
         self._actions.add(action)
 
+    def add_actions(self, actions):
+        self._actions.update(actions)
+
     def clear_actions(self):
         self._actions = OrderedSet()
 
@@ -37,24 +41,71 @@ class Proposed(object):
         self._fluents = OrderedSet()
 
 
+class Solution(object):
+    def __init__(self, proposed: Proposed, states):
+        self._proposed = proposed
+        self._states = states
+        self._solved = 0
+
+        self._process()
+
+    def __repr__(self):
+        ret = "Solution\n"
+        ret += "Solved: %s\n" % (self.solved)
+        ret += "States: %s\n" % (str(self.states))
+        return ret
+
+    @property
+    def proposed(self):
+        return self._proposed
+
+    @property
+    def states(self):
+        return self._states
+
+    @property
+    def solved(self):
+        return self._solved
+
+    def _process(self):
+        for state in self.states:
+            if state.result is G_SOLVED:
+                self._solved += 1
+
+
 class State(object):
-    def __init__(self, goals, subs, proposed=Proposed()):
+    def __init__(self, goals, subs,
+                 proposed=Proposed(), from_reactive=False):
         self._goals = goals
         self._subs = subs
         self._proposed = proposed
         self._temporal_used = False
         self._goal_pos = 0
         self._result = G_NPROCESSED
+        self._counter = 0
+        self._reactive_id = None
+
+        if from_reactive:
+            self._reactive_id = CONFIG.reactive_id
+            CONFIG.reactive_id += 1
 
     def __repr__(self):
         ret = "STATE\n"
+        ret += "Reactive ID %s\n" % self.reactive_id
         ret += "Goal pos %s     Result %s\n" % (
             str(self.goal_pos), self.result)
         ret += "Goals %s\n" % (str(self._goals))
         ret += "Subs: %s\n" % (str(self._subs))
-        ret += "%s\n" % (str(self._proposed))
         ret += "Temporal used: %s\n" % self._temporal_used
+        ret += "Counter %s\n" % self._counter
+        ret += "%s\n" % (str(self._proposed))
         return ret
+
+    # IDENTITY
+
+    @property
+    def reactive_id(self):
+        return self._reactive_id
 
     # COMPARISON
 
@@ -78,6 +129,10 @@ class State(object):
 
     def clear_actions(self):
         self._proposed.clear_actions()
+
+    @property
+    def counter(self):
+        return self._counter
 
     @property
     def fluents(self):

@@ -32,18 +32,26 @@ class _ENGINE(object):
     def _check_rules(self):
         # Check rules
         for rule in KB.rules:
+
+            # Handle triggering from constant
+            if rule.constant_trigger:
+                continue
+
             # Check conditions of the rules
-            substitutions = unify_conds(rule.conds, self.current_time)
+            substitutions = unify_conds(rule, self.current_time)
 
             # If there are no substitutions, go to the next rule
             if not substitutions:
                 continue
 
             for substitution in substitutions:
-                new_goals = reify_goals(rule.goals, substitution, defer=True)
+                new_goals = reify_goals(rule.goals, substitution)
+
+                # Discard the subs
                 KB.add_goals(new_goals, substitution)
 
     def _check_goals(self):
+        # debug_display(self.current_time, KB.goals)
 
         solutions = SOLVER.solve_goals(self.current_time)
         process_solutions(solutions, self.current_time)

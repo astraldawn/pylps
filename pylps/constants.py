@@ -3,6 +3,7 @@ CONSTANT = 'constant'
 EXPR = 'expr'
 VARIABLE = 'variable'
 TEMPORAL_VARIABLE = 'temporal_var'
+VAR_SEPARATOR = '_'
 
 # LPS Objects
 ACTION = 'action'
@@ -17,6 +18,11 @@ FLUENTS = 'fluents'
 OBS = 'obs'
 RULE = 'rule'
 LPS_OBJECTS = ['ACTION', 'EVENT', 'FLUENT', 'RULE']
+
+# Data structure constants
+LIST = 'list'
+TUPLE = 'tuple'
+MATCH_LIST_HEAD = 'MATCH_LIST_HEAD'
 
 # Solver objects
 SOLVER_GOAL = 'solver_goal'

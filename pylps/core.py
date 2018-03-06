@@ -77,7 +77,8 @@ def execute(
         cycle_fluents=False,
         n_solutions=CONFIG_DEFAULT_N_SOLUTIONS,
         single_clause=True,
-        solution_preference=SOLN_PREF_FIRST):
+        solution_preference=SOLN_PREF_FIRST,
+        debug=False):
     '''Execute pyLPS program
 
     Keyword arguments:
@@ -101,7 +102,8 @@ def execute(
         'cycle_fluents': cycle_fluents,
         'n_solutions': n_solutions,
         'single_clause': single_clause,
-        'solution_preference': solution_preference
+        'solution_preference': solution_preference,
+        'debug': debug,
     }
 
     CONFIG.set_options(options_dict)
