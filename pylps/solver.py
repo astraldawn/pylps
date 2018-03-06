@@ -13,7 +13,6 @@ from pylps.utils import *
 from pylps.kb import KB
 from pylps.config import CONFIG
 
-from pylps.lists import LPSList
 from pylps.state import State, Proposed, Solution
 
 from pylps.unifier import unify_fact
@@ -277,33 +276,15 @@ class _Solver(object):
                 KB_clauses = [KB_clauses[-1]]
 
             for clause in KB_clauses:
-                '''
-                TODO: Actually resolving the temporal requirements correctly
-                Simple replacement for now
-                '''
-
-                '''Experimental list handling'''
                 self.match_event(goal, clause, cur_state, states)
-                # if goal.args[0].BaseClass is LIST:
-                #     if isinstance(clause.goal[0].args[0], tuple):
-                #         debug_display('LIST', clause)
-                #         continue
-
-                #     if clause.goal[0].args[0].BaseClass is VARIABLE:
-                #         if len(goal.args[0]) != 1:
-                #             continue
-
-                # new_state = copy.deepcopy(cur_state)
-                # new_state.replace_event(goal, clause.reqs)
-                # states.append(new_state)
 
     def match_event(self, goal, clause, cur_state, states):
         debug_display(goal)
-        # has_args = len(goal.args) > 0
+
         cur_subs = cur_state.subs
 
-        # Reify?
-        # debug_display(goal, clause, cur_state.subs)
+        # Reify if possible
+        goal.args = reify_args(goal.args, cur_subs)
 
         new_state = copy.deepcopy(cur_state)
         new_state._counter += 1
@@ -312,10 +293,14 @@ class _Solver(object):
         counter = new_state.counter
 
         for clause_arg, goal_arg in zip(clause.goal[0].args, goal.args):
-            new_subs.update({
-                var(clause_arg.name + VAR_SEPARATOR +
-                    str(counter)): var(goal_arg.name)
-            })
+            match_res = s_utils.match_clause_goal(
+                clause_arg, goal_arg,
+                new_subs, counter
+            )
+
+            # If the matching fails, cannot proceed, return
+            if not match_res:
+                return
 
         # Temporal variable updating
         new_subs.update({
@@ -325,6 +310,7 @@ class _Solver(object):
             var(goal.end_time.name)
         })
 
+        # Unfolding the complex should consider lists as well
         for req in clause.reqs:
             new_req = copy.deepcopy(req)
 
@@ -342,28 +328,6 @@ class _Solver(object):
             new_reqs.append(new_req)
 
         new_state.update_subs(new_subs)
-
-        # if has_args and goal.args[0].BaseClass is LIST:
-        #     if isinstance(clause.goal[0].args[0], tuple):
-        #         clause_goal_arg = clause.goal[0].args[0]
-
-        #         # debug_display(clause_goal_arg, goal.args[0])
-
-        #         if clause_goal_arg[0] is MATCH_LIST_HEAD:
-        #             subs = {
-        #                 var(clause_goal_arg[1].name): goal.args[0].head,
-        #                 var(clause_goal_arg[2].name):
-        #                     LPSList(goal.args[0].rest)
-        #             }
-        #             new_state = copy.deepcopy(cur_state)
-        #             new_state.update_subs(subs)
-        #             new_state.replace_event(goal, clause.reqs)
-        #             states.append(new_state)
-        #         return
-
-        #     if clause.goal[0].args[0].BaseClass is VARIABLE:
-        #         if len(goal.args[0]) != 1:
-        #             return
 
         new_state.replace_event(goal, copy.deepcopy(new_reqs))
         states.append(new_state)

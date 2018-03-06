@@ -1,4 +1,5 @@
 from ordered_set import OrderedSet
+from unification import *
 
 from pylps.constants import *
 from pylps.exceptions import *
@@ -6,12 +7,10 @@ from pylps.utils import *
 
 from pylps.kb import KB
 from pylps.config import CONFIG
+from pylps.lists import LPSList
 
 
 def process_solutions(solutions, cycle_time):
-
-    # debug_display(cycle_time)
-    # debug_display(KB.goals)
 
     preference = CONFIG.solution_preference
 
@@ -22,8 +21,6 @@ def process_solutions(solutions, cycle_time):
             solutions,
             key=lambda sol: sol.solved,
             reverse=True)
-
-    debug_display(maximum_solved)
 
     new_kb_goals = OrderedSet()
 
@@ -139,3 +136,60 @@ def reify_actions(state):
         actions.add(action)
 
     return actions
+
+
+def match_clause_goal(clause_arg, goal_arg, new_subs, counter):
+    # debug_display(clause_arg)
+    # debug_display(goal_arg)
+    SUFFIX = VAR_SEPARATOR + str(counter)
+    if clause_arg.BaseClass is VARIABLE:
+        try:
+            if goal_arg.BaseClass is VARIABLE:
+                new_subs.update({
+                    var(clause_arg.name + SUFFIX): var(goal_arg.name)
+                })
+                return True
+        except AttributeError:
+            pass
+
+        new_subs.update({
+            var(clause_arg.name + SUFFIX): goal_arg
+        })
+        return True
+
+    if clause_arg.BaseClass is LIST:
+        if goal_arg.BaseClass is not LIST:
+            return False
+
+        clause_head = clause_arg.head
+        goal_head = goal_arg.head
+        goal_tail = goal_arg.tail
+
+        if isinstance(clause_head, tuple):
+            operation = clause_head[0]
+
+            if operation is MATCH_LIST_HEAD:
+                new_subs.update({
+                    var(clause_head[1].name + SUFFIX): goal_head,
+                    var(clause_head[2].name + SUFFIX): LPSList(
+                        goal_tail)
+                })
+
+                return True
+            else:
+                raise PylpsUnimplementedOutcomeError(operation)
+
+            return False
+
+        # Match single element
+        if clause_head.BaseClass is VARIABLE:
+            if len(goal_arg) != 1:
+                return False
+
+            # TODO: goal_arg is a variable
+            new_subs.update({
+                var(clause_head.name + SUFFIX): goal_head
+            })
+            return True
+
+    return False

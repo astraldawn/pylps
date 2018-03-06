@@ -30,7 +30,7 @@ class LPSList(object):
         return self._list[0]
 
     @property
-    def rest(self):
+    def tail(self):
         return list(itertools.islice(self._list, 1, len(self._list)))
 
     def to_python_list(self):
