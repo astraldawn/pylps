@@ -7,7 +7,7 @@ from pylps.utils import *
 
 from pylps.kb import KB
 from pylps.config import CONFIG
-from pylps.lists import LPSList
+from pylps.lps_data_structures import LPSList
 
 
 def process_solutions(solutions, cycle_time):
@@ -138,58 +138,88 @@ def reify_actions(state):
     return actions
 
 
-def match_clause_goal(clause_arg, goal_arg, new_subs, counter):
-    # debug_display(clause_arg)
-    # debug_display(goal_arg)
+def match_clause_goal(clause, goal, new_subs, counter):
     SUFFIX = VAR_SEPARATOR + str(counter)
-    if clause_arg.BaseClass is VARIABLE:
+
+    if clause.BaseClass is VARIABLE:
         try:
-            if goal_arg.BaseClass is VARIABLE:
+            if goal.BaseClass is VARIABLE:
                 new_subs.update({
-                    var(clause_arg.name + SUFFIX): var(goal_arg.name)
+                    var(clause.name + SUFFIX): var(goal.name)
                 })
                 return True
         except AttributeError:
             pass
 
         new_subs.update({
-            var(clause_arg.name + SUFFIX): goal_arg
+            var(clause.name + SUFFIX): goal
         })
+
         return True
 
-    if clause_arg.BaseClass is LIST:
-        if goal_arg.BaseClass is not LIST:
+    if clause.BaseClass is TUPLE and goal.BaseClass is TUPLE:
+        if len(clause) != len(goal):
             return False
 
-        clause_head = clause_arg.head
-        goal_head = goal_arg.head
-        goal_tail = goal_arg.tail
+        # If any items fail to match, should revert
+        match_failed = False
+        old_subs = copy.deepcopy(new_subs)
 
-        if isinstance(clause_head, tuple):
-            operation = clause_head[0]
+        for clause_item, goal_item in zip(clause.tuple, goal.tuple):
+            if match_failed:
+                continue
+
+            res = match_clause_goal(
+                clause_item, goal_item, new_subs, counter)
+
+            if not res:
+                match_failed = True
+
+        if match_failed:
+            new_subs = old_subs
+            return False
+
+        return True
+
+    if clause.BaseClass is LIST and goal.BaseClass is LIST:
+        clause_head = clause.head
+        goal_head = goal.head
+        goal_tail = goal.tail
+
+        if clause_head.BaseClass is TUPLE:
+            operation = clause_head.tuple[0]
 
             if operation is MATCH_LIST_HEAD:
-                new_subs.update({
-                    var(clause_head[1].name + SUFFIX): goal_head,
-                    var(clause_head[2].name + SUFFIX): LPSList(
-                        goal_tail)
-                })
 
-                return True
+                old_subs = copy.deepcopy(new_subs)
+
+                match_head = match_clause_goal(
+                    clause_head.tuple[1], goal_head, new_subs, counter)
+                match_tail = match_clause_goal(
+                    clause_head.tuple[2], goal_tail, new_subs, counter)
+
+                # Both head and tail must match
+                if match_head and match_tail:
+                    return True
+
+                new_subs = old_subs
+                return False
             else:
-                raise PylpsUnimplementedOutcomeError(operation)
+                # This might break
+                if len(clause) == len(goal):
+                    return match_clause_goal(
+                        clause_head, goal_head, new_subs, counter)
+
+                return False
 
             return False
 
-        # Match single element
+        # Match single
         if clause_head.BaseClass is VARIABLE:
-            if len(goal_arg) != 1:
+            if len(goal) != 1:
                 return False
 
-            # TODO: goal_arg is a variable
-            new_subs.update({
-                var(clause_head.name + SUFFIX): goal_head
-            })
-            return True
+            return match_clause_goal(
+                clause_head, goal_head, new_subs, counter)
 
     return False

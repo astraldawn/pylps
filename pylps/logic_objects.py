@@ -1,7 +1,6 @@
 import operator
 from pylps.constants import *
 from pylps.exceptions import *
-from pylps.lists import LPSList
 
 
 class Constant(object):

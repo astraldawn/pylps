@@ -279,7 +279,7 @@ class _Solver(object):
                 self.match_event(goal, clause, cur_state, states)
 
     def match_event(self, goal, clause, cur_state, states):
-        debug_display(goal)
+        # debug_display(goal)
 
         cur_subs = cur_state.subs
 

@@ -29,3 +29,20 @@ def test_lists_sequential():
 
     # THEN
     assert actual == expected
+
+
+def test_lists_sequential_tuple():
+    # GIVEN
+    expected = [
+        action('show_tuple', ['a', 1], (1, 2)),
+        action('show_tuple', ['b', 2], (2, 3)),
+        action('show_tuple', ['c', 3], (3, 4)),
+        action('show', ['d'], (4, 5)),
+        action('show', [4], (4, 5)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('lists', 'sequential_tuple')
+
+    # THEN
+    assert actual == expected
