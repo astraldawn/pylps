@@ -40,6 +40,7 @@ def ClassFactory(name, arity, base_type):
                 raise TypeError('Please supply %s arguments' % arity)
             self.args = [convert_arg(arg) for arg in args]
             self.created = True
+            self._time = None
 
     elif base_type == FACT:
 

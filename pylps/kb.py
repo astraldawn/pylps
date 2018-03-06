@@ -20,8 +20,7 @@ class _KB(object):
     _observations = []
     _constraints = []
     _fact_used_reactive = set()
-    _cycle_actions = OrderedSet()
-    _cycle_actions_log = []
+    _cycle_obs = OrderedSet()
 
     log = []
 
@@ -268,43 +267,54 @@ class _KB(object):
     ''' Cycle actions '''
 
     @property
-    def cycle_actions(self):
-        return self._goals.actions
+    def cycle_obs(self):
+        return self._cycle_obs
 
-    def add_cycle_action(self, goal, subs):
-        action = goal.obj
-        action_args = reify_args(action.args, subs)
-        goal_temporal_vars = reify(goal.temporal_vars, subs)
-        action.args = action_args
+    def add_cycle_obs(self, observation):
+        self._cycle_obs.add(observation)
 
-        # self._cycle_actions.add((action, goal_temporal_vars))
-        goal.add_action((action, goal_temporal_vars), propagate=True)
-        # self.log_action(action.name, action_args, goal_temporal_vars)
+    def clear_cycle_obs(self):
+        self._cycle_obs = OrderedSet()
 
-    def clear_cycle_actions(self):
-        KB.goals.clear_actions()
+    # @property
+    # def cycle_actions(self):
+    #     return self._goals.actions
 
-    def display_cycle_actions(self):
-        display('\nCYCLE ACTIONS\n')
-        for (cycle_action, temporal_vars) in self.cycle_actions:
-            display(cycle_action, temporal_vars)
-        display('\n')
+    # def add_cycle_action(self, goal, subs):
+    #     action = goal.obj
+    #     action_args = reify_args(action.args, subs)
+    #     goal_temporal_vars = reify(goal.temporal_vars, subs)
+    #     action.args = action_args
 
-    def exists_cycle_action(self, action):
-        return action in [action for (action, _) in self.cycle_actions]
+    #     # self._cycle_actions.add((action, goal_temporal_vars))
+    #     goal.add_action((action, goal_temporal_vars), propagate=True)
+    #     # self.log_action(action.name, action_args, goal_temporal_vars)
 
-    def get_cycle_actions(self, action):
-        ret = []
-        for (cycle_action, temporal_vars) in self.cycle_actions:
-            if cycle_action.name == action.name:
-                ret.append(cycle_action)
-        return ret
+    # def clear_cycle_actions(self):
+    #     KB.goals.clear_actions()
+
+    # def display_cycle_actions(self):
+    #     display('\nCYCLE ACTIONS\n')
+    #     for (cycle_action, temporal_vars) in self.cycle_actions:
+    #         display(cycle_action, temporal_vars)
+    #     display('\n')
+
+    # def exists_cycle_action(self, action):
+    #     return action in [action for (action, _) in self.cycle_actions]
+
+    # def get_cycle_actions(self, action):
+    #     ret = []
+    #     for (cycle_action, temporal_vars) in self.cycle_actions:
+    #         if cycle_action.name == action.name:
+    #             ret.append(cycle_action)
+    #     return ret
 
     ''' Logs '''
 
-    def log_action(self, action, temporal_vars):
+    def log_action(self, action, temporal_vars, from_obs=False):
         self.log.append(
-            [action.BaseClass, action.name, action.args, temporal_vars])
+            [action.BaseClass, action.name, action.args, temporal_vars,
+             from_obs])
 
     def log_action_new(self, action):
         converted_args = []
@@ -322,16 +332,21 @@ class _KB(object):
 
         self.log.append(
             [action.BaseClass, action.name, converted_args,
-             (action.start_time, action.end_time)])
+             (action.start_time, action.end_time), False])
 
     def log_fluent(self, fluent, time, action_type):
-        self.log.append([action_type, fluent.name, fluent.args, time])
+        self.log.append([action_type, fluent.name, fluent.args, time, False])
 
     def show_log(self, show_events=False):
         for item in self.log:
+            # Override to always show observation
+            if item[4]:
+                display(item[:4])
+                continue
+
             if item[0] is EVENT and not show_events:
                 continue
-            display(item)
+            display(item[:4])
 
 
 KB = _KB()

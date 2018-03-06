@@ -36,9 +36,10 @@ def test_unify_args_events_multi():
     # GIVEN
     expected = [
         action('say', ['b', 'c'], (1, 2)),
-        action('say', ['d', 'c'], (1, 2)),
+        action('say', ['e', 'c'], (1, 2)),
         action('say', ['a', 'b'], (2, 3)),
-        action('say', ['a', 'd'], (2, 3)),
+        action('say', ['d', 'e'], (2, 3)),
+        action('say', ['a', 'd'], (3, 4)),
     ]
 
     # WHEN
@@ -58,6 +59,23 @@ def test_unify_args_events_multi_immediate_solve():
     # WHEN
     actual = run_pylps_test_program(
         'unify_args', 'events_multi_immediate_solve')
+
+    # THEN
+    assert actual == expected
+
+
+def test_unify_args_path_ask():
+    # GIVEN
+    expected = [
+        action('ask', ['a', 'c'], (1, 2)),
+        event('ask2', ['a', 'e'], (1, 2)),
+        action('say', ['a', 'c'], (2, 3)),
+        action('say', ['a', 'e'], (2, 3)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program(
+        'unify_args', 'path_ask')
 
     # THEN
     assert actual == expected
