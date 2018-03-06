@@ -41,3 +41,31 @@ goal(path(X, Y).frm(T1, T2)).requires(
 execute(single_clause=False, n_solutions=-1)
 
 show_kb_log()
+
+'''
+maxTime(5).
+
+actions     say(_,_), ask2(_, _).
+events       ask(_,_).
+
+observe ask(a, c) from 1 to 2.
+observe ask2(a, e) from 1 to 2.
+
+arc(a,b).
+arc(b,c).
+arc(a,d).
+arc(d,e).
+arc(a,c).
+
+if     ask(X,Y) from  T1 to T2
+then     respond(X,Y) from T2 to T3.
+
+if ask2(X,Y) from T1 to T2
+then respond(X,Y) from T2 to T3.
+
+respond(X,Y) from T1 to T2
+if         path(X,Y), say(X,Y) from T1 to T2.
+
+path(X,Y) :- arc(X,Y).
+path(X,Y):- arc(X,Z), path(Z,Y).
+'''
