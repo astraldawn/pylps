@@ -21,11 +21,13 @@ class _ENGINE(object):
             self._check_rules()
             self._check_goals()
 
+            KB.clear_cycle_obs()
+
             self.current_time += 1
 
     def _check_observations(self):
         for observation in KB.observations:
-            if observation.end == self.current_time:
+            if observation.end_time == self.current_time:
                 # Unify with the KB?
                 unify_obs(observation)
 

@@ -18,6 +18,11 @@ def action(name, args, time):
         name, str(args), str(time))
 
 
+def event(name, args, time):
+    return "['event', '%s', %s, %s]" % (
+        name, str(args), str(time))
+
+
 def create_test_variable(name):
     ret = MagicMock()
     ret.name = name

@@ -111,11 +111,17 @@ class Fluent(LPSObject):
     BaseClass = FLUENT
 
     def __repr__(self):
-        ret = "[%s %s, args: %s]" % (self.BaseClass, self.name, self.args)
+        ret = LPSObject.__repr__(self)
+        ret += "| Temporal %s |" % (self.time)
         return ret
 
+    @property
+    def time(self):
+        return self._time
+
     def at(self, time):
-        return (self, time)
+        self._time = time
+        return self
 
 
 class Fact(LPSObject):
@@ -194,14 +200,14 @@ class Observation(object):
 
     def __init__(self, action, start, end):
         self._action = action
-        self._start = start
-        self._end = end
+        self._start_time = start
+        self._end_time = end
 
     def __repr__(self):
         ret = "Observation\n"
-        ret += "Action: %s\n" % (self._action)
-        ret += "Start: %s\n" % (self._start)
-        ret += "End: %s\n" % (self._end)
+        ret += "Action: %s\n" % (self.action)
+        ret += "Start: %s\n" % (self.start_time)
+        ret += "End: %s\n" % (self.end_time)
         return ret
 
     @property
@@ -209,9 +215,9 @@ class Observation(object):
         return self._action
 
     @property
-    def start(self):
-        return self._start
+    def start_time(self):
+        return self._start_time
 
     @property
-    def end(self):
-        return self._end
+    def end_time(self):
+        return self._end_time

@@ -1,0 +1,43 @@
+from pylps.core import *
+
+initialise(max_time=5)
+
+create_actions('say(_, _)', 'ask(_, _)')
+create_events('respond(_, _)', 'path(_, _)', 'ask2(_, _)')
+create_facts('arc(_, _)')
+create_variables('X', 'Y', 'Z')
+
+arc('a', 'b')
+arc('b', 'c')
+arc('a', 'd')
+arc('d', 'e')
+arc('a', 'c')
+
+observe(ask('a', 'c').frm(1, 2))
+observe(ask2('a', 'e').frm(1, 2))
+
+reactive_rule(ask(X, Y).frm(T1, T2)).then(
+    respond(X, Y).frm(T2, T3),
+)
+
+reactive_rule(ask2(X, Y).frm(T1, T2)).then(
+    respond(X, Y).frm(T2, T3),
+)
+
+goal(respond(X, Y).frm(T1, T2)).requires(
+    path(X, Y).frm(T1, T2),
+    say(X, Y).frm(T1, T2)
+)
+
+goal(path(X, Y).frm(T1, T2)).requires(
+    arc(X, Y),
+)
+
+goal(path(X, Y).frm(T1, T2)).requires(
+    arc(X, Z),
+    path(Z, Y).frm(T1, T2),
+)
+
+execute(single_clause=False, n_solutions=-1)
+
+show_kb_log()

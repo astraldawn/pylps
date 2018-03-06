@@ -17,17 +17,10 @@ def unify_conds(rule, cycle_time):
     conds = rule.conds
     substitutions = []
     for cond in conds:
-        temporal = False
 
-        # Temporal check
-        try:
-            o_cond_object = cond[0]
-            temporal = True
-        except TypeError:
-            o_cond_object = cond
+        cond_object = copy.deepcopy(cond)
 
-        cond_object = copy.deepcopy(o_cond_object)
-
+        # Setup arguments
         for arg in cond_object.args:
             if is_constant(arg):
                 continue
@@ -35,34 +28,63 @@ def unify_conds(rule, cycle_time):
             if arg.BaseClass is VARIABLE:
                 arg.name += VAR_SEPARATOR + '0'
 
-        if temporal:
-            if cond_object.BaseClass is FLUENT:
-                # Note that there might be more than one possible sub
-                substitutions.extend(unify_fluent(cond, cycle_time))
+        if cond_object.BaseClass is ACTION:
+            substitutions.extend(
+                unify_action(cond_object, cycle_time))
+
+        elif cond_object.BaseClass is CONSTANT:
+            if cond_object.const is True:
+                substitutions.append({})
             else:
-                raise UnhandledObjectError(cond_object.BaseClass)
+                raise UnimplementedOutcomeError(cond_object.const)
+
+            rule._constant_trigger = True
+
+        elif cond_object.BaseClass is EVENT:
+            # If custom support is required for events, adjust here
+            substitutions.extend(
+                unify_action(cond_object, cycle_time))
+
+        elif cond_object.BaseClass is FACT:
+            substitutions.extend(
+                unify_fact(cond_object, reactive_rule=True))
+
+        elif cond_object.BaseClass is FLUENT:
+            substitutions.extend(
+                unify_fluent(cond_object, cycle_time))
+
         else:
-            if cond_object.BaseClass is FACT:
-                unify_res = unify_fact(cond_object, reactive_rule=True)
+            raise UnhandledObjectError(cond_object.BaseClass)
 
-                for res in unify_res:
-                    substitutions.append(res)
-            elif cond_object.BaseClass is CONSTANT:
-                if cond_object.const is True:
-                    substitutions.append({})
-                else:
-                    raise UnimplementedOutcomeError(cond_object.const)
+    return substitutions
 
-                rule._constant_trigger = True
-            else:
-                raise UnhandledObjectError(cond_object.BaseClass)
+
+def unify_action(cond, cycle_time):
+    substitutions = []
+
+    SUFFIX = VAR_SEPARATOR + '0'
+
+    for obs in KB.cycle_obs:
+        if obs.action.name != cond.name:
+            continue
+
+        if len(obs.action.args) != len(cond.args):
+            continue
+
+        unify_res = {
+            var(cond.start_time.name + SUFFIX): obs.start_time,
+            var(cond.end_time.name + SUFFIX): obs.end_time
+        }
+        unify_res.update(unify_args(cond.args, obs.action.args))
+        yield unify_res
 
     return substitutions
 
 
 def unify_fluent(cond, cycle_time):
-    fluent = cond[0]
-    temporal_var = cond[1]
+
+    fluent = cond
+    temporal_var = cond.time
 
     substitutions = []
 
@@ -86,9 +108,6 @@ def unify_fact(fact, reactive_rule=False):
         unify_res = unify_args(fact.args, kb_fact.args)
         yield unify_res
 
-    # for kb_fact in kb_facts:
-    #     unify_res = unify_args(fact.args, kb_fact.args)
-    #     substitutions.append(unify_res)
     return substitutions
 
 
@@ -245,11 +264,12 @@ def _reify_event(goal, substitution):
 def unify_obs(observation):
     # TODO: There should be an IC check
     action = observation.action
-    start = observation.start
-    end = observation.end
+    start = observation.start_time
+    end = observation.end_time
     causality = KB.exists_causality(action)
 
-    KB.log_action(action, (start, end))
+    KB.log_action(action, (start, end), from_obs=True)
+    KB.add_cycle_obs(observation)
 
     # If there is causality, need to make the check
     if causality:
@@ -258,16 +278,17 @@ def unify_obs(observation):
         if not check_reqs(causality.reqs, substitutions):
             return
 
-    for causality_outcome in causality.outcomes:
-        outcome, fluent = causality_outcome.outcome, causality_outcome.fluent
-        if outcome == A_TERMINATE:
-            if KB.remove_fluent(fluent):
-                KB.log_fluent(fluent, end, F_TERMINATE)
-        elif outcome == A_INITIATE:
-            if KB.add_fluent(fluent):
-                KB.log_fluent(fluent, end, F_INITIATE)
-        else:
-            raise UnknownOutcomeError(outcome)
+        for causality_outcome in causality.outcomes:
+            outcome, fluent = causality_outcome.outcome, \
+                causality_outcome.fluent
+            if outcome == A_TERMINATE:
+                if KB.remove_fluent(fluent):
+                    KB.log_fluent(fluent, end, F_TERMINATE)
+            elif outcome == A_INITIATE:
+                if KB.add_fluent(fluent):
+                    KB.log_fluent(fluent, end, F_INITIATE)
+            else:
+                raise UnknownOutcomeError(outcome)
 
 
 def check_reqs(reqs, substitutions):
