@@ -36,8 +36,8 @@ actions say(_, _).
 arc(a, b).
 arc(b, c).
 arc(a, d).
-arc(d, e)
-arc(d, c).
+arc(d, e).
+arc(e, c).
 
 ask(a, c).
 

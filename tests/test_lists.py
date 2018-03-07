@@ -46,3 +46,25 @@ def test_lists_sequential_tuple():
 
     # THEN
     assert actual == expected
+
+# SEQUENTIAL LIST TBC
+
+
+def test_lists_nested_basic():
+    # GIVEN
+    expected = [
+        action('say', ['empty list'], (1, 2)),
+        action('say_single', ['a'], (1, 2)),
+        action('say', ['b'], (1, 2)),
+        action('say', ['c'], (1, 2)),
+        action('say', [[]], (1, 2)),
+        action('say', ['d'], (1, 2)),
+        action('say', ['e'], (1, 2)),
+        action('say', [['f', 'g', 'h']], (1, 2)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('lists', 'nested_basic')
+
+    # THEN
+    assert actual == expected

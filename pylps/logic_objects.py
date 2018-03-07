@@ -3,16 +3,16 @@ from pylps.constants import *
 from pylps.exceptions import *
 
 
-class Constant(object):
-    BaseClass = CONSTANT
+# class Constant(object):
+#     BaseClass = CONSTANT
 
-    def __init__(self, const):
-        self.const = const
-        self.args = []
+#     def __init__(self, const):
+#         self.const = const
+#         self.args = []
 
-    def __repr__(self):
-        ret = '%s: %s' % (self.BaseClass, self.const)
-        return ret
+#     def __repr__(self):
+#         ret = '%s: %s' % (self.BaseClass, self.const)
+#         return ret
 
 
 class Variable(object):

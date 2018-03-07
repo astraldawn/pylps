@@ -16,6 +16,7 @@ from pylps.kb import KB
 def unify_conds(rule, cycle_time):
     conds = rule.conds
     substitutions = []
+
     for cond in conds:
 
         cond_object = copy.deepcopy(cond)
@@ -268,7 +269,7 @@ def unify_obs(observation):
     end = observation.end_time
     causality = KB.exists_causality(action)
 
-    KB.log_action(action, (start, end), from_obs=True)
+    KB.log_action_new(action, from_obs=True)
     KB.add_cycle_obs(observation)
 
     # If there is causality, need to make the check

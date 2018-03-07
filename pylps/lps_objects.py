@@ -1,7 +1,7 @@
 from pylps.constants import *
 from pylps.exceptions import *
 from pylps.kb import KB
-from pylps.logic_objects import Constant
+from pylps.lps_data_structures import LPSConstant
 
 
 class LPSObject(object):
@@ -134,7 +134,7 @@ class ReactiveRule(object):
     def __init__(self, conds):
         if len(conds) == 1:
             if isinstance(conds[0], bool):
-                conds = [Constant(conds[0])]
+                conds = [LPSConstant(conds[0])]
 
         self._conds = conds
         self._goals = None

@@ -269,6 +269,7 @@ class _Solver(object):
 
         # Need to reverse here for DFS like iteration
         KB_clauses = list(KB.get_clauses(goal))
+
         KB_clauses.reverse()
 
         if KB_clauses:
@@ -315,7 +316,7 @@ class _Solver(object):
             new_req = copy.deepcopy(req)
 
             for arg in new_req.args:
-                if isinstance(arg, int):
+                if is_constant(arg):
                     continue
 
                 if arg.BaseClass is VARIABLE:
@@ -345,7 +346,7 @@ class _Solver(object):
 
                 if cur_subs.get(k):
                     res = reify(k, cur_subs)
-                    if v != res and not isinstance(res, Var):
+                    if not isinstance(res, Var) and v != res:
                         valid_sub = False
 
             if valid_sub:
