@@ -26,3 +26,16 @@ goal(
 execute(single_clause=False)
 
 show_kb_log()
+
+'''
+actions say(_).
+
+ask([a,b1,c,d,e]).
+ask([a,b2,c,d]).
+
+if ask(X) then respond(X) from T1 to T2.
+
+respond(['a'|[X|['c'|Rest]]]) from T1 to T2 if
+        say(X) from T1 to T2,
+        say(Rest) from T1 to T2.
+'''

@@ -35,3 +35,21 @@ goal(respond([X | [Y | Rest]]).frm(T1, T2)).requires(
 execute(single_clause=False, debug=True)
 
 show_kb_log()
+
+'''
+actions say(_), say_single(_).
+
+ask([]).
+ask([a]).
+ask([b,c]).
+ask([d,e,f,g,h]).
+
+if ask(X) then respond(X) from T1 to T2.
+
+respond([]) from T1 to T2 if say(empty_list) from T1 to T2.
+respond([X]) from T1 to T2 if say_single(X) from T1 to T2.
+respond([X,Y|Rest]) from T1 to T2 if
+        say(X) from T1 to T2,
+        say(Y) from T1 to T2,
+        say(Rest) from T1 to T2.
+'''
