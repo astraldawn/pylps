@@ -140,6 +140,10 @@ def reify_actions(state):
 def match_clause_goal(clause, goal, new_subs, counter):
     SUFFIX = VAR_SEPARATOR + str(counter)
 
+    if clause.BaseClass is CONSTANT:
+        if goal.BaseClass is CONSTANT:
+            return clause.const == goal.const
+
     if clause.BaseClass is VARIABLE:
         try:
             if goal.BaseClass is VARIABLE:

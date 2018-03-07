@@ -8,7 +8,7 @@ create_events('respond(_)')
 create_facts('ask(_)')
 create_variables('X', 'Y', 'Rest')
 
-ask(['a', 'b1', 'c', 'd'])
+ask(['a', 'b1', 'c', 'd', 'e'])
 ask(['a', 'b2', 'c', 'd'])
 
 reactive_rule(ask(X)).then(
@@ -16,12 +16,13 @@ reactive_rule(ask(X)).then(
 
 goal(
     respond(
-        [LPSConstant('a') | [X | [LPSConstant('a') | Rest]]]
+        [LPSConstant('a') | [X | [LPSConstant('c') | Rest]]]
     ).frm(T1, T2)
 ).requires(
     say(X).frm(T1, T2),
+    say(Rest).frm(T1, T2),
 )
 
-execute(single_clause=False, debug=True)
+execute(single_clause=False)
 
 show_kb_log()
