@@ -8,7 +8,7 @@ create_events('respond(_)')
 create_facts('ask(_)')
 create_variables('X', 'Y', 'Rest')
 
-ask(['a', 'b1', 'c', 'd', 'e'])
+ask(['a', ['b1', 'b2'], 'c', 'd', 'e'])
 ask(['a', 'b2', 'c', 'd'])
 
 reactive_rule(ask(X)).then(

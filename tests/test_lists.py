@@ -73,7 +73,7 @@ def test_lists_nested_basic():
 def test_lists_nested_complex():
     # GIVEN
     expected = [
-        action('say', ['b1'], (1, 2)),
+        action('say', [['b1', 'b2']], (1, 2)),
         action('say', [['d', 'e']], (1, 2)),
         action('say', ['b2'], (1, 2)),
         action('say', [['d']], (1, 2)),

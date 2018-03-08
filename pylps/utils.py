@@ -29,6 +29,17 @@ def is_constant(arg):
     return isinstance(arg, str) or isinstance(arg, int)
 
 
+def is_grounded(obj):
+    for arg in obj.args:
+        try:
+            if arg.BaseClass is VARIABLE:
+                return False
+        except AttributeError:
+            continue
+
+    return True
+
+
 def display(item):
     print(item)
 
