@@ -25,6 +25,30 @@ def unify_args(args_with_var, args_grounded):
     return substitutions
 
 
+def is_constant(arg):
+    return isinstance(arg, str) or isinstance(arg, int)
+
+
+def is_grounded(obj):
+    for arg in obj.args:
+        try:
+            if arg.BaseClass is VARIABLE:
+                return False
+        except AttributeError:
+            continue
+
+    return True
+
+
+def display(item):
+    print(item)
+
+
+def debug_display(*args):
+    if CONFIG.debug:
+        print('DEBUG', args)
+
+
 def reify_args(args_with_var, substitutions):
     reify_args = []
     for arg in args_with_var:
@@ -103,20 +127,3 @@ def goal_temporal_satisfied(goal, clause_goal):
     temporal_satisfied = (temporal_satisfied_cnt == len(clause_goal[1:]))
 
     return temporal_satisfied
-
-
-def same_var_name(var_a, var_b):
-    return True
-
-
-def is_constant(arg):
-    return isinstance(arg, str) or isinstance(arg, int)
-
-
-def display(item):
-    print(item)
-
-
-def debug_display(*args):
-    if CONFIG.debug:
-        print('DEBUG', args)

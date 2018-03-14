@@ -16,6 +16,7 @@ from pylps.kb import KB
 def unify_conds(rule, cycle_time):
     conds = rule.conds
     substitutions = []
+
     for cond in conds:
 
         cond_object = copy.deepcopy(cond)
@@ -53,6 +54,8 @@ def unify_conds(rule, cycle_time):
             substitutions.extend(
                 unify_fluent(cond_object, cycle_time))
 
+            debug_display(substitutions)
+
         else:
             raise UnhandledObjectError(cond_object.BaseClass)
 
@@ -86,16 +89,38 @@ def unify_fluent(cond, cycle_time):
     fluent = cond
     temporal_var = cond.time
 
-    substitutions = []
+    # debug_display(fluent, KB.exists_fluent(fluent))
 
-    # Check if fluent is in KB
-    if not KB.exists_fluent(fluent):
-        return substitutions
+    substitutions = {}
+    grounded = is_grounded(fluent)
 
-    # Unify with temporal vars, return the substitution
-    substitutions.append(unify(
-        var(temporal_var.name + VAR_SEPARATOR + '0'),
-        cycle_time))
+    # Handle the grounded case
+    if grounded:
+
+        # Check if fluent is in KB
+        if not KB.exists_fluent(fluent):
+            return None
+
+        # Unify with temporal vars, return the substitution
+        substitutions.update(unify(
+            var(temporal_var.name + VAR_SEPARATOR + '0'),
+            cycle_time))
+
+        debug_display(substitutions)
+
+        yield substitutions
+
+    kb_fluents = KB.get_fluents(fluent)
+
+    for kb_fluent in kb_fluents:
+        unify_res = unify_args(fluent.args, kb_fluent.args)
+
+        unify_res.update(unify(
+            var(temporal_var.name + VAR_SEPARATOR + '0'),
+            cycle_time
+        ))
+
+        yield unify_res
 
     return substitutions
 
@@ -266,12 +291,13 @@ def unify_obs(observation):
     action = observation.action
     start = observation.start_time
     end = observation.end_time
-    causality = KB.exists_causality(action)
 
-    KB.log_action(action, (start, end), from_obs=True)
+    KB.log_action_new(action, from_obs=True)
     KB.add_cycle_obs(observation)
 
     # If there is causality, need to make the check
+    causality = KB.exists_causality(action)
+
     if causality:
         substitutions = unify_args(causality.action.args, action.args)
 
@@ -279,8 +305,11 @@ def unify_obs(observation):
             return
 
         for causality_outcome in causality.outcomes:
-            outcome, fluent = causality_outcome.outcome, \
-                causality_outcome.fluent
+            outcome = causality_outcome.outcome
+            fluent = copy.deepcopy(causality_outcome.fluent)
+
+            fluent.args = reify_args(fluent.args, substitutions)
+
             if outcome == A_TERMINATE:
                 if KB.remove_fluent(fluent):
                     KB.log_fluent(fluent, end, F_TERMINATE)

@@ -7,7 +7,6 @@ from pylps.utils import *
 
 from pylps.kb import KB
 from pylps.config import CONFIG
-from pylps.lps_data_structures import LPSList
 
 
 def process_solutions(solutions, cycle_time):
@@ -141,6 +140,10 @@ def reify_actions(state):
 def match_clause_goal(clause, goal, new_subs, counter):
     SUFFIX = VAR_SEPARATOR + str(counter)
 
+    if clause.BaseClass is CONSTANT:
+        if goal.BaseClass is CONSTANT:
+            return clause.const == goal.const
+
     if clause.BaseClass is VARIABLE:
         try:
             if goal.BaseClass is VARIABLE:
@@ -186,10 +189,17 @@ def match_clause_goal(clause, goal, new_subs, counter):
         goal_head = goal.head
         goal_tail = goal.tail
 
+        # Simple empty
+        if clause_head.BaseClass is CONSTANT and clause_head.const is None:
+            return clause_head == goal_head
+
+        # Operation
         if clause_head.BaseClass is TUPLE:
             operation = clause_head.tuple[0]
 
-            if operation is MATCH_LIST_HEAD:
+            # If operation is a constant, then do stuff
+            if operation.BaseClass is CONSTANT and \
+                    operation.const is MATCH_LIST_HEAD:
 
                 old_subs = copy.deepcopy(new_subs)
 

@@ -15,7 +15,7 @@ from pylps.config import CONFIG
 
 from pylps.state import State, Proposed, Solution
 
-from pylps.unifier import unify_fact
+from pylps.unifier import unify_fact, unify_fluent
 from pylps.constraints import constraints_satisfied
 
 import pylps.solver_utils as s_utils
@@ -199,6 +199,8 @@ class _Solver(object):
             self.expand_event(goal, cur_state, states)
         elif goal.BaseClass is FACT:
             self.expand_fact(goal, cur_state, states)
+        elif goal.BaseClass is FLUENT:
+            self.expand_fluent(goal, cur_state, states)
         else:
             raise UnimplementedOutcomeError(goal.BaseClass)
 
@@ -269,6 +271,7 @@ class _Solver(object):
 
         # Need to reverse here for DFS like iteration
         KB_clauses = list(KB.get_clauses(goal))
+
         KB_clauses.reverse()
 
         if KB_clauses:
@@ -315,7 +318,7 @@ class _Solver(object):
             new_req = copy.deepcopy(req)
 
             for arg in new_req.args:
-                if isinstance(arg, int):
+                if is_constant(arg):
                     continue
 
                 if arg.BaseClass is VARIABLE:
@@ -345,7 +348,36 @@ class _Solver(object):
 
                 if cur_subs.get(k):
                     res = reify(k, cur_subs)
-                    if v != res and not isinstance(res, Var):
+                    if not isinstance(res, Var) and v != res:
+                        valid_sub = False
+
+            if valid_sub:
+                subs.append(sub)
+
+        subs.reverse()
+
+        for sub in subs:
+            new_state = copy.deepcopy(cur_state)
+            new_state.update_subs(sub)
+            states.append(new_state)
+
+    def expand_fluent(self, fluent, cur_state, states):
+        cur_subs = cur_state.subs
+
+        # TODO: There might be a need for better temporal handling here
+        all_subs = list(unify_fluent(fluent, self.current_time))
+
+        subs = []
+
+        for sub in all_subs:
+            valid_sub = True
+            for k, v in sub.items():
+                if not valid_sub:
+                    continue
+
+                if cur_subs.get(k):
+                    res = reify(k, cur_subs)
+                    if not isinstance(res, Var) and v != res:
                         valid_sub = False
 
             if valid_sub:

@@ -1,3 +1,5 @@
+from pylps.utils import *
+
 from pylps.kb import KB
 from pylps.unifier import unify_conds, reify_goals, unify_obs
 from pylps.solver import SOLVER
@@ -53,8 +55,6 @@ class _ENGINE(object):
                 KB.add_goals(new_goals, substitution)
 
     def _check_goals(self):
-        # debug_display(self.current_time, KB.goals)
-
         solutions = SOLVER.solve_goals(self.current_time)
         process_solutions(solutions, self.current_time)
 
