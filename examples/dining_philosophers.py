@@ -43,7 +43,7 @@ putdown(P, F).initiates(available(F))
 false_if(pickup(P, F), ~available(F), )
 false_if(pickup(P1, F), pickup(P2, F), P1 != P2,)
 
-execute(debug=True, solution_preference=SOLN_PREF_MAX)
+execute(debug=False, solution_preference=SOLN_PREF_MAX)
 
 show_kb_log()
 

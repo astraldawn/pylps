@@ -21,7 +21,7 @@ def test_reify_args_constraint_causality():
 def test_reify_args_constraint_causality_c_subs():
     # GIVEN
     args_with_var = [create_test_variable('x'), create_test_variable('y')]
-    subs = {var('x_123'): 1, var('y_456'): 2}
+    subs = {var('x_._123'): 1, var('y_._456'): 2}
 
     # WHEN
     res = reify_args_constraint_causality(args_with_var, subs)
@@ -33,7 +33,7 @@ def test_reify_args_constraint_causality_c_subs():
 def test_reify_args_constraint_causality_c_var_subs():
     # GIVEN
     args_with_var = [create_test_variable('x_a'), create_test_variable('y_b')]
-    subs = {var('x_a_123'): 1, var('y_b_123'): 2}
+    subs = {var('x_a_._123'): 1, var('y_b_._123'): 2}
 
     # WHEN
     res = reify_args_constraint_causality(args_with_var, subs)
