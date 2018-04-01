@@ -46,7 +46,10 @@ def display(item):
 
 def debug_display(*args):
     if CONFIG.debug:
-        print('DEBUG', args)
+        if args:
+            print('DEBUG', args)
+        else:
+            print()
 
 
 def reify_args(args_with_var, substitutions):

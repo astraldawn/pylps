@@ -251,8 +251,13 @@ class _Solver(object):
         valid = constraints_satisfied(
             goal, new_state, self.cycle_proposed)
 
-        # debug_display(goal, new_state.subs, valid)
-        # debug_display()
+        if not valid and CONFIG.debug:
+            debug_display('C_CHECK_F', goal)
+            print()
+            debug_display(new_state)
+            print()
+            debug_display(self.cycle_proposed)
+            print('\n\n')
 
         # Done
         if valid:

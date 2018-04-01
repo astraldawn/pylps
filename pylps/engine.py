@@ -56,6 +56,7 @@ class _ENGINE(object):
 
     def _check_goals(self):
         solutions = SOLVER.solve_goals(self.current_time)
+
         process_solutions(solutions, self.current_time)
 
 

@@ -6,6 +6,8 @@ from ordered_set import OrderedSet
 from pylps.config import CONFIG
 from pylps.constants import *
 
+from pylps.utils import *
+
 
 class Proposed(object):
     def __init__(self):
@@ -125,7 +127,7 @@ class State(object):
         return self._proposed.actions
 
     def add_action(self, action):
-        self._proposed.add_action(action)
+        self._proposed.add_action(reify_obj_args(action, self.subs))
 
     def clear_actions(self):
         self._proposed.clear_actions()

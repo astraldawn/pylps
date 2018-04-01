@@ -3,6 +3,7 @@ import operator
 from collections import deque
 
 from unification import *
+from ordered_set import OrderedSet
 
 from pylps.kb import KB
 from pylps.config import CONFIG
@@ -32,25 +33,30 @@ def constraints_satisfied(o_goal, state, cycle_proposed: Proposed):
     causalities = KB.exists_causality(goal)
 
     if causalities:
+        action_subs = unify_args(causalities.action.args, goal.args)
+
         for causality_outcome in causalities.outcomes:
             reify_outcome = copy.deepcopy(causality_outcome)
             reify_outcome.fluent.args = reify_args_constraint_causality(
-                reify_outcome.fluent.args, state.subs)
+                reify_outcome.fluent.args, action_subs)
 
             if reify_outcome in all_proposed.fluents:
                 continue
 
             all_proposed.add_fluent(copy.deepcopy(reify_outcome))
+
+            # TODO: Check this addition for duplicates
             co_cons = KB.get_constraints(causality_outcome.fluent)
             if co_cons:
                 constraints.extend(co_cons)
 
-    # debug_display(state.subs, all_proposed.fluents)
-
     for constraint in constraints:
 
         try:
-            next(check_constraint(constraint, all_proposed))
+            res = next(check_constraint(constraint, all_proposed))
+            debug_display(res)
+            debug_display(all_proposed.actions)
+            debug_display(state.subs)
             return False
         except StopIteration:
             continue
@@ -190,7 +196,7 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
         except AttributeError:
             continue
 
-    # debug_display('CONS_FLUENT', cons_fluent)
+    # debug_display('CONS_FLUENT', cons_fluent, outcome)
     # debug_display('CUR_SUBS', cur_subs)
     # debug_display('FROM KB', fluents, all_proposed)
 
@@ -221,24 +227,25 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
         states.append(new_state)
         return
 
-    # FLuents found, expect nothing
-    if not outcome:
-        return
-
+    matched = False
     for fluent in fluents:
         if grounded:
-            # Outcome must be handled correctly here
-            # debug_display(cons_fluent.args, cur_subs)
             res = reify_args(cons_fluent.args, cur_subs)
-            # debug_display('RES', res, fluent)
             if res == fluent.args:
-                # debug_display('PROCEED')
-                new_state = copy.deepcopy(cur_state)
-                states.append(new_state)
+                matched = True
+                if outcome:
+                    new_state = copy.deepcopy(cur_state)
+                    states.append(new_state)
+                    continue
+
             continue
 
         new_state = copy.deepcopy(cur_state)
         res = unify_args(cons_fluent.args, fluent.args)
 
         new_state.update_subs(res)
+        states.append(new_state)
+
+    if not outcome and not matched:
+        new_state = copy.deepcopy(cur_state)
         states.append(new_state)
