@@ -32,7 +32,7 @@ goal(respond([X | [Y | Rest]]).frm(T1, T2)).requires(
     say(Rest).frm(T1, T2),
 )
 
-execute(single_clause=False, debug=True)
+execute(single_clause=False)
 
 show_kb_log()
 

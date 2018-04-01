@@ -9,7 +9,7 @@ def strictly_increasing(iterable):
     return all(x < y for x, y in zip(iterable, iterable[1:]))
 
 
-def unify_args(args_with_var, args_grounded):
+def unify_args(args_with_var, args_grounded, cur_subs=None):
     assert len(args_with_var) == len(args_grounded), \
         "unify args arity mismatch"
 
@@ -18,7 +18,16 @@ def unify_args(args_with_var, args_grounded):
         try:
             if v_arg.BaseClass == VARIABLE:
                 res = unify(var(v_arg.name), g_arg)
+
+                if not cur_subs:
+                    substitutions.update(res)
+                    continue
+
+                if var(v_arg.name) in cur_subs and v_arg.name != '_':
+                    continue
+
                 substitutions.update(res)
+
         except AttributeError:
             continue
 
@@ -46,7 +55,10 @@ def display(item):
 
 def debug_display(*args):
     if CONFIG.debug:
-        print('DEBUG', args)
+        if args:
+            print('DEBUG', args)
+        else:
+            print()
 
 
 def reify_args(args_with_var, substitutions):
@@ -127,3 +139,14 @@ def goal_temporal_satisfied(goal, clause_goal):
     temporal_satisfied = (temporal_satisfied_cnt == len(clause_goal[1:]))
 
     return temporal_satisfied
+
+
+def check_grounded(obj_with_args, substitutions):
+    for arg in obj_with_args.args:
+        try:
+            if not substitutions.get(var(arg.name)):
+                return False
+        except AttributeError:
+            continue
+
+    return True

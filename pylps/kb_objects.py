@@ -79,6 +79,15 @@ class Constraint(object):
         ret = "Constraint %s %s\n" % (self.goal, self.outcome)
         return ret
 
+    def __eq__(self, other):
+        return self._to_tuple() == other._to_tuple()
+
+    def __hash__(self):
+        return hash(self._to_tuple())
+
+    def _to_tuple(self):
+        return tuple((self.outcome, self.goal.to_tuple()))
+
     @property
     def goal(self):
         return self._goal
