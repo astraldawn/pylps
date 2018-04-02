@@ -174,7 +174,7 @@ class _Solver(object):
             # Nothing left
             goal = cur_state.get_next_goal()
 
-            if self.iterations > 3 and CONFIG.debug:
+            if self.iterations > 10 and CONFIG.debug:
                 break
 
             # debug_display(self.iterations, goal)
@@ -312,6 +312,7 @@ class _Solver(object):
                 clause_arg, goal_arg,
                 new_subs, counter
             )
+            debug_display('MATCH_RES', match_res)
 
             # If the matching fails, cannot proceed, return
             if not match_res:

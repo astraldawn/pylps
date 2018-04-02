@@ -140,8 +140,8 @@ def reify_actions(state):
 def match_clause_goal(clause, goal, new_subs, counter):
     SUFFIX = VAR_SEPARATOR + str(counter)
 
-    debug_display('MCG_CLAUSE', clause)
-    debug_display('MCG_GOAL', goal)
+    # debug_display('MCG_CLAUSE', clause)
+    # debug_display('MCG_GOAL', goal)
 
     if clause.BaseClass is CONSTANT:
         if goal.BaseClass is CONSTANT:
@@ -211,10 +211,21 @@ def match_clause_goal(clause, goal, new_subs, counter):
 
                 old_subs = copy.deepcopy(new_subs)
 
-                match_head = match_clause_goal(
-                    clause_head.tuple[1], goal_head, new_subs, counter)
-                match_tail = match_clause_goal(
-                    clause_head.tuple[2], goal_tail, new_subs, counter)
+                # TODO: Improve this
+                if goal_head.BaseClass is TUPLE and \
+                        len(goal_head) == len(clause_head):
+                    match_head = match_clause_goal(
+                        clause_head.tuple[1], goal_head.tuple[1],
+                        new_subs, counter)
+                    match_tail = match_clause_goal(
+                        clause_head.tuple[2], goal_head.tuple[2],
+                        new_subs, counter)
+                else:
+
+                    match_head = match_clause_goal(
+                        clause_head.tuple[1], goal_head, new_subs, counter)
+                    match_tail = match_clause_goal(
+                        clause_head.tuple[2], goal_tail, new_subs, counter)
 
                 # Both head and tail must match
                 if match_head and match_tail:

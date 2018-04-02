@@ -6,7 +6,7 @@ A B     -->     B
 from pylps.core import *
 from pylps.lps_data_structures import LPSConstant
 
-initialise(max_time=10)
+initialise(max_time=2)
 
 create_fluents('location(_, _)')
 create_actions('move(_, _)', 'say(_)')
@@ -24,6 +24,13 @@ reactive_rule(True).then(
     make_tower(['a', 'b', 'floor']).frm(T1, T2),
 )
 
+goal(clear(Block).at(T)).requires(
+    Block != 'floor',
+    ~location(_, Block).at(T),
+)
+
+goal(clear('floor').at(_))
+
 goal(
     make_tower([Block | LPSConstant('floor')]).frm(T1, T2)
 ).requires(
@@ -39,13 +46,34 @@ goal(
 )
 
 goal(make_on(Block, Place).frm(T1, T2)).requires(
+    ~location(Block, Place).at(T1),
     say(Block).frm(T1, T2),
     say(Place).frm(T1, T2),
+    # make_clear(Place).frm(T1, T2),
+    # make_clear(Block).frm(T2, T3),
+    # move(Block, Place).frm(T3, T4),
 )
+
+# goal(make_on(Block, Place).frm(T, T)).requires(
+#     location(Block, Place).at(T),
+# )
+
+# goal(make_on(Block, Place).frm(T, T)).requires(
+#     location(Block, Place).at(T),
+# )
+
+# goal(make_clear(Place).frm(T, T)).requires(
+#     clear(Place).at(T),
+# )
+
+# goal(make_clear(Block).frm(T1, T2)).requires(
+#     location(Block1, Block).at(T1),
+#     make_on(Block1, 'floor').frm(T1, T2),
+# )
 
 move(Block, Place).initiates(location(Block, Place))
 move(Block, _).terminates(location(Block, Place))
 
-execute(debug=False)
+execute(debug=True)
 
 show_kb_log()
