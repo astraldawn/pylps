@@ -2,6 +2,7 @@
 Revised solver that will recursively yield solutions
 '''
 import copy
+import operator
 
 from more_itertools import peekable
 from unification import *
@@ -173,8 +174,8 @@ class _Solver(object):
             # Nothing left
             goal = cur_state.get_next_goal()
 
-            # if self.iterations > 5:
-            #     break
+            if self.iterations > 3 and CONFIG.debug:
+                break
 
             # debug_display(self.iterations, goal)
             # debug_display(cur_state)
@@ -193,16 +194,22 @@ class _Solver(object):
 
     def expand_goal(self, goal, cur_state, states):
 
+        debug_display('EXPAND', goal)
+
         if goal.BaseClass is ACTION:
             self.expand_action(goal, cur_state, states)
         elif goal.BaseClass is EVENT:
             self.expand_event(goal, cur_state, states)
+        elif goal.BaseClass is EXPR:
+            self.expand_expr(goal, cur_state, states)
         elif goal.BaseClass is FACT:
             self.expand_fact(goal, cur_state, states)
         elif goal.BaseClass is FLUENT:
             self.expand_fluent(goal, cur_state, states)
         else:
             raise UnimplementedOutcomeError(goal.BaseClass)
+
+        debug_display()
 
     def expand_action(self, goal, cur_state, states):
         new_state = copy.deepcopy(cur_state)
@@ -287,12 +294,12 @@ class _Solver(object):
                 self.match_event(goal, clause, cur_state, states)
 
     def match_event(self, goal, clause, cur_state, states):
-        # debug_display(goal)
-
         cur_subs = cur_state.subs
 
         # Reify if possible
         goal.args = reify_args(goal.args, cur_subs)
+        debug_display('ME_REIFY', goal.args)
+        debug_display('ME_REIFY', cur_subs)
 
         new_state = copy.deepcopy(cur_state)
         new_state._counter += 1
@@ -310,35 +317,27 @@ class _Solver(object):
             if not match_res:
                 return
 
-        # Temporal variable updating
-        new_subs.update({
-            var(clause.goal[0].start_time.name + VAR_SEPARATOR + str(counter)):
-            var(goal.start_time.name),
-            var(clause.goal[0].end_time.name + VAR_SEPARATOR + str(counter)):
-            var(goal.end_time.name)
-        })
-
-        # Unfolding the complex should consider lists as well
-        for req in clause.reqs:
-            new_req = copy.deepcopy(req)
-
-            for arg in new_req.args:
-                if is_constant(arg):
-                    continue
-
-                if arg.BaseClass is VARIABLE:
-                    arg.name += VAR_SEPARATOR + str(counter)
-
-            if req.BaseClass is ACTION or req.BaseClass is EVENT:
-                new_req.start_time.name += VAR_SEPARATOR + str(counter)
-                new_req.end_time.name += VAR_SEPARATOR + str(counter)
-
-            new_reqs.append(new_req)
+        s_utils.create_clause_variables(
+            clause, counter, goal, new_subs, new_reqs
+        )
 
         new_state.update_subs(new_subs)
 
         new_state.replace_event(goal, copy.deepcopy(new_reqs))
         states.append(new_state)
+
+    def expand_expr(self, expr, cur_state, states):
+        cur_subs = cur_state.subs
+        res = reify_args(expr.args, cur_subs)
+
+        if expr.op is operator.ne:
+            evaluation = expr.op(res[0], res[1])
+
+            if evaluation:
+                new_state = copy.deepcopy(cur_state)
+                states.append(new_state)
+        else:
+            raise PylpsUnimplementedOutcomeError(expr.op)
 
     def expand_fact(self, fact, cur_state, states):
         cur_subs = cur_state.subs

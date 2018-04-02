@@ -68,7 +68,7 @@ def false_if(*args):
 
 def initialise(max_time=5):
     # Must call create object directly due to stack issues
-    create_objects(['T1', 'T2', 'T3', 'T4', 'T5'], TEMPORAL_VARIABLE)
+    create_objects(['T', 'T1', 'T2', 'T3', 'T4', 'T5'], TEMPORAL_VARIABLE)
     create_variables('_')
     ENGINE.set_params(max_time=max_time)
 
@@ -76,7 +76,7 @@ def initialise(max_time=5):
 def execute(
         cycle_fluents=False,
         n_solutions=CONFIG_DEFAULT_N_SOLUTIONS,
-        single_clause=True,
+        single_clause=False,
         solution_preference=SOLN_PREF_FIRST,
         debug=False):
     '''Execute pyLPS program

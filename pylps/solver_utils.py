@@ -140,9 +140,17 @@ def reify_actions(state):
 def match_clause_goal(clause, goal, new_subs, counter):
     SUFFIX = VAR_SEPARATOR + str(counter)
 
+    debug_display('MCG_CLAUSE', clause)
+    debug_display('MCG_GOAL', goal)
+
     if clause.BaseClass is CONSTANT:
         if goal.BaseClass is CONSTANT:
             return clause.const == goal.const
+
+        # Match against a single element list
+        if goal.BaseClass is LIST and len(goal) == 1:
+            if goal.head.BaseClass is CONSTANT:
+                return clause.const == goal.head.const
 
     if clause.BaseClass is VARIABLE:
         try:
@@ -233,3 +241,50 @@ def match_clause_goal(clause, goal, new_subs, counter):
                 clause_head, goal_head, new_subs, counter)
 
     return False
+
+
+def create_clause_variables(
+        clause, counter, goal, new_subs, new_reqs):
+    # Temporal variable updating
+    new_subs.update({
+        var(clause.goal[0].start_time.name + VAR_SEPARATOR + str(counter)):
+        var(goal.start_time.name),
+        var(clause.goal[0].end_time.name + VAR_SEPARATOR + str(counter)):
+        var(goal.end_time.name)
+    })
+
+    for req in clause.reqs:
+        new_req = copy.deepcopy(req)
+
+        for arg in new_req.args:
+            _rename_arg(counter, arg)
+
+        if req.BaseClass is ACTION or req.BaseClass is EVENT:
+            new_req.start_time.name += VAR_SEPARATOR + str(counter)
+            new_req.end_time.name += VAR_SEPARATOR + str(counter)
+
+        new_reqs.append(new_req)
+
+    debug_display('SUBS', new_subs)
+    debug_display('NEW_REQS', new_reqs)
+
+
+def _rename_arg(counter, arg):
+    '''
+    No need to do a deepcopy here, done in calling fx
+    '''
+    if is_constant(arg) or arg.BaseClass is CONSTANT:
+        return
+    elif arg.BaseClass is LIST:
+        for item in arg._list:
+            _rename_arg(counter, item)
+    elif arg.BaseClass is TUPLE:
+        debug_display(arg)
+
+        for item in arg._tuple:
+            _rename_arg(counter, item)
+
+    elif arg.BaseClass is VARIABLE:
+        arg.name += VAR_SEPARATOR + str(counter)
+    else:
+        raise PylpsUnimplementedOutcomeError(arg.BaseClass)
