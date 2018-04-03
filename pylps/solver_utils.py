@@ -95,9 +95,9 @@ def _process_state(state, unique_actions):
                 outcome = causality_outcome.outcome
                 fluent = copy.deepcopy(causality_outcome.fluent)
 
-                fluent.args = reify_args(fluent.args, action_subs)
+                debug_display('C_OUTCOME', fluent, action_subs)
 
-                # debug_display(action)
+                fluent.args = reify_args(fluent.args, action_subs)
 
                 if outcome == A_TERMINATE:
                     if KB.remove_fluent(fluent):
@@ -264,20 +264,32 @@ def create_clause_variables(
         var(goal.end_time.name)
     })
 
+    if not clause.reqs:
+        return
+
     for req in clause.reqs:
         new_req = copy.deepcopy(req)
 
-        for arg in new_req.args:
-            _rename_arg(counter, arg)
+        # Handling negated clauses
+        if isinstance(new_req, tuple) and len(new_req) == 2:
+            for arg in new_req[0].args:
+                _rename_arg(counter, arg)
 
-        if req.BaseClass is ACTION or req.BaseClass is EVENT:
-            new_req.start_time.name += VAR_SEPARATOR + str(counter)
-            new_req.end_time.name += VAR_SEPARATOR + str(counter)
+            if req[0].BaseClass is ACTION or req[0].BaseClass is EVENT:
+                new_req[0].start_time.name += VAR_SEPARATOR + str(counter)
+                new_req[0].end_time.name += VAR_SEPARATOR + str(counter)
+        else:
+            for arg in new_req.args:
+                _rename_arg(counter, arg)
+
+            if req.BaseClass is ACTION or req.BaseClass is EVENT:
+                new_req.start_time.name += VAR_SEPARATOR + str(counter)
+                new_req.end_time.name += VAR_SEPARATOR + str(counter)
 
         new_reqs.append(new_req)
 
-    debug_display('SUBS', new_subs)
-    debug_display('NEW_REQS', new_reqs)
+    # debug_display('SUBS', new_subs)
+    # debug_display('NEW_REQS', new_reqs)
 
 
 def _rename_arg(counter, arg):
@@ -290,11 +302,8 @@ def _rename_arg(counter, arg):
         for item in arg._list:
             _rename_arg(counter, item)
     elif arg.BaseClass is TUPLE:
-        debug_display(arg)
-
         for item in arg._tuple:
             _rename_arg(counter, item)
-
     elif arg.BaseClass is VARIABLE:
         arg.name += VAR_SEPARATOR + str(counter)
     else:

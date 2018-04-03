@@ -154,6 +154,11 @@ class State(object):
         new_goals = deque()
 
         for goal in self.goals:
+
+            if isinstance(goal, tuple):
+                new_goals.append(goal)
+                continue
+
             if goal != event:
                 new_goals.append(goal)
                 continue

@@ -134,7 +134,7 @@ def expand_action(constraint, cur_state, states, all_proposed):
         r_action = reify_obj_args(cons_action, new_state.subs)
         r_grounded = check_grounded(r_action, new_state.subs)
 
-        debug_display(new_state.subs)
+        # debug_display(new_state.subs)
 
         if not r_grounded:
             states.append(new_state)

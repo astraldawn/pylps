@@ -174,7 +174,7 @@ class _Solver(object):
             # Nothing left
             goal = cur_state.get_next_goal()
 
-            if self.iterations > 10 and CONFIG.debug:
+            if self.iterations > 100 and CONFIG.debug:
                 break
 
             # debug_display(self.iterations, goal)
@@ -196,6 +196,11 @@ class _Solver(object):
 
         debug_display('EXPAND', goal)
 
+        outcome = True
+
+        if isinstance(goal, tuple):
+            outcome, goal = goal[1], goal[0]
+
         if goal.BaseClass is ACTION:
             self.expand_action(goal, cur_state, states)
         elif goal.BaseClass is EVENT:
@@ -205,7 +210,7 @@ class _Solver(object):
         elif goal.BaseClass is FACT:
             self.expand_fact(goal, cur_state, states)
         elif goal.BaseClass is FLUENT:
-            self.expand_fluent(goal, cur_state, states)
+            self.expand_fluent(goal, cur_state, states, outcome)
         else:
             raise UnimplementedOutcomeError(goal.BaseClass)
 
@@ -298,8 +303,9 @@ class _Solver(object):
 
         # Reify if possible
         goal.args = reify_args(goal.args, cur_subs)
+
         debug_display('ME_REIFY', goal.args)
-        debug_display('ME_REIFY', cur_subs)
+        # debug_display('ME_REIFY', cur_subs)
 
         new_state = copy.deepcopy(cur_state)
         new_state._counter += 1
@@ -312,7 +318,7 @@ class _Solver(object):
                 clause_arg, goal_arg,
                 new_subs, counter
             )
-            debug_display('MATCH_RES', match_res)
+            # debug_display('MATCH_RES', clause)
 
             # If the matching fails, cannot proceed, return
             if not match_res:
@@ -366,8 +372,10 @@ class _Solver(object):
             new_state.update_subs(sub)
             states.append(new_state)
 
-    def expand_fluent(self, fluent, cur_state, states):
+    def expand_fluent(self, fluent, cur_state, states, outcome=True):
         cur_subs = cur_state.subs
+
+        # debug_display('FLUENT', fluent, outcome)
 
         # TODO: There might be a need for better temporal handling here
         all_subs = list(unify_fluent(fluent, self.current_time))
@@ -390,10 +398,15 @@ class _Solver(object):
 
         subs.reverse()
 
-        for sub in subs:
-            new_state = copy.deepcopy(cur_state)
-            new_state.update_subs(sub)
-            states.append(new_state)
+        if outcome:
+            for sub in subs:
+                new_state = copy.deepcopy(cur_state)
+                new_state.update_subs(sub)
+                states.append(new_state)
+        elif not outcome:
+            if not subs:
+                new_state = copy.deepcopy(cur_state)
+                states.append(new_state)
 
 
 SOLVER = _Solver()
