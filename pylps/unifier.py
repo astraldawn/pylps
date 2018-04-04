@@ -54,8 +54,6 @@ def unify_conds(rule, cycle_time):
             substitutions.extend(
                 unify_fluent(cond_object, cycle_time))
 
-            debug_display(substitutions)
-
         else:
             raise UnhandledObjectError(cond_object.BaseClass)
 
@@ -105,8 +103,6 @@ def unify_fluent(cond, cycle_time):
         substitutions.update(unify(
             var(temporal_var.name + VAR_SEPARATOR + '0'),
             cycle_time))
-
-        debug_display(substitutions)
 
         yield substitutions
 
@@ -296,28 +292,29 @@ def unify_obs(observation):
     KB.add_cycle_obs(observation)
 
     # If there is causality, need to make the check
-    causality = KB.exists_causality(action)
+    causalities = KB.exists_causality(action)
 
-    if causality:
-        substitutions = unify_args(causality.action.args, action.args)
+    if causalities:
+        for causality in causalities:
+            substitutions = unify_args(causality.action.args, action.args)
 
-        if not check_reqs(causality.reqs, substitutions):
-            return
+            if not check_reqs(causality.reqs, substitutions):
+                return
 
-        for causality_outcome in causality.outcomes:
-            outcome = causality_outcome.outcome
-            fluent = copy.deepcopy(causality_outcome.fluent)
+            for causality_outcome in causality.outcomes:
+                outcome = causality_outcome.outcome
+                fluent = copy.deepcopy(causality_outcome.fluent)
 
-            fluent.args = reify_args(fluent.args, substitutions)
+                fluent.args = reify_args(fluent.args, substitutions)
 
-            if outcome == A_TERMINATE:
-                if KB.remove_fluent(fluent):
-                    KB.log_fluent(fluent, end, F_TERMINATE)
-            elif outcome == A_INITIATE:
-                if KB.add_fluent(fluent):
-                    KB.log_fluent(fluent, end, F_INITIATE)
-            else:
-                raise UnknownOutcomeError(outcome)
+                if outcome == A_TERMINATE:
+                    if KB.remove_fluent(fluent):
+                        KB.log_fluent(fluent, end, F_TERMINATE)
+                elif outcome == A_INITIATE:
+                    if KB.add_fluent(fluent):
+                        KB.log_fluent(fluent, end, F_INITIATE)
+                else:
+                    raise UnknownOutcomeError(outcome)
 
 
 def check_reqs(reqs, substitutions):

@@ -133,8 +133,12 @@ class _Solver(object):
 
     def add_cycle_proposed(self, state, future_solutions):
         # Add current state
-        self.cycle_proposed.add_actions(
-            s_utils.reify_actions(state))
+        if CONFIG.experimental_reify:
+            self.cycle_proposed.add_actions(
+                s_utils.reify_actions(state, reify=False))
+        else:
+            self.cycle_proposed.add_actions(
+                s_utils.reify_actions(state, reify=True))
 
         if not CONFIG.cycle_fluents:
             return
@@ -266,9 +270,9 @@ class _Solver(object):
         if not valid and CONFIG.debug:
             debug_display('C_CHECK_F', goal)
             print()
-            debug_display(new_state)
+            debug_display('C_CHECK_F_STATE', new_state)
             print()
-            debug_display(self.cycle_proposed)
+            debug_display('C_CHECK_F_PROPOSED', self.cycle_proposed)
             print('\n\n')
 
         # Done
@@ -302,10 +306,11 @@ class _Solver(object):
         cur_subs = cur_state.subs
 
         # Reify if possible
-        goal.args = reify_args(goal.args, cur_subs)
+        # goal.args = reify_args(goal.args, cur_subs)
+        goal_args = reify_args(goal.args, cur_subs)
 
-        debug_display('ME_REIFY', goal.args)
-        # debug_display('ME_REIFY', cur_subs)
+        # debug_display('ME_REIFY_ARGS', goal.args)
+        # debug_display('ME_REIFY_SUBS', cur_subs)
 
         new_state = copy.deepcopy(cur_state)
         new_state._counter += 1
@@ -313,12 +318,12 @@ class _Solver(object):
         new_subs = {}
         counter = new_state.counter
 
-        for clause_arg, goal_arg in zip(clause.goal[0].args, goal.args):
+        for clause_arg, goal_arg in zip(clause.goal[0].args, goal_args):
             match_res = s_utils.match_clause_goal(
                 clause_arg, goal_arg,
                 new_subs, counter
             )
-            # debug_display('MATCH_RES', clause)
+            debug_display('MATCH_RES', match_res)
 
             # If the matching fails, cannot proceed, return
             if not match_res:

@@ -121,26 +121,31 @@ class _KB(object):
     ''' Causality '''
 
     def add_causality_outcome(self, action, fluent, outcome):
-        if action.name not in self.causalities:
-            self.causalities[action.name] = Causality(action)
+        if action not in self.causalities:
+            self.causalities[action] = Causality(action)
 
-        self.causalities[action.name].add_outcome(
+        self.causalities[action].add_outcome(
             CausalityOutcome(
                 fluent=fluent,
                 outcome=outcome
             ))
 
     def add_causality_req(self, action, items):
-        if action.name not in self.causalities:
-            self.causalities[action.name] = Causality(action)
+        if action not in self.causalities:
+            self.causalities[action] = Causality(action)
 
-        self.causalities[action.name].add_req(items)
+        self.causalities[action].add_req(items)
 
     def exists_causality(self, action):
-        return self.causalities.get(action.name, False)
+        ret = []
+        for c_action, causality in self.causalities.items():
+            if c_action.name == action.name:
+                ret.append(causality)
+
+        return ret
 
     def show_causalities(self):
-        for action_name, causality in self.causalities.items():
+        for action, causality in self.causalities.items():
             display(causality)
 
     ''' Observations '''

@@ -76,37 +76,51 @@ def process_solutions(solutions, cycle_time):
 
 def _process_state(state, unique_actions):
 
+    debug_display('STATE', state)
+
     for action in state.actions:
         if action in unique_actions:
             continue
 
-        KB.log_action_new(action)
-        unique_actions.add(action)
+        if CONFIG.experimental_reify:
+            r_action = reify_action(action, state.subs)
+        else:
+            r_action = action
+
+        KB.log_action_new(r_action)
+        unique_actions.add(r_action)
 
         if CONFIG.cycle_fluents:
             continue
 
-        causalities = KB.exists_causality(action)
+        causalities = KB.exists_causality(r_action)
+
+        debug_display('CAUSALITIES', causalities, action)
 
         if causalities:
-            action_subs = unify_args(causalities.action.args, action.args)
+            for causality in causalities:
+                action_subs = unify_args(causality.action.args, r_action.args)
 
-            for causality_outcome in causalities.outcomes:
-                outcome = causality_outcome.outcome
-                fluent = copy.deepcopy(causality_outcome.fluent)
+                for causality_outcome in causality.outcomes:
+                    outcome = causality_outcome.outcome
+                    fluent = copy.deepcopy(causality_outcome.fluent)
 
-                debug_display('C_OUTCOME', fluent, action_subs)
+                    debug_display('C_OUTCOME', fluent, outcome, action_subs)
+                    debug_display('C_R_ACTION', r_action)
+                    debug_display('FLUENTS', KB.fluents)
 
-                fluent.args = reify_args(fluent.args, action_subs)
+                    fluent.args = reify_args(fluent.args, action_subs)
 
-                if outcome == A_TERMINATE:
-                    if KB.remove_fluent(fluent):
-                        KB.log_fluent(fluent, action.end_time, F_TERMINATE)
-                elif outcome == A_INITIATE:
-                    if KB.add_fluent(fluent):
-                        KB.log_fluent(fluent, action.end_time, F_INITIATE)
-                else:
-                    raise UnknownOutcomeError(outcome)
+                    if outcome == A_TERMINATE:
+                        if KB.remove_fluent(fluent):
+                            KB.log_fluent(
+                                fluent, r_action.end_time, F_TERMINATE)
+                    elif outcome == A_INITIATE:
+                        if KB.add_fluent(fluent):
+                            KB.log_fluent(
+                                fluent, r_action.end_time, F_INITIATE)
+                    else:
+                        raise UnknownOutcomeError(outcome)
 
     for fluent_outcome in state.fluents:
         if not CONFIG.cycle_fluents:
@@ -124,9 +138,13 @@ def _process_state(state, unique_actions):
             raise UnknownOutcomeError(outcome)
 
 
-def reify_actions(state):
+def reify_actions(state, reify=True):
     actions = OrderedSet()
     for action in state.actions:
+        if not reify:
+            actions.add(action)
+            continue
+
         action.args = reify_args(action.args, state.subs)
         action.update_start_time(
             reify_args([action.start_time], state.subs)[0])
@@ -140,8 +158,9 @@ def reify_actions(state):
 def match_clause_goal(clause, goal, new_subs, counter):
     SUFFIX = VAR_SEPARATOR + str(counter)
 
-    # debug_display('MCG_CLAUSE', clause)
-    # debug_display('MCG_GOAL', goal)
+    debug_display('MCG_CLAUSE', clause)
+    debug_display('MCG_GOAL', goal)
+    debug_display('MCG_SUBS', new_subs)
 
     if clause.BaseClass is CONSTANT:
         if goal.BaseClass is CONSTANT:

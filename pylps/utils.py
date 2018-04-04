@@ -7,6 +7,7 @@ from pylps.exceptions import *
 
 from pylps.lps_data_structures import LPSList, LPSTuple
 
+
 def strictly_increasing(iterable):
     return all(x < y for x, y in zip(iterable, iterable[1:]))
 
@@ -61,6 +62,13 @@ def debug_display(*args):
             print('DEBUG', args)
         else:
             print()
+
+
+def reify_single(arg, substitutions):
+    try:
+        return reify(var(arg.name), substitutions)
+    except AttributeError:
+        return arg
 
 
 def reify_args(o_args_with_var, substitutions):
@@ -127,6 +135,16 @@ def reify_obj_args(o_obj, substitutions):
     obj = copy.deepcopy(o_obj)
     obj.args = reify_args(obj.args, substitutions)
     return obj
+
+
+def reify_action(o_action, substitutions):
+    '''
+    Reify an action, with its temporal variables
+    '''
+    action = reify_obj_args(o_action, substitutions)
+    action.update_start_time(reify_single(action.start_time, substitutions))
+    action.update_end_time(reify_single(action.end_time, substitutions))
+    return action
 
 
 def goal_temporal_satisfied(goal, clause_goal):

@@ -127,7 +127,7 @@ class State(object):
         return self._proposed.actions
 
     def add_action(self, action):
-        self._proposed.add_action(reify_obj_args(action, self.subs))
+        self._proposed.add_action(action)
 
     def clear_actions(self):
         self._proposed.clear_actions()

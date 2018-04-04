@@ -24,6 +24,14 @@ def constraints_satisfied(o_goal, state, cycle_proposed: Proposed):
     all_proposed._actions.update(state.actions)
     all_proposed._actions.add(goal)
 
+    all_proposed._actions = OrderedSet(
+        [reify_action(c_action, state.subs)
+         for c_action in all_proposed._actions]
+    )
+
+    debug_display('ALL_PROPOSED', all_proposed)
+    debug_display('SUBS', state.subs)
+
     constraints = KB.get_constraints(goal)
 
     # Handle any causaulties from action
@@ -33,30 +41,28 @@ def constraints_satisfied(o_goal, state, cycle_proposed: Proposed):
     causalities = KB.exists_causality(goal)
 
     if causalities:
-        action_subs = unify_args(causalities.action.args, goal.args)
+        for causality in causalities:
+            action_subs = unify_args(causality.action.args, goal.args)
 
-        for causality_outcome in causalities.outcomes:
-            reify_outcome = copy.deepcopy(causality_outcome)
-            reify_outcome.fluent.args = reify_args_constraint_causality(
-                reify_outcome.fluent.args, action_subs)
+            for causality_outcome in causality.outcomes:
+                reify_outcome = copy.deepcopy(causality_outcome)
+                reify_outcome.fluent.args = reify_args_constraint_causality(
+                    reify_outcome.fluent.args, action_subs)
 
-            if reify_outcome in all_proposed.fluents:
-                continue
+                if reify_outcome in all_proposed.fluents:
+                    continue
 
-            all_proposed.add_fluent(copy.deepcopy(reify_outcome))
+                all_proposed.add_fluent(copy.deepcopy(reify_outcome))
 
-            # TODO: Check this addition for duplicates
-            co_cons = KB.get_constraints(causality_outcome.fluent)
-            if co_cons:
-                constraints.extend(co_cons)
+                # TODO: Check this addition for duplicates
+                co_cons = KB.get_constraints(causality_outcome.fluent)
+                if co_cons:
+                    constraints.extend(co_cons)
 
     for constraint in constraints:
 
         try:
             res = next(check_constraint(constraint, all_proposed))
-            debug_display(res)
-            debug_display(all_proposed.actions)
-            debug_display(state.subs)
             return False
         except StopIteration:
             continue

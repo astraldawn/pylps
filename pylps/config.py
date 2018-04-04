@@ -3,7 +3,9 @@ from pylps.exceptions import *
 
 VALID_OPTIONS = {
     'debug': set([False, True]),
+
     'cycle_fluents': set([False, True]),
+    'experimental_reify': set([False, True]),
     'single_clause': set([False, True]),
     'solution_preference': set([SOLN_PREF_FIRST, SOLN_PREF_MAX]),
 }
@@ -46,6 +48,10 @@ class _CONFIG(object):
     @property
     def cycle_fluents(self):
         return self._options['cycle_fluents']
+
+    @property
+    def experimental_reify(self):
+        return self._options['experimental_reify']
 
     @property
     def n_solutions(self):

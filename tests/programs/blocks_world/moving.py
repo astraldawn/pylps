@@ -6,7 +6,7 @@ A B     -->     B
 from pylps.core import *
 from pylps.lps_data_structures import LPSConstant
 
-initialise(max_time=10)
+initialise(max_time=2)
 
 create_fluents('location(_, _)')
 create_actions('move(_, _)', 'say(_)')
@@ -66,8 +66,8 @@ goal(make_clear(Block).frm(T1, T2)).requires(
 )
 
 move(Block, Place).initiates(location(Block, Place))
-move(Block, _).terminates(location(Block, _))
+move(Block, _).terminates(location(Block, Place))
 
-execute(debug=True)
+execute(debug=True, experimental_reify=True)
 
 show_kb_log()
