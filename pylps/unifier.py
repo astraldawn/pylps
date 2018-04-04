@@ -10,6 +10,7 @@ from pylps.constants import *
 from pylps.exceptions import *
 from pylps.utils import *
 
+from pylps.causality import *
 from pylps.kb import KB
 
 
@@ -284,58 +285,12 @@ def _reify_event(goal, substitution):
 
 def unify_obs(observation):
     # TODO: There should be an IC check
-    action = observation.action
-    start = observation.start_time
-    end = observation.end_time
+    action = copy.deepcopy(observation.action)
+    action.update_start_time(observation.start_time)
+    action.update_end_time(observation.end_time)
 
     KB.log_action_new(action, from_obs=True)
     KB.add_cycle_obs(observation)
 
-    # If there is causality, need to make the check
-    causalities = KB.exists_causality(action)
-
-    if causalities:
-        for causality in causalities:
-            substitutions = unify_args(causality.action.args, action.args)
-
-            if not check_reqs(causality.reqs, substitutions):
-                return
-
-            for causality_outcome in causality.outcomes:
-                outcome = causality_outcome.outcome
-                fluent = copy.deepcopy(causality_outcome.fluent)
-
-                fluent.args = reify_args(fluent.args, substitutions)
-
-                if outcome == A_TERMINATE:
-                    if KB.remove_fluent(fluent):
-                        KB.log_fluent(fluent, end, F_TERMINATE)
-                elif outcome == A_INITIATE:
-                    if KB.add_fluent(fluent):
-                        KB.log_fluent(fluent, end, F_INITIATE)
-                else:
-                    raise UnknownOutcomeError(outcome)
-
-
-def check_reqs(reqs, substitutions):
-    if reqs == []:
-        return True
-
-    for req in reqs:
-        true_satis = True
-        # false_satis = True
-        for (obj_original, state) in req:
-            # copy object, do not want to modify KB
-            obj = copy.deepcopy(obj_original)
-            if obj.BaseClass == FACT:
-                obj.args = reify_args(obj.args, substitutions)
-                fact_exists = KB.exists_fact(obj)
-                if state and not fact_exists:
-                    true_satis = False
-            else:
-                raise UnhandledObjectError(obj.BaseClass)
-
-        if not true_satis:
-            return False
-
-    return True
+    initiates, terminates = process_causalities(action)
+    commit_outcomes(initiates, terminates)
