@@ -57,7 +57,12 @@ class _ENGINE(object):
     def _check_goals(self):
         solutions = SOLVER.solve_goals(self.current_time)
 
+        debug_display('SOLUTIONS_ENGINE', solutions)
+        debug_display('SOLUTION_COUNT', self.current_time, len(solutions))
+
         process_solutions(solutions, self.current_time)
+
+        debug_display('KB_FLUENTS_ENGINE', self.current_time, KB.fluents)
 
 
 ENGINE = _ENGINE()

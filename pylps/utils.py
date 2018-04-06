@@ -68,7 +68,11 @@ def debug_display(*args):
 
 def reify_single(arg, substitutions):
     try:
-        return reify(var(arg.name), substitutions)
+        r_arg = reify(Var(arg.name), substitutions)
+        # debug_display('R_SINGLE', arg, r_arg, type(arg), type(r_arg))
+        if isinstance(r_arg, Var):
+            return arg
+        return r_arg
     except AttributeError:
         return arg
 
@@ -96,8 +100,8 @@ def reify_arg_helper(arg, substitutions):
         ]
 
     if arg.BaseClass is VARIABLE or arg.BaseClass is TEMPORAL_VARIABLE:
-        arg = reify(var(arg.name), substitutions)
-        return arg
+        # arg = reify(var(arg.name), substitutions)
+        return reify_single(arg, substitutions)
 
     if arg.BaseClass == LIST:
         r_list = [
@@ -134,9 +138,12 @@ def reify_obj_args(o_obj, substitutions):
     '''
     This function returns a copy of the object
     '''
-    obj = copy.deepcopy(o_obj)
-    obj.args = reify_args(obj.args, substitutions)
-    return obj
+    try:
+        obj = copy.deepcopy(o_obj)
+        obj.args = reify_args(obj.args, substitutions)
+        return obj
+    except AttributeError:
+        return obj
 
 
 def reify_action(o_action, substitutions):

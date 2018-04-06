@@ -30,6 +30,10 @@ def process_causalities(action, deconflict=True):
     for causality in causalities:
         action_subs = unify_args(causality.action.args, action.args)
 
+        '''
+        TODO: This check should be shifted into generating fluents
+        Because the fluent might not be grounded yet
+        '''
         if not _check_reqs(causality.reqs, action_subs):
             return OrderedSet(), OrderedSet()
 
@@ -39,16 +43,22 @@ def process_causalities(action, deconflict=True):
 
             debug_display('C_OUTCOME', fluent, outcome, action_subs)
             debug_display('C_R_ACTION', action)
-            debug_display('FLUENTS', KB.fluents)
 
             fluent.args = reify_args(fluent.args, action_subs)
 
+            fluents = generate_outcome_fluents(fluent)
+
             if outcome is A_INITIATE:
-                initiates.add((fluent, action.end_time, F_INITIATE))
+                for f in fluents:
+                    initiates.add((f, action.end_time))
             elif outcome is A_TERMINATE:
-                terminates.add((fluent, action.end_time, F_TERMINATE))
+                for f in fluents:
+                    terminates.add((f, action.end_time))
             else:
                 raise UnknownOutcomeError(outcome)
+
+    debug_display('INITIATES', initiates)
+    debug_display('TERMINATES', terminates)
 
     if deconflict:
         terminates = terminates - initiates
@@ -56,14 +66,31 @@ def process_causalities(action, deconflict=True):
     return initiates, terminates
 
 
-def commit_outcomes(initiates, terminates):
-    for (fluent, time, outcome) in initiates:
-        if KB.add_fluent(fluent):
-            KB.log_fluent(fluent, time, outcome)
+def generate_outcome_fluents(fluent):
+    # debug_display('FLUENT', fluent.args, is_grounded(fluent))
+    ret = []
+    if is_grounded(fluent):
+        return [fluent]
 
-    for (fluent, time, outcome) in terminates:
+    for kb_fluent in copy.deepcopy(KB.get_fluents(fluent)):
+        unify_subs = unify_args(fluent.args, kb_fluent.args)
+        kb_fluent.args = reify_args(kb_fluent.args, unify_subs)
+        fluent_args = reify_args(fluent.args, unify_subs)
+
+        if kb_fluent.args == fluent_args:
+            ret.append(kb_fluent)
+
+    return ret
+
+
+def commit_outcomes(initiates, terminates):
+    for (fluent, time) in initiates:
+        if KB.add_fluent(fluent):
+            KB.log_fluent(fluent, time, F_INITIATE)
+
+    for (fluent, time) in terminates:
         if KB.remove_fluent(fluent):
-            KB.log_fluent(fluent, time, outcome)
+            KB.log_fluent(fluent, time, F_TERMINATE)
 
 
 '''

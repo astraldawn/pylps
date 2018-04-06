@@ -1,7 +1,7 @@
 '''
-                A
-A B     -->     B
-------------------------
+  C             A
+A B     -->     B  C (doesn't matter)
+----------------------------------------
 '''
 from pylps.core import *
 from pylps.lps_data_structures import LPSConstant
@@ -17,7 +17,7 @@ create_events(
 create_variables('Block', 'Block1', 'Place', 'Places')
 
 initially(
-    location('a', 'floor'), location('b', 'floor'),
+    location('a', 'floor'), location('b', 'floor'), location('c', 'b'),
 )
 
 reactive_rule(True).then(
@@ -68,6 +68,6 @@ goal(make_clear(Block).frm(T1, T2)).requires(
 move(Block, Place).initiates(location(Block, Place))
 move(Block, _).terminates(location(Block, Place))
 
-execute(solution_preference=SOLN_PREF_MAX)
+execute(solution_preference=SOLN_PREF_MAX, debug=True)
 
 show_kb_log()

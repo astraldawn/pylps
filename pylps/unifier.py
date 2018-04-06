@@ -83,7 +83,7 @@ def unify_action(cond, cycle_time):
     return substitutions
 
 
-def unify_fluent(cond, cycle_time):
+def unify_fluent(cond, cycle_time, counter=0):
 
     fluent = cond
     temporal_var = cond.time
@@ -102,7 +102,7 @@ def unify_fluent(cond, cycle_time):
 
         # Unify with temporal vars, return the substitution
         substitutions.update(unify(
-            var(temporal_var.name + VAR_SEPARATOR + '0'),
+            var(temporal_var.name + VAR_SEPARATOR + str(counter)),
             cycle_time))
 
         yield substitutions
@@ -113,7 +113,7 @@ def unify_fluent(cond, cycle_time):
         unify_res = unify_args(fluent.args, kb_fluent.args)
 
         unify_res.update(unify(
-            var(temporal_var.name + VAR_SEPARATOR + '0'),
+            var(temporal_var.name + VAR_SEPARATOR + str(counter)),
             cycle_time
         ))
 

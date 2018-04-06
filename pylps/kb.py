@@ -41,7 +41,7 @@ class _KB(object):
 
     def add_fluent(self, fluent):
         if fluent.name not in self.fluents:
-            self.fluents[fluent.name] = set()
+            self.fluents[fluent.name] = OrderedSet()
 
         if fluent in self.fluents[fluent.name]:
             return False

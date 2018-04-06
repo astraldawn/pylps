@@ -1,3 +1,5 @@
+import copy
+
 from pylps.constants import *
 from pylps.exceptions import *
 from pylps.kb import KB
@@ -102,13 +104,13 @@ class Event(LPSObject):
         self._end_time = new_end_time
 
     def at(self, time):
-        self._start_time = time
-        self._end_time = time
+        self._start_time = copy.deepcopy(time)
+        self._end_time = copy.deepcopy(time)
         return self
 
     def frm(self, start_time, end_time):
-        self._start_time = start_time
-        self._end_time = end_time
+        self._start_time = copy.deepcopy(start_time)
+        self._end_time = copy.deepcopy(end_time)
         return self
 
 

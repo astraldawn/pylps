@@ -1,6 +1,7 @@
 '''
-                A
-A B     -->     B
+C               A
+B               B
+A      -->      C
 ------------------------
 '''
 from pylps.core import *
@@ -17,11 +18,11 @@ create_events(
 create_variables('Block', 'Block1', 'Place', 'Places')
 
 initially(
-    location('a', 'floor'), location('b', 'floor'),
+    location('a', 'floor'), location('b', 'a'), location('c', 'b'),
 )
 
 reactive_rule(True).then(
-    make_tower(['a', 'b', 'floor']).frm(T1, T2),
+    make_tower(['a', 'b', 'c', 'floor']).frm(T1, T2),
 )
 
 goal(clear(Block).at(T)).requires(
@@ -68,6 +69,53 @@ goal(make_clear(Block).frm(T1, T2)).requires(
 move(Block, Place).initiates(location(Block, Place))
 move(Block, _).terminates(location(Block, Place))
 
-execute(solution_preference=SOLN_PREF_MAX)
+execute()
 
 show_kb_log()
+
+'''
+maxTime(7).
+fluents location(_,_).
+
+actions move(_,_).
+
+initially location(a, floor), location(b, a), location(c, b).
+
+if true
+then make_tower([a, b, c, floor]) from T1 to T2.
+
+% if true
+% then make_tower([f,e,d,floor]) from T1 to T2.
+
+clear(Block) at T if Block \= floor,
+    not location(_,Block) at T.
+
+clear(floor) at _.
+
+make_tower([Block,floor]) from T1 to T2 if
+    make_on(Block,floor) from T1 to T2.
+
+make_tower([Block,Place|Places]) from T1 to T3 if
+    Place \= floor,
+    make_tower([Place|Places]) from T1 to T2,
+    make_on(Block,Place) from T2 to T3.
+
+make_on(Block,Place) from T1 to T4 if
+    not location(Block,Place) at T1,
+    make_clear(Place) from T1 to T2,
+    make_clear(Block) from T2 to T3,
+    move(Block,Place) from T3 to T4.
+
+make_on(Block,Place) from T to T if
+    location(Block,Place) at T.
+
+make_clear(Place) from T to T if
+    clear(Place) at T.
+
+make_clear(Block) from T1 to T2 if
+    location(Block1,Block) at T1,
+    make_on(Block1,floor) from T1 to T2.
+
+move(Block,Place)  initiates location(Block,Place).
+move(Block,_)  terminates location(Block,Place).
+'''

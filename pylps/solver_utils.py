@@ -19,7 +19,8 @@ def process_solutions(solutions, cycle_time):
     if preference is SOLN_PREF_MAX:
         solutions = sorted(
             solutions,
-            key=lambda sol: sol.solved,
+            # Go for maximum solved + maximum number of actions
+            key=lambda sol: (sol.solved, len(sol.proposed.actions)),
             reverse=True)
 
     new_kb_goals = OrderedSet()
@@ -77,7 +78,7 @@ def process_solutions(solutions, cycle_time):
 
 def _process_state(state, unique_actions):
 
-    debug_display('STATE', state)
+    # debug_display('STATE', state)
 
     for action in state.actions:
         if action in unique_actions:
@@ -133,9 +134,9 @@ def reify_actions(state, reify=True):
 def match_clause_goal(clause, goal, new_subs, counter):
     SUFFIX = VAR_SEPARATOR + str(counter)
 
-    debug_display('MCG_CLAUSE', clause)
-    debug_display('MCG_GOAL', goal)
-    debug_display('MCG_SUBS', new_subs)
+    # debug_display('MCG_CLAUSE', clause)
+    # debug_display('MCG_GOAL', goal)
+    # debug_display('MCG_SUBS', new_subs)
 
     if clause.BaseClass is CONSTANT:
         if goal.BaseClass is CONSTANT:
@@ -283,6 +284,7 @@ def create_clause_variables(
         new_reqs.append(new_req)
 
     # debug_display('SUBS', new_subs)
+    # debug_display('REQS', clause.reqs)
     # debug_display('NEW_REQS', new_reqs)
 
 

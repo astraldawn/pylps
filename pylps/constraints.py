@@ -256,6 +256,8 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
         new_state.update_subs(res)
         states.append(new_state)
 
+    # debug_display('CONSTRAINT_FLUENT', fluent, outcome, matched)
+
     if not outcome and not matched:
         new_state = copy.deepcopy(cur_state)
         states.append(new_state)

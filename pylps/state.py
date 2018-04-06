@@ -96,7 +96,20 @@ class State(object):
         ret += "Reactive ID %s\n" % self.reactive_id
         ret += "Goal pos %s     Result %s\n" % (
             str(self.goal_pos), self.result)
-        ret += "Goals %s\n" % (str(self._goals))
+
+        for item, goal in enumerate(self.goals):
+            t_goal = goal
+            if isinstance(goal, tuple):
+                t_goal = goal[0]
+
+            if t_goal.BaseClass is ACTION:
+                r_goal = reify_action(t_goal, self.subs)
+            else:
+                r_goal = reify_obj_args(t_goal, self.subs)
+
+            ret += "Goal %s\n" % (str(item))
+            ret += "%s\n%s\n" % (str(goal), str(r_goal))
+
         ret += "Subs: %s\n" % (str(self._subs))
         ret += "Temporal used: %s\n" % self._temporal_used
         ret += "Counter %s\n" % self._counter

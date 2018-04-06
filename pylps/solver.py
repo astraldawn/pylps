@@ -54,6 +54,8 @@ class _Solver(object):
         solutions = []
         n_solutions = CONFIG.n_solutions
 
+        debug_display('KB_GOALS', KB.goals)
+
         while not end:
 
             # FORWARD
@@ -66,6 +68,7 @@ class _Solver(object):
                             states=copy.deepcopy(states_stack)
                         ))
                         max_soln = len(self.cycle_proposed.actions)
+                        debug_display('FOUND_SOLN', max_soln)
 
                     soln_cnt += 1
                     if soln_cnt >= n_solutions:
@@ -171,6 +174,8 @@ class _Solver(object):
 
             self.iterations += 1
 
+            debug_display('STATE_BT', cur_state)
+
             if cur_state.result is G_DEFER or cur_state.result is G_DISCARD:
                 yield cur_state
                 continue
@@ -178,7 +183,7 @@ class _Solver(object):
             # Nothing left
             goal = cur_state.get_next_goal()
 
-            if self.iterations > 100 and CONFIG.debug:
+            if self.iterations > 10000 and CONFIG.debug:
                 break
 
             # debug_display(self.iterations, goal)
@@ -198,12 +203,13 @@ class _Solver(object):
 
     def expand_goal(self, goal, cur_state, states):
 
-        debug_display('EXPAND', goal)
-
         outcome = True
 
         if isinstance(goal, tuple):
             outcome, goal = goal[1], goal[0]
+
+        debug_display('EXPAND', goal)
+        debug_display('EXPAND_R', reify_obj_args(goal, cur_state.subs))
 
         if goal.BaseClass is ACTION:
             self.expand_action(goal, cur_state, states)
@@ -234,6 +240,7 @@ class _Solver(object):
             if cur_state.temporal_used:
                 new_state._goal_pos -= 1
                 new_state.set_result(G_DEFER)
+                debug_display('DEFER_IF', goal)
                 states.append(new_state)
                 return
             else:
@@ -253,6 +260,7 @@ class _Solver(object):
             if not temporal_valid:
                 new_state._goal_pos -= 1
                 new_state.set_result(G_DEFER)
+                debug_display('DEFER_ELSE', goal)
                 states.append(new_state)
                 return
 
@@ -323,7 +331,7 @@ class _Solver(object):
                 clause_arg, goal_arg,
                 new_subs, counter
             )
-            debug_display('MATCH_RES', match_res)
+            debug_display('MATCH_RES', clause.goal[0].args, match_res)
 
             # If the matching fails, cannot proceed, return
             if not match_res:
@@ -332,6 +340,8 @@ class _Solver(object):
         s_utils.create_clause_variables(
             clause, counter, goal, new_subs, new_reqs
         )
+
+        debug_display('CLAUSE_REQS', new_reqs)
 
         new_state.update_subs(new_subs)
 
@@ -380,10 +390,13 @@ class _Solver(object):
     def expand_fluent(self, fluent, cur_state, states, outcome=True):
         cur_subs = cur_state.subs
 
-        # debug_display('FLUENT', fluent, outcome)
+        debug_display('FLUENT', fluent, outcome)
 
         # TODO: There might be a need for better temporal handling here
-        all_subs = list(unify_fluent(fluent, self.current_time))
+        all_subs = list(unify_fluent(
+            fluent, self.current_time, counter=cur_state.counter))
+
+        debug_display('FLUENT_ALL_SUBS', all_subs, cur_state.counter)
 
         subs = []
 
@@ -403,14 +416,35 @@ class _Solver(object):
 
         subs.reverse()
 
+        debug_display('FLUENT_ALL_SUBS_FILTER', subs)
+        debug_display('KB_FLUENTS', KB.fluents)
+
         if outcome:
+            # if not subs:
+            #     debug_display('FLUENT_CHECK_F_DEFER')
+            #     new_state = copy.deepcopy(cur_state)
+            #     new_state._goal_pos -= 1
+            #     new_state.set_result(G_DEFER)
+            #     states.append(new_state)
+            #     return
+
             for sub in subs:
                 new_state = copy.deepcopy(cur_state)
                 new_state.update_subs(sub)
                 states.append(new_state)
+
         elif not outcome:
+            # TODO: Is it possible to have a sub but not match it? Or is
+            # it such that no sub can be matched?
+            new_state = copy.deepcopy(cur_state)
+            if subs:
+                debug_display('FLUENT_CHECK_F_DEFER')
+                new_state._goal_pos -= 1
+                new_state.set_result(G_DEFER)
+                states.append(new_state)
+                return
+
             if not subs:
-                new_state = copy.deepcopy(cur_state)
                 states.append(new_state)
 
 
