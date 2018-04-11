@@ -19,6 +19,18 @@ class Proposed(object):
         ret += "Proposed Fluents: %s\n" % (str(self._fluents))
         return ret
 
+    def __eq__(self, other):
+        return self.to_tuple() == other.to_tuple()
+
+    def __hash__(self):
+        return hash(self.to_tuple())
+
+    def to_tuple(self):
+        return (
+            tuple(a.to_tuple() for a in self.actions),
+            tuple(f.to_tuple() for f in self.fluents),
+        )
+
     @property
     def actions(self):
         return self._actions
@@ -56,6 +68,12 @@ class Solution(object):
         ret += "Solved: %s\n" % (self.solved)
         ret += "States: %s\n" % (str(self.states))
         return ret
+
+    def __eq__(self, other):
+        return self.proposed == other.proposed
+
+    def __hash__(self):
+        return hash(self.proposed)
 
     @property
     def proposed(self):
@@ -96,7 +114,20 @@ class State(object):
         ret += "Reactive ID %s\n" % self.reactive_id
         ret += "Goal pos %s     Result %s\n" % (
             str(self.goal_pos), self.result)
-        ret += "Goals %s\n" % (str(self._goals))
+
+        for item, goal in enumerate(self.goals):
+            t_goal = goal
+            if isinstance(goal, tuple):
+                t_goal = goal[0]
+
+            if t_goal.BaseClass is ACTION:
+                r_goal = reify_action(t_goal, self.subs)
+            else:
+                r_goal = reify_obj_args(t_goal, self.subs)
+
+            ret += "Goal %s\n" % (str(item))
+            ret += "%s\n%s\n" % (str(goal), str(r_goal))
+
         ret += "Subs: %s\n" % (str(self._subs))
         ret += "Temporal used: %s\n" % self._temporal_used
         ret += "Counter %s\n" % self._counter
@@ -127,7 +158,7 @@ class State(object):
         return self._proposed.actions
 
     def add_action(self, action):
-        self._proposed.add_action(reify_obj_args(action, self.subs))
+        self._proposed.add_action(action)
 
     def clear_actions(self):
         self._proposed.clear_actions()
@@ -154,6 +185,11 @@ class State(object):
         new_goals = deque()
 
         for goal in self.goals:
+
+            if isinstance(goal, tuple):
+                new_goals.append(goal)
+                continue
+
             if goal != event:
                 new_goals.append(goal)
                 continue

@@ -1,7 +1,7 @@
 import operator
 from pylps.constants import *
 from pylps.exceptions import *
-
+from pylps.lps_data_structures import convert_arg
 
 # class Constant(object):
 #     BaseClass = CONSTANT
@@ -55,8 +55,8 @@ class Expr(object):
 
     def __init__(self, op, left, right):
         self.op = op
-        self.left = left
-        self.right = right
+        self.left = convert_arg(left)
+        self.right = convert_arg(right)
         self.args = [self.left, self.right]
 
     def __repr__(self):

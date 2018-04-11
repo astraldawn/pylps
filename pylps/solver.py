@@ -2,10 +2,12 @@
 Revised solver that will recursively yield solutions
 '''
 import copy
+import operator
+from collections import deque
 
 from more_itertools import peekable
+from ordered_set import OrderedSet
 from unification import *
-from collections import deque
 
 from pylps.constants import *
 from pylps.exceptions import *
@@ -51,7 +53,13 @@ class _Solver(object):
         max_soln = 0
         soln_cnt = 0
         solutions = []
+
+        if CONFIG.experimental:
+            solutions = OrderedSet()
+
         n_solutions = CONFIG.n_solutions
+
+        debug_display('KB_GOALS', KB.goals)
 
         while not end:
 
@@ -60,11 +68,25 @@ class _Solver(object):
                 if cur_goal_pos >= len(KB.goals):
 
                     if len(self.cycle_proposed.actions) >= max_soln:
-                        solutions.append(Solution(
+                        if CONFIG.experimental:
+                            solutions.add(Solution(
+                                proposed=copy.deepcopy(self.cycle_proposed),
+                                states=copy.deepcopy(states_stack)
+                            ))
+                        else:
+                            solutions.append(Solution(
+                                proposed=copy.deepcopy(self.cycle_proposed),
+                                states=copy.deepcopy(states_stack)
+                            ))
+                        max_soln = len(self.cycle_proposed.actions)
+                        debug_display('FOUND_SOLN', max_soln)
+
+                    # allow for non-maximal soln
+                    if CONFIG.experimental:
+                        solutions.add(Solution(
                             proposed=copy.deepcopy(self.cycle_proposed),
                             states=copy.deepcopy(states_stack)
                         ))
-                        max_soln = len(self.cycle_proposed.actions)
 
                     soln_cnt += 1
                     if soln_cnt >= n_solutions:
@@ -132,8 +154,12 @@ class _Solver(object):
 
     def add_cycle_proposed(self, state, future_solutions):
         # Add current state
+        # if CONFIG.experimental:
+        #     self.cycle_proposed.add_actions(
+        #         s_utils.reify_actions(state, reify=False))
+        # else:
         self.cycle_proposed.add_actions(
-            s_utils.reify_actions(state))
+            s_utils.reify_actions(state, reify=True))
 
         if not CONFIG.cycle_fluents:
             return
@@ -166,6 +192,8 @@ class _Solver(object):
 
             self.iterations += 1
 
+            debug_display('STATE_BT', cur_state)
+
             if cur_state.result is G_DEFER or cur_state.result is G_DISCARD:
                 yield cur_state
                 continue
@@ -173,8 +201,8 @@ class _Solver(object):
             # Nothing left
             goal = cur_state.get_next_goal()
 
-            # if self.iterations > 5:
-            #     break
+            if self.iterations > 10000 and CONFIG.debug:
+                break
 
             # debug_display(self.iterations, goal)
             # debug_display(cur_state)
@@ -193,16 +221,28 @@ class _Solver(object):
 
     def expand_goal(self, goal, cur_state, states):
 
+        outcome = True
+
+        if isinstance(goal, tuple):
+            outcome, goal = goal[1], goal[0]
+
+        debug_display('EXPAND', goal)
+        debug_display('EXPAND_R', reify_obj_args(goal, cur_state.subs))
+
         if goal.BaseClass is ACTION:
             self.expand_action(goal, cur_state, states)
         elif goal.BaseClass is EVENT:
             self.expand_event(goal, cur_state, states)
+        elif goal.BaseClass is EXPR:
+            self.expand_expr(goal, cur_state, states)
         elif goal.BaseClass is FACT:
             self.expand_fact(goal, cur_state, states)
         elif goal.BaseClass is FLUENT:
-            self.expand_fluent(goal, cur_state, states)
+            self.expand_fluent(goal, cur_state, states, outcome)
         else:
             raise UnimplementedOutcomeError(goal.BaseClass)
+
+        debug_display()
 
     def expand_action(self, goal, cur_state, states):
         new_state = copy.deepcopy(cur_state)
@@ -218,6 +258,7 @@ class _Solver(object):
             if cur_state.temporal_used:
                 new_state._goal_pos -= 1
                 new_state.set_result(G_DEFER)
+                debug_display('DEFER_IF', goal)
                 states.append(new_state)
                 return
             else:
@@ -237,6 +278,7 @@ class _Solver(object):
             if not temporal_valid:
                 new_state._goal_pos -= 1
                 new_state.set_result(G_DEFER)
+                debug_display('DEFER_ELSE', goal)
                 states.append(new_state)
                 return
 
@@ -254,9 +296,9 @@ class _Solver(object):
         if not valid and CONFIG.debug:
             debug_display('C_CHECK_F', goal)
             print()
-            debug_display(new_state)
+            debug_display('C_CHECK_F_STATE', new_state)
             print()
-            debug_display(self.cycle_proposed)
+            debug_display('C_CHECK_F_PROPOSED', self.cycle_proposed)
             print('\n\n')
 
         # Done
@@ -287,12 +329,14 @@ class _Solver(object):
                 self.match_event(goal, clause, cur_state, states)
 
     def match_event(self, goal, clause, cur_state, states):
-        # debug_display(goal)
-
         cur_subs = cur_state.subs
 
         # Reify if possible
-        goal.args = reify_args(goal.args, cur_subs)
+        # goal.args = reify_args(goal.args, cur_subs)
+        goal_args = reify_args(goal.args, cur_subs)
+
+        # debug_display('ME_REIFY_ARGS', goal.args)
+        # debug_display('ME_REIFY_SUBS', cur_subs)
 
         new_state = copy.deepcopy(cur_state)
         new_state._counter += 1
@@ -300,45 +344,40 @@ class _Solver(object):
         new_subs = {}
         counter = new_state.counter
 
-        for clause_arg, goal_arg in zip(clause.goal[0].args, goal.args):
+        for clause_arg, goal_arg in zip(clause.goal[0].args, goal_args):
             match_res = s_utils.match_clause_goal(
                 clause_arg, goal_arg,
                 new_subs, counter
             )
+            debug_display('MATCH_RES', clause.goal[0].args, match_res)
 
             # If the matching fails, cannot proceed, return
             if not match_res:
                 return
 
-        # Temporal variable updating
-        new_subs.update({
-            var(clause.goal[0].start_time.name + VAR_SEPARATOR + str(counter)):
-            var(goal.start_time.name),
-            var(clause.goal[0].end_time.name + VAR_SEPARATOR + str(counter)):
-            var(goal.end_time.name)
-        })
+        s_utils.create_clause_variables(
+            clause, counter, goal, new_subs, new_reqs
+        )
 
-        # Unfolding the complex should consider lists as well
-        for req in clause.reqs:
-            new_req = copy.deepcopy(req)
-
-            for arg in new_req.args:
-                if is_constant(arg):
-                    continue
-
-                if arg.BaseClass is VARIABLE:
-                    arg.name += VAR_SEPARATOR + str(counter)
-
-            if req.BaseClass is ACTION or req.BaseClass is EVENT:
-                new_req.start_time.name += VAR_SEPARATOR + str(counter)
-                new_req.end_time.name += VAR_SEPARATOR + str(counter)
-
-            new_reqs.append(new_req)
+        debug_display('CLAUSE_REQS', new_reqs)
 
         new_state.update_subs(new_subs)
 
         new_state.replace_event(goal, copy.deepcopy(new_reqs))
         states.append(new_state)
+
+    def expand_expr(self, expr, cur_state, states):
+        cur_subs = cur_state.subs
+        res = reify_args(expr.args, cur_subs)
+
+        if expr.op is operator.ne:
+            evaluation = expr.op(res[0], res[1])
+
+            if evaluation:
+                new_state = copy.deepcopy(cur_state)
+                states.append(new_state)
+        else:
+            raise PylpsUnimplementedOutcomeError(expr.op)
 
     def expand_fact(self, fact, cur_state, states):
         cur_subs = cur_state.subs
@@ -366,11 +405,16 @@ class _Solver(object):
             new_state.update_subs(sub)
             states.append(new_state)
 
-    def expand_fluent(self, fluent, cur_state, states):
+    def expand_fluent(self, fluent, cur_state, states, outcome=True):
         cur_subs = cur_state.subs
 
+        debug_display('FLUENT', fluent, outcome)
+
         # TODO: There might be a need for better temporal handling here
-        all_subs = list(unify_fluent(fluent, self.current_time))
+        all_subs = list(unify_fluent(
+            fluent, self.current_time, counter=cur_state.counter))
+
+        debug_display('FLUENT_ALL_SUBS', all_subs, cur_state.counter)
 
         subs = []
 
@@ -390,10 +434,36 @@ class _Solver(object):
 
         subs.reverse()
 
-        for sub in subs:
+        debug_display('FLUENT_ALL_SUBS_FILTER', subs)
+        debug_display('KB_FLUENTS', KB.fluents)
+
+        if outcome:
+            # if not subs:
+            #     debug_display('FLUENT_CHECK_F_DEFER')
+            #     new_state = copy.deepcopy(cur_state)
+            #     new_state._goal_pos -= 1
+            #     new_state.set_result(G_DEFER)
+            #     states.append(new_state)
+            #     return
+
+            for sub in subs:
+                new_state = copy.deepcopy(cur_state)
+                new_state.update_subs(sub)
+                states.append(new_state)
+
+        elif not outcome:
+            # TODO: Is it possible to have a sub but not match it? Or is
+            # it such that no sub can be matched?
             new_state = copy.deepcopy(cur_state)
-            new_state.update_subs(sub)
-            states.append(new_state)
+            if subs:
+                debug_display('FLUENT_CHECK_F_DEFER')
+                new_state._goal_pos -= 1
+                new_state.set_result(G_DEFER)
+                states.append(new_state)
+                return
+
+            if not subs:
+                states.append(new_state)
 
 
 SOLVER = _Solver()

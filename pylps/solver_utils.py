@@ -1,6 +1,7 @@
 from ordered_set import OrderedSet
 from unification import *
 
+from pylps.causality import *
 from pylps.constants import *
 from pylps.exceptions import *
 from pylps.utils import *
@@ -18,7 +19,8 @@ def process_solutions(solutions, cycle_time):
     if preference is SOLN_PREF_MAX:
         solutions = sorted(
             solutions,
-            key=lambda sol: sol.solved,
+            # Go for maximum solved + maximum number of actions
+            key=lambda sol: (sol.solved, len(sol.proposed.actions)),
             reverse=True)
 
     new_kb_goals = OrderedSet()
@@ -76,37 +78,25 @@ def process_solutions(solutions, cycle_time):
 
 def _process_state(state, unique_actions):
 
+    # debug_display('STATE', state)
+
     for action in state.actions:
         if action in unique_actions:
             continue
 
-        KB.log_action_new(action)
-        unique_actions.add(action)
+        # if CONFIG.experimental:
+        #     r_action = reify_action(action, state.subs)
+        # else:
+        r_action = action
+
+        KB.log_action_new(r_action)
+        unique_actions.add(r_action)
 
         if CONFIG.cycle_fluents:
             continue
 
-        causalities = KB.exists_causality(action)
-
-        if causalities:
-            action_subs = unify_args(causalities.action.args, action.args)
-
-            for causality_outcome in causalities.outcomes:
-                outcome = causality_outcome.outcome
-                fluent = copy.deepcopy(causality_outcome.fluent)
-
-                fluent.args = reify_args(fluent.args, action_subs)
-
-                # debug_display(action)
-
-                if outcome == A_TERMINATE:
-                    if KB.remove_fluent(fluent):
-                        KB.log_fluent(fluent, action.end_time, F_TERMINATE)
-                elif outcome == A_INITIATE:
-                    if KB.add_fluent(fluent):
-                        KB.log_fluent(fluent, action.end_time, F_INITIATE)
-                else:
-                    raise UnknownOutcomeError(outcome)
+        initiates, terminates = process_causalities(r_action)
+        commit_outcomes(initiates, terminates)
 
     for fluent_outcome in state.fluents:
         if not CONFIG.cycle_fluents:
@@ -124,9 +114,13 @@ def _process_state(state, unique_actions):
             raise UnknownOutcomeError(outcome)
 
 
-def reify_actions(state):
+def reify_actions(state, reify=True):
     actions = OrderedSet()
     for action in state.actions:
+        if not reify:
+            actions.add(action)
+            continue
+
         action.args = reify_args(action.args, state.subs)
         action.update_start_time(
             reify_args([action.start_time], state.subs)[0])
@@ -140,9 +134,18 @@ def reify_actions(state):
 def match_clause_goal(clause, goal, new_subs, counter):
     SUFFIX = VAR_SEPARATOR + str(counter)
 
+    # debug_display('MCG_CLAUSE', clause)
+    # debug_display('MCG_GOAL', goal)
+    # debug_display('MCG_SUBS', new_subs)
+
     if clause.BaseClass is CONSTANT:
         if goal.BaseClass is CONSTANT:
             return clause.const == goal.const
+
+        # Match against a single element list
+        if goal.BaseClass is LIST and len(goal) == 1:
+            if goal.head.BaseClass is CONSTANT:
+                return clause.const == goal.head.const
 
     if clause.BaseClass is VARIABLE:
         try:
@@ -203,10 +206,21 @@ def match_clause_goal(clause, goal, new_subs, counter):
 
                 old_subs = copy.deepcopy(new_subs)
 
-                match_head = match_clause_goal(
-                    clause_head.tuple[1], goal_head, new_subs, counter)
-                match_tail = match_clause_goal(
-                    clause_head.tuple[2], goal_tail, new_subs, counter)
+                # TODO: Improve this
+                if goal_head.BaseClass is TUPLE and \
+                        len(goal_head) == len(clause_head):
+                    match_head = match_clause_goal(
+                        clause_head.tuple[1], goal_head.tuple[1],
+                        new_subs, counter)
+                    match_tail = match_clause_goal(
+                        clause_head.tuple[2], goal_head.tuple[2],
+                        new_subs, counter)
+                else:
+
+                    match_head = match_clause_goal(
+                        clause_head.tuple[1], goal_head, new_subs, counter)
+                    match_tail = match_clause_goal(
+                        clause_head.tuple[2], goal_tail, new_subs, counter)
 
                 # Both head and tail must match
                 if match_head and match_tail:
@@ -233,3 +247,60 @@ def match_clause_goal(clause, goal, new_subs, counter):
                 clause_head, goal_head, new_subs, counter)
 
     return False
+
+
+def create_clause_variables(
+        clause, counter, goal, new_subs, new_reqs):
+    # Temporal variable updating
+    new_subs.update({
+        var(clause.goal[0].start_time.name + VAR_SEPARATOR + str(counter)):
+        var(goal.start_time.name),
+        var(clause.goal[0].end_time.name + VAR_SEPARATOR + str(counter)):
+        var(goal.end_time.name)
+    })
+
+    if not clause.reqs:
+        return
+
+    for req in clause.reqs:
+        new_req = copy.deepcopy(req)
+
+        # Handling negated clauses
+        if isinstance(new_req, tuple) and len(new_req) == 2:
+            for arg in new_req[0].args:
+                _rename_arg(counter, arg)
+
+            if req[0].BaseClass is ACTION or req[0].BaseClass is EVENT:
+                new_req[0].start_time.name += VAR_SEPARATOR + str(counter)
+                new_req[0].end_time.name += VAR_SEPARATOR + str(counter)
+        else:
+            for arg in new_req.args:
+                _rename_arg(counter, arg)
+
+            if req.BaseClass is ACTION or req.BaseClass is EVENT:
+                new_req.start_time.name += VAR_SEPARATOR + str(counter)
+                new_req.end_time.name += VAR_SEPARATOR + str(counter)
+
+        new_reqs.append(new_req)
+
+    # debug_display('SUBS', new_subs)
+    # debug_display('REQS', clause.reqs)
+    # debug_display('NEW_REQS', new_reqs)
+
+
+def _rename_arg(counter, arg):
+    '''
+    No need to do a deepcopy here, done in calling fx
+    '''
+    if is_constant(arg) or arg.BaseClass is CONSTANT:
+        return
+    elif arg.BaseClass is LIST:
+        for item in arg._list:
+            _rename_arg(counter, item)
+    elif arg.BaseClass is TUPLE:
+        for item in arg._tuple:
+            _rename_arg(counter, item)
+    elif arg.BaseClass is VARIABLE:
+        arg.name += VAR_SEPARATOR + str(counter)
+    else:
+        raise PylpsUnimplementedOutcomeError(arg.BaseClass)

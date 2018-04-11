@@ -2,7 +2,12 @@ import copy
 from unification import *
 
 from pylps.constants import *
+from pylps.exceptions import *
+from pylps.utils import *
+
 from pylps.config import CONFIG
+
+from pylps.lps_data_structures import LPSList, LPSTuple
 
 
 def strictly_increasing(iterable):
@@ -61,33 +66,61 @@ def debug_display(*args):
             print()
 
 
-def reify_args(args_with_var, substitutions):
-    reify_args = []
-    for arg in args_with_var:
-        if isinstance(arg, str) or isinstance(arg, int):
-            reify_args.append(arg)
-            continue
+def reify_single(arg, substitutions):
+    try:
+        r_arg = reify(Var(arg.name), substitutions)
+        # debug_display('R_SINGLE', arg, r_arg, type(arg), type(r_arg))
+        if isinstance(r_arg, Var):
+            return arg
+        return r_arg
+    except AttributeError:
+        return arg
 
-        # TODO: Should unfold the list
-        if isinstance(arg, list):
-            reify_args.append(arg)
-            continue
 
-        if arg.BaseClass == VARIABLE or arg.BaseClass == TEMPORAL_VARIABLE:
-            res = reify(var(arg.name), substitutions)
-            if isinstance(res, Var):
-                reify_args.append(arg)
-            else:
-                reify_args.append(res)
-        else:
-            reify_args.append(arg)
+def reify_args(o_args_with_var, substitutions):
+    r_args = []
+    args_with_var = copy.deepcopy(o_args_with_var)
+    r_args = [
+        reify_arg_helper(arg, substitutions)
+        for arg in args_with_var
+    ]
 
-    return reify_args
+    return r_args
+
+
+def reify_arg_helper(arg, substitutions):
+    if is_constant(arg) or arg.BaseClass is CONSTANT:
+        return arg
+
+    # List or tuple
+    if isinstance(arg, list):
+        return [
+            reify_arg_helper(item, substitutions)
+            for item in arg
+        ]
+
+    if arg.BaseClass is VARIABLE or arg.BaseClass is TEMPORAL_VARIABLE:
+        # arg = reify(var(arg.name), substitutions)
+        return reify_single(arg, substitutions)
+
+    if arg.BaseClass == LIST:
+        r_list = [
+            reify_arg_helper(item, substitutions)
+            for item in arg._list
+        ]
+        return LPSList(copy.deepcopy(r_list))
+
+    if arg.BaseClass == TUPLE:
+        r_list = [
+            reify_arg_helper(item, substitutions)
+            for item in arg._tuple
+        ]
+        return LPSTuple(copy.deepcopy(r_list))
+
+    raise PylpsUnimplementedOutcomeError((arg.BaseClass, type(arg), arg))
 
 
 def reify_args_constraint_causality(args_with_var, o_substitutions):
-    reify_args = []
-
     substitutions = {}
 
     for v, s in o_substitutions.items():
@@ -98,35 +131,29 @@ def reify_args_constraint_causality(args_with_var, o_substitutions):
 
         substitutions[var(VAR_SEPARATOR.join(tokens[:-1]))] = s
 
-    for arg in args_with_var:
-        if isinstance(arg, str) or isinstance(arg, int):
-            reify_args.append(arg)
-            continue
-
-        # TODO: Should unfold the list
-        if isinstance(arg, list):
-            reify_args.append(arg)
-            continue
-
-        if arg.BaseClass == VARIABLE or arg.BaseClass == TEMPORAL_VARIABLE:
-            res = reify(var(arg.name), substitutions)
-            if isinstance(res, Var):
-                reify_args.append(arg)
-            else:
-                reify_args.append(res)
-        else:
-            reify_args.append(arg)
-
-    return reify_args
+    return reify_args(args_with_var, substitutions)
 
 
 def reify_obj_args(o_obj, substitutions):
     '''
     This function returns a copy of the object
     '''
-    obj = copy.deepcopy(o_obj)
-    obj.args = reify_args(obj.args, substitutions)
-    return obj
+    try:
+        obj = copy.deepcopy(o_obj)
+        obj.args = reify_args(obj.args, substitutions)
+        return obj
+    except AttributeError:
+        return obj
+
+
+def reify_action(o_action, substitutions):
+    '''
+    Reify an action, with its temporal variables
+    '''
+    action = reify_obj_args(o_action, substitutions)
+    action.update_start_time(reify_single(action.start_time, substitutions))
+    action.update_end_time(reify_single(action.end_time, substitutions))
+    return action
 
 
 def goal_temporal_satisfied(goal, clause_goal):
