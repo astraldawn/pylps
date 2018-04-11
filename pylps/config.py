@@ -5,7 +5,7 @@ VALID_OPTIONS = {
     'debug': set([False, True]),
 
     'cycle_fluents': set([False, True]),
-    'experimental_reify': set([False, True]),
+    'experimental': set([False, True]),
     'single_clause': set([False, True]),
     'solution_preference': set([SOLN_PREF_FIRST, SOLN_PREF_MAX]),
 }
@@ -50,8 +50,8 @@ class _CONFIG(object):
         return self._options['cycle_fluents']
 
     @property
-    def experimental_reify(self):
-        return self._options['experimental_reify']
+    def experimental(self):
+        return self._options['experimental']
 
     @property
     def n_solutions(self):

@@ -84,10 +84,10 @@ def _process_state(state, unique_actions):
         if action in unique_actions:
             continue
 
-        if CONFIG.experimental_reify:
-            r_action = reify_action(action, state.subs)
-        else:
-            r_action = action
+        # if CONFIG.experimental:
+        #     r_action = reify_action(action, state.subs)
+        # else:
+        r_action = action
 
         KB.log_action_new(r_action)
         unique_actions.add(r_action)

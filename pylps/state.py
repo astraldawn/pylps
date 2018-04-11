@@ -19,6 +19,18 @@ class Proposed(object):
         ret += "Proposed Fluents: %s\n" % (str(self._fluents))
         return ret
 
+    def __eq__(self, other):
+        return self.to_tuple() == other.to_tuple()
+
+    def __hash__(self):
+        return hash(self.to_tuple())
+
+    def to_tuple(self):
+        return (
+            tuple(a.to_tuple() for a in self.actions),
+            tuple(f.to_tuple() for f in self.fluents),
+        )
+
     @property
     def actions(self):
         return self._actions
@@ -56,6 +68,12 @@ class Solution(object):
         ret += "Solved: %s\n" % (self.solved)
         ret += "States: %s\n" % (str(self.states))
         return ret
+
+    def __eq__(self, other):
+        return self.proposed == other.proposed
+
+    def __hash__(self):
+        return hash(self.proposed)
 
     @property
     def proposed(self):

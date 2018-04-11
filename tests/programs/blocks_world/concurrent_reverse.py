@@ -74,7 +74,7 @@ goal(make_clear(Block).frm(T1, T2)).requires(
 move(Block, Place).initiates(location(Block, Place))
 move(Block, _).terminates(location(Block, Place))
 
-execute(debug=True, solution_preference=SOLN_PREF_MAX)
+execute(debug=False)
 
 show_kb_log()
 

@@ -3,10 +3,11 @@ Revised solver that will recursively yield solutions
 '''
 import copy
 import operator
+from collections import deque
 
 from more_itertools import peekable
+from ordered_set import OrderedSet
 from unification import *
-from collections import deque
 
 from pylps.constants import *
 from pylps.exceptions import *
@@ -52,6 +53,10 @@ class _Solver(object):
         max_soln = 0
         soln_cnt = 0
         solutions = []
+
+        if CONFIG.experimental:
+            solutions = OrderedSet()
+
         n_solutions = CONFIG.n_solutions
 
         debug_display('KB_GOALS', KB.goals)
@@ -63,12 +68,25 @@ class _Solver(object):
                 if cur_goal_pos >= len(KB.goals):
 
                     if len(self.cycle_proposed.actions) >= max_soln:
-                        solutions.append(Solution(
+                        if CONFIG.experimental:
+                            solutions.add(Solution(
+                                proposed=copy.deepcopy(self.cycle_proposed),
+                                states=copy.deepcopy(states_stack)
+                            ))
+                        else:
+                            solutions.append(Solution(
+                                proposed=copy.deepcopy(self.cycle_proposed),
+                                states=copy.deepcopy(states_stack)
+                            ))
+                        max_soln = len(self.cycle_proposed.actions)
+                        debug_display('FOUND_SOLN', max_soln)
+
+                    # allow for non-maximal soln
+                    if CONFIG.experimental:
+                        solutions.add(Solution(
                             proposed=copy.deepcopy(self.cycle_proposed),
                             states=copy.deepcopy(states_stack)
                         ))
-                        max_soln = len(self.cycle_proposed.actions)
-                        debug_display('FOUND_SOLN', max_soln)
 
                     soln_cnt += 1
                     if soln_cnt >= n_solutions:
@@ -136,12 +154,12 @@ class _Solver(object):
 
     def add_cycle_proposed(self, state, future_solutions):
         # Add current state
-        if CONFIG.experimental_reify:
-            self.cycle_proposed.add_actions(
-                s_utils.reify_actions(state, reify=False))
-        else:
-            self.cycle_proposed.add_actions(
-                s_utils.reify_actions(state, reify=True))
+        # if CONFIG.experimental:
+        #     self.cycle_proposed.add_actions(
+        #         s_utils.reify_actions(state, reify=False))
+        # else:
+        self.cycle_proposed.add_actions(
+            s_utils.reify_actions(state, reify=True))
 
         if not CONFIG.cycle_fluents:
             return

@@ -79,7 +79,7 @@ def execute(
     single_clause=False,
     solution_preference=SOLN_PREF_FIRST,
     debug=False,
-    experimental_reify=False,
+    experimental=False,
 ):
     '''Execute pyLPS program
 
@@ -107,7 +107,7 @@ def execute(
         'solution_preference': solution_preference,
         # Development
         'debug': debug,
-        'experimental_reify': experimental_reify
+        'experimental': experimental
     }
 
     CONFIG.set_options(options_dict)
