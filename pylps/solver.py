@@ -10,6 +10,7 @@ from ordered_set import OrderedSet
 from unification import *
 
 from pylps.constants import *
+from pylps.expand import *
 from pylps.exceptions import *
 from pylps.utils import *
 from pylps.kb import KB
@@ -59,7 +60,7 @@ class _Solver(object):
 
         n_solutions = CONFIG.n_solutions
 
-        debug_display('KB_GOALS', KB.goals)
+        # debug_display('KB_GOALS', KB.goals)
 
         while not end:
 
@@ -79,7 +80,7 @@ class _Solver(object):
                                 states=copy.deepcopy(states_stack)
                             ))
                         max_soln = len(self.cycle_proposed.actions)
-                        debug_display('FOUND_SOLN', max_soln)
+                        # debug_display('FOUND_SOLN', max_soln)
 
                     # allow for non-maximal soln
                     if CONFIG.experimental:
@@ -192,7 +193,7 @@ class _Solver(object):
 
             self.iterations += 1
 
-            debug_display('STATE_BT', cur_state)
+            # debug_display('STATE_BT', cur_state)
 
             if cur_state.result is G_DEFER or cur_state.result is G_DISCARD:
                 yield cur_state
@@ -234,7 +235,7 @@ class _Solver(object):
         elif goal.BaseClass is EVENT:
             self.expand_event(goal, cur_state, states)
         elif goal.BaseClass is EXPR:
-            self.expand_expr(goal, cur_state, states)
+            expand_expr(goal, cur_state, states)
         elif goal.BaseClass is FACT:
             self.expand_fact(goal, cur_state, states)
         elif goal.BaseClass is FLUENT:
@@ -360,24 +361,12 @@ class _Solver(object):
         )
 
         debug_display('CLAUSE_REQS', new_reqs)
+        debug_display('CLAUSE_SUBS', new_subs)
 
         new_state.update_subs(new_subs)
 
         new_state.replace_event(goal, copy.deepcopy(new_reqs))
         states.append(new_state)
-
-    def expand_expr(self, expr, cur_state, states):
-        cur_subs = cur_state.subs
-        res = reify_args(expr.args, cur_subs)
-
-        if expr.op is operator.ne:
-            evaluation = expr.op(res[0], res[1])
-
-            if evaluation:
-                new_state = copy.deepcopy(cur_state)
-                states.append(new_state)
-        else:
-            raise PylpsUnimplementedOutcomeError(expr.op)
 
     def expand_fact(self, fact, cur_state, states):
         cur_subs = cur_state.subs

@@ -27,3 +27,8 @@ class PylpsUnimplementedOutcomeError(Exception):
 class PylpsIncorrectUseError(Exception):
     def __init__(self, message):
         self.message = message
+
+
+class PylpsTypeError(Exception):
+    def __init__(self, message):
+        self.message = message

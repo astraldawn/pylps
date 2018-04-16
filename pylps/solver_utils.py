@@ -151,7 +151,7 @@ def match_clause_goal(clause, goal, new_subs, counter):
         try:
             if goal.BaseClass is VARIABLE:
                 new_subs.update({
-                    var(clause.name + SUFFIX): var(goal.name)
+                    var(goal.name): var(clause.name + SUFFIX),
                 })
                 return True
         except AttributeError:

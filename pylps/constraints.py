@@ -8,6 +8,7 @@ from ordered_set import OrderedSet
 from pylps.kb import KB
 from pylps.config import CONFIG
 from pylps.constants import *
+from pylps.expand import *
 from pylps.exceptions import *
 from pylps.utils import *
 
@@ -29,8 +30,8 @@ def constraints_satisfied(o_goal, state, cycle_proposed: Proposed):
          for c_action in all_proposed._actions]
     )
 
-    debug_display('ALL_PROPOSED', all_proposed)
-    debug_display('SUBS', state.subs)
+    # debug_display('ALL_PROPOSED', all_proposed)
+    # debug_display('SUBS', state.subs)
 
     constraints = KB.get_constraints(goal)
 
@@ -97,7 +98,7 @@ def expand_constraint(constraint, cur_state, states, all_proposed):
     if goal.BaseClass is ACTION:
         expand_action(constraint, cur_state, states, all_proposed)
     elif goal.BaseClass is EXPR:
-        expand_expr(constraint, cur_state, states)
+        expand_expr(constraint, cur_state, states, constraint=True)
     elif goal.BaseClass is FACT:
         expand_fact(constraint, cur_state, states)
     elif goal.BaseClass is FLUENT:
@@ -148,22 +149,6 @@ def expand_action(constraint, cur_state, states, all_proposed):
 
         if r_action.args == action.args:
             states.append(new_state)
-
-
-def expand_expr(constraint, cur_state, states):
-    expr, outcome = constraint.goal, constraint.outcome
-    cur_subs = cur_state.subs
-
-    res = reify_args(expr.args, cur_subs)
-
-    if expr.op is operator.ne:
-        evaluation = expr.op(res[0], res[1])
-
-        if evaluation == outcome:
-            new_state = copy.deepcopy(cur_state)
-            states.append(new_state)
-    else:
-        raise PylpsUnimplementedOutcomeError(expr.op)
 
 
 def expand_fact(constraint, cur_state, states):
