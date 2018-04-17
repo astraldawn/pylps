@@ -58,6 +58,17 @@ class Variable(object):
     def __gt__(self, other):
         return Expr(operator.gt, self, other)
 
+    # MATH
+    def __add__(self, other):
+        return Expr(operator.add, self, other)
+
+    def __sub__(self, other):
+        return Expr(operator.sub, self, other)
+
+    # IS
+    def is_(self, other):
+        return Expr(OP_ASSIGN, self, other)
+
 
 class TemporalVar(Variable):
     BaseClass = TEMPORAL_VARIABLE

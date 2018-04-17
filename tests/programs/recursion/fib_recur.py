@@ -6,13 +6,13 @@ create_facts('fib(_, _)')
 create_fluents('compute(_)')
 create_actions('stop_compute(_)', 'say(_)')
 create_events('compute_fib(_, _)')
-create_variables('X', 'Res')
+create_variables('X', 'Res', 'Y', 'Z', 'YRes', 'ZRes')
 
 fib(1, 1)
 fib(2, 1)
-fib(8, 1000)
 
-initially(compute(8))
+initially(compute(6))
+initially(compute(2))
 
 reactive_rule(compute(X)).then(
     stop_compute(X),
@@ -22,18 +22,20 @@ reactive_rule(compute(X)).then(
 
 goal(compute_fib(X, Res).frm(T1, T3)).requires(
     X > 2,
-    fib(X, Res),
-    say('goal1'),
+    Y.is_(X - 1),
+    Z.is_(X - 2),
+    compute_fib(Y, YRes).frm(T1, T2),
+    compute_fib(Z, ZRes).frm(T2, T3),
+    Res.is_(YRes + ZRes),
 )
 
 goal(compute_fib(X, Res).frm(T, T)).requires(
     fib(X, Res),
-    say('goal2'),
 )
 
 stop_compute(X).terminates(compute(X))
 
-execute(debug=True)
+execute()
 
 show_kb_log()
 '''

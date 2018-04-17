@@ -294,6 +294,9 @@ def _rename_arg(counter, arg):
     '''
     if is_constant(arg) or arg.BaseClass is CONSTANT:
         return
+    elif arg.BaseClass is EXPR:
+        for item in arg.args:
+            _rename_arg(counter, item)
     elif arg.BaseClass is LIST:
         for item in arg._list:
             _rename_arg(counter, item)

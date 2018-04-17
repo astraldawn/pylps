@@ -6,6 +6,7 @@ from unification import *
 from pylps.constants import *
 from pylps.exceptions import *
 from pylps.utils import *
+from pylps.lps_data_structures import *
 
 
 def expand_expr(expr, cur_state, states, constraint=False):
@@ -22,11 +23,33 @@ def expand_expr(expr, cur_state, states, constraint=False):
 
     valid_ops = [
         operator.ne, operator.lt,
-        operator.le, operator.gt, operator.ge
+        operator.le, operator.gt, operator.ge,
+        # operator.sub,
     ]
 
+    if expr.op is OP_ASSIGN:
+        debug_display('OP_ASSIGN', res[0], res[1])
+        new_state = copy.deepcopy(cur_state)
+
+        if res[0].BaseClass is not VARIABLE:
+            raise PylpsTypeError(res[0].BaseClass)
+
+        if res[1].BaseClass is EXPR:
+            res[1] = _evaluate_pylps_expr(res[1])
+
+            if is_constant(res[1]):
+                res[1] = LPSConstant(res[1])
+
+        new_state.update_subs({
+            Var(res[0].name): res[1]
+        })
+        states.append(new_state)
+        return
+
     if expr.op in valid_ops:
-        evaluation = expr.op(res[0], res[1])
+        expr.left = res[0]
+        expr.right = res[1]
+        evaluation = _evaluate_pylps_expr(expr)
 
         valid = (
             (constraint and (evaluation == outcome)) or
@@ -37,5 +60,16 @@ def expand_expr(expr, cur_state, states, constraint=False):
             new_state = copy.deepcopy(cur_state)
             states.append(new_state)
 
-    else:
-        raise PylpsUnimplementedOutcomeError(expr.op)
+        return
+
+    raise PylpsUnimplementedOutcomeError(expr.op)
+
+
+def _evaluate_pylps_expr(expr):
+    if expr.BaseClass is CONSTANT:
+        return expr.const
+
+    left = _evaluate_pylps_expr(expr.left)
+    right = _evaluate_pylps_expr(expr.right)
+
+    return expr.op(left, right)
