@@ -103,6 +103,13 @@ def reify_arg_helper(arg, substitutions):
         # arg = reify(var(arg.name), substitutions)
         return reify_single(arg, substitutions)
 
+    if arg.BaseClass is EXPR:
+        ret = copy.deepcopy(arg)
+        ret.left = reify_arg_helper(ret.left, substitutions)
+        ret.right = reify_arg_helper(ret.right, substitutions)
+        ret.args = [ret.left, ret.right]
+        return ret
+
     if arg.BaseClass == LIST:
         r_list = [
             reify_arg_helper(item, substitutions)

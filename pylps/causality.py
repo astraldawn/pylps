@@ -19,7 +19,7 @@ from pylps.config import CONFIG
 def process_causalities(action, deconflict=True):
     causalities = KB.exists_causality(action)
 
-    debug_display('CAUSALITIES', causalities, action)
+    # debug_display('CAUSALITIES', causalities, action)
 
     initiates = OrderedSet()
     terminates = OrderedSet()
@@ -41,8 +41,8 @@ def process_causalities(action, deconflict=True):
             outcome = causality_outcome.outcome
             fluent = copy.deepcopy(causality_outcome.fluent)
 
-            debug_display('C_OUTCOME', fluent, outcome, action_subs)
-            debug_display('C_R_ACTION', action)
+            # debug_display('C_OUTCOME', fluent, outcome, action_subs)
+            # debug_display('C_R_ACTION', action)
 
             fluent.args = reify_args(fluent.args, action_subs)
 
@@ -57,8 +57,8 @@ def process_causalities(action, deconflict=True):
             else:
                 raise UnknownOutcomeError(outcome)
 
-    debug_display('INITIATES', initiates)
-    debug_display('TERMINATES', terminates)
+    # debug_display('INITIATES', initiates)
+    # debug_display('TERMINATES', terminates)
 
     if deconflict:
         terminates = terminates - initiates

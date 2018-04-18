@@ -30,8 +30,8 @@ def ClassFactory(name, arity, base_type):
                 raise TypeError('Please supply %s arguments' % arity)
             self.args = [convert_arg(arg) for arg in args]
             self.created = True
-            self._start_time = None
-            self._end_time = None
+            self._start_time = TemporalVar('T1')
+            self._end_time = TemporalVar('T2')
 
     elif base_type == FLUENT:
 
@@ -40,7 +40,7 @@ def ClassFactory(name, arity, base_type):
                 raise TypeError('Please supply %s arguments' % arity)
             self.args = [convert_arg(arg) for arg in args]
             self.created = True
-            self._time = None
+            self._time = TemporalVar('T1')
 
     elif base_type == FACT:
 

@@ -48,6 +48,23 @@ class LPSConstant(object):
     def __or__(self, other):
         return (MATCH_LIST_HEAD, self, other)
 
+    # EXPRESSION
+    def __ne__(self, other):
+        return self.const != other.const
+
+    def __le__(self, other):
+        return self.const <= other.const
+
+    def __lt__(self, other):
+        return self.const < other.const
+
+    def __ge__(self, other):
+        return self.const >= other.const
+
+    def __gt__(self, other):
+        return self.const > other.const
+
+    # MISC
     def to_python(self):
         return self.const
 

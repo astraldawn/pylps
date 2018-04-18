@@ -39,11 +39,35 @@ class Variable(object):
     def __invert__(self):
         return (self, False)
 
+    def __or__(self, other):
+        return (MATCH_LIST_HEAD, self, other)
+
+    # EXPRESSIONS
     def __ne__(self, other):
         return Expr(operator.ne, self, other)
 
-    def __or__(self, other):
-        return (MATCH_LIST_HEAD, self, other)
+    def __le__(self, other):
+        return Expr(operator.le, self, other)
+
+    def __lt__(self, other):
+        return Expr(operator.lt, self, other)
+
+    def __ge__(self, other):
+        return Expr(operator.ge, self, other)
+
+    def __gt__(self, other):
+        return Expr(operator.gt, self, other)
+
+    # MATH
+    def __add__(self, other):
+        return Expr(operator.add, self, other)
+
+    def __sub__(self, other):
+        return Expr(operator.sub, self, other)
+
+    # IS
+    def is_(self, other):
+        return Expr(OP_ASSIGN, self, other)
 
 
 class TemporalVar(Variable):
