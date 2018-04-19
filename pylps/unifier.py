@@ -146,25 +146,11 @@ def reify_goals(goals, subs):
 
     If consequent rules are swapped, should raise some error
     '''
-    sub_constant = VAR_SEPARATOR + '0'
-
     new_goals = []
 
     for goal in goals:
         new_goal = copy.deepcopy(goal)
-
-        for arg in new_goal.args:
-            try:
-                if arg.BaseClass is VARIABLE:
-                    arg.name += sub_constant
-            except AttributeError:
-                continue
-
-        if new_goal.BaseClass is ACTION or new_goal.BaseClass is EVENT:
-            new_goal._start_time.name += sub_constant
-            new_goal._end_time.name += sub_constant
-
-        # new_goal.args = reify_args(new_goal.args, subs)
+        rename_args(0, new_goal)
         new_goals.append(new_goal)
 
     return copy.deepcopy(new_goals)

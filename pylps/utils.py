@@ -184,3 +184,38 @@ def check_grounded(obj_with_args, substitutions):
             continue
 
     return True
+
+
+def rename_args(counter, obj):
+    '''
+    Assumes the argument has already been copied
+    '''
+    sub_constant = VAR_SEPARATOR + str(counter)
+
+    for arg in obj.args:
+        rename_arg(counter, arg)
+
+    if obj.BaseClass is ACTION or obj.BaseClass is EVENT:
+            obj._start_time.name += sub_constant
+            obj._end_time.name += sub_constant
+
+
+def rename_arg(counter, arg):
+    '''
+    No need to do a deepcopy here, done in calling fx
+    '''
+    if is_constant(arg) or arg.BaseClass is CONSTANT:
+        return
+    elif arg.BaseClass is EXPR:
+        for item in arg.args:
+            rename_arg(counter, item)
+    elif arg.BaseClass is LIST:
+        for item in arg._list:
+            rename_arg(counter, item)
+    elif arg.BaseClass is TUPLE:
+        for item in arg._tuple:
+            rename_arg(counter, item)
+    elif arg.BaseClass is VARIABLE:
+        arg.name += VAR_SEPARATOR + str(counter)
+    else:
+        raise PylpsUnimplementedOutcomeError(arg.BaseClass)

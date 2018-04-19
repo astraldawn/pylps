@@ -1,8 +1,9 @@
 import itertools
+import operator
 
 from collections import deque
 
-from pylps.constants import LIST, TUPLE, MATCH_LIST_HEAD, CONSTANT
+from pylps.constants import LIST, TUPLE, MATCH_LIST_HEAD, CONSTANT, EXPR
 
 
 '''
@@ -23,7 +24,38 @@ def convert_arg(arg):
     return arg
 
 
-class LPSConstant(object):
+class LPSComparable(object):
+    # COMPARISON
+    def __ne__(self, other):
+        return Expr(operator.ne, self, other)
+
+    def __le__(self, other):
+        return Expr(operator.le, self, other)
+
+    def __lt__(self, other):
+        return Expr(operator.lt, self, other)
+
+    def __ge__(self, other):
+        return Expr(operator.ge, self, other)
+
+    def __gt__(self, other):
+        return Expr(operator.gt, self, other)
+
+    # MATH
+    def __add__(self, other):
+        return Expr(operator.add, self, other)
+
+    def __sub__(self, other):
+        return Expr(operator.sub, self, other)
+
+    def __mul__(self, other):
+        return Expr(operator.mul, self, other)
+
+    def __truediv__(self, other):
+        return Expr(operator.truediv, self, other)
+
+
+class LPSConstant(LPSComparable):
     BaseClass = CONSTANT
 
     def __init__(self, const):
@@ -63,6 +95,13 @@ class LPSConstant(object):
 
     def __gt__(self, other):
         return self.const > other.const
+
+    # # MATH
+    # def __add__(self, other):
+    #     return Expr(operator.add, self, other)
+
+    # def __sub__(self, other):
+    #     return Expr(operator.sub, self, other)
 
     # MISC
     def to_python(self):
@@ -122,3 +161,26 @@ class LPSTuple(object):
     @property
     def tuple(self):
         return self._tuple
+
+
+class Expr(LPSComparable):
+    BaseClass = EXPR
+
+    def __init__(self, op, left, right):
+        self.op = op
+        self.left = convert_arg(left)
+        self.right = convert_arg(right)
+        self.args = [self.left, self.right]
+
+    def __repr__(self):
+        ret = '%s : %s %s' % (
+            self.BaseClass, self.op, str(self.args))
+        return ret
+
+    def to_tuple(self):
+        return self._to_tuple()
+
+    def _to_tuple(self):
+        return (
+            self.BaseClass, self.op, str(self.left), str(self.right)
+        )
