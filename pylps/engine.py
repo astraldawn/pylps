@@ -1,9 +1,12 @@
+import copy
+
 from pylps.utils import *
 
 from pylps.kb import KB
 from pylps.unifier import unify_conds, reify_goals, unify_obs
 from pylps.solver import SOLVER
 from pylps.solver_utils import process_solutions
+from pylps.state import State
 
 
 class _ENGINE(object):
@@ -41,17 +44,42 @@ class _ENGINE(object):
             if rule.constant_trigger:
                 continue
 
-            # Check conditions of the rules
-            substitutions = unify_conds(rule, self.current_time)
+            conds = []
+            true_trigger = False
 
-            # If there are no substitutions, go to the next rule
+            for cond in rule.conds:
+                cond_object = copy.deepcopy(cond)
+                rename_args(0, cond_object)
+                conds.append(cond_object)
+
+            # Special case for rules beginning with True
+            if len(conds) == 1 and conds[0].BaseClass is CONSTANT and \
+                    conds[0].const is True:
+                true_trigger = True
+                rule._constant_trigger = True
+                substitutions = [{}]
+
+            if not true_trigger:
+
+                subs_list = list(SOLVER.backtrack_solve(
+                    start=State(copy.deepcopy(conds), {}),
+                    reactive=True,
+                ))
+
+                substitutions = [s.subs for s in subs_list]
+
+            # print(true_trigger, conds, substitutions, self.current_time)
+
             if not substitutions:
                 continue
 
             for substitution in substitutions:
-                new_goals = reify_goals(rule.goals, substitution)
+                if substitution == {} and not true_trigger:
+                    continue
 
-                # Discard the subs
+                new_goals = reify_goals(rule.goals, substitution)
+                # print(new_goals, substitution)
+
                 KB.add_goals(new_goals, substitution)
 
     def _check_goals(self):
