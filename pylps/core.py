@@ -66,10 +66,12 @@ def false_if(*args):
 ''' Core loop '''
 
 
-def initialise(max_time=5):
+def initialise(max_time=5, create_variables=True):
     # Must call create object directly due to stack issues
-    create_objects(['T', 'T1', 'T2', 'T3', 'T4', 'T5'], TEMPORAL_VARIABLE)
-    create_variables('_')
+    if create_variables:
+        create_objects(['T', 'T1', 'T2', 'T3', 'T4', 'T5'], TEMPORAL_VARIABLE)
+        create_variables('_')
+
     ENGINE.set_params(max_time=max_time)
 
 
