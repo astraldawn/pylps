@@ -24,7 +24,7 @@ def expand_expr(expr, cur_state, states, constraint=False):
     valid_ops = [
         operator.ne, operator.lt,
         operator.le, operator.gt, operator.ge,
-        # operator.sub,
+        operator.sub, operator.add
     ]
 
     if expr.op is OP_ASSIGN:

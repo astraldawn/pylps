@@ -1,19 +1,23 @@
 from pylps.core import *
+from pylps.lps_data_structures import LPSConstant
+
 
 initialise()
 
-reactive_rule(True).then(
-)
-'''
-actions show(_).
+create_actions('show(_, _, _, _, _)')
+create_variables('X', 'Y', 'Z', 'Z1', 'Z2', 'Z3', 'Z4')
 
-if true then
-    X is 2,
-    Y is 3,
-    Z is X + Y,
-    show(Z),
-    Z1 is X + 5,
-    show(Z1),
-    Z2 is 7 + Y,
-    show(Z2).
-'''
+reactive_rule(True).then(
+    X.is_(2),
+    Y.is_(3),
+    Z.is_(X + Y),
+    Z1.is_(X + 5),
+    Z2.is_(LPSConstant(7) + Y),
+    Z3.is_((Z1 + Z2) + Z),
+    Z4.is_((Z1 + Z2) + (Z + (Z3 + 1))),
+    show(Z, Z1, Z2, Z3, Z4),
+)
+
+execute()
+
+show_kb_log()

@@ -268,14 +268,14 @@ def create_clause_variables(
         # Handling negated clauses
         if isinstance(new_req, tuple) and len(new_req) == 2:
             for arg in new_req[0].args:
-                _rename_arg(counter, arg)
+                rename_arg(counter, arg)
 
             if req[0].BaseClass is ACTION or req[0].BaseClass is EVENT:
                 new_req[0].start_time.name += VAR_SEPARATOR + str(counter)
                 new_req[0].end_time.name += VAR_SEPARATOR + str(counter)
         else:
             for arg in new_req.args:
-                _rename_arg(counter, arg)
+                rename_arg(counter, arg)
 
             if req.BaseClass is ACTION or req.BaseClass is EVENT:
                 new_req.start_time.name += VAR_SEPARATOR + str(counter)
@@ -288,22 +288,22 @@ def create_clause_variables(
     # debug_display('NEW_REQS', new_reqs)
 
 
-def _rename_arg(counter, arg):
-    '''
-    No need to do a deepcopy here, done in calling fx
-    '''
-    if is_constant(arg) or arg.BaseClass is CONSTANT:
-        return
-    elif arg.BaseClass is EXPR:
-        for item in arg.args:
-            _rename_arg(counter, item)
-    elif arg.BaseClass is LIST:
-        for item in arg._list:
-            _rename_arg(counter, item)
-    elif arg.BaseClass is TUPLE:
-        for item in arg._tuple:
-            _rename_arg(counter, item)
-    elif arg.BaseClass is VARIABLE:
-        arg.name += VAR_SEPARATOR + str(counter)
-    else:
-        raise PylpsUnimplementedOutcomeError(arg.BaseClass)
+# def _rename_arg(counter, arg):
+#     '''
+#     No need to do a deepcopy here, done in calling fx
+#     '''
+#     if is_constant(arg) or arg.BaseClass is CONSTANT:
+#         return
+#     elif arg.BaseClass is EXPR:
+#         for item in arg.args:
+#             _rename_arg(counter, item)
+#     elif arg.BaseClass is LIST:
+#         for item in arg._list:
+#             _rename_arg(counter, item)
+#     elif arg.BaseClass is TUPLE:
+#         for item in arg._tuple:
+#             _rename_arg(counter, item)
+#     elif arg.BaseClass is VARIABLE:
+#         arg.name += VAR_SEPARATOR + str(counter)
+#     else:
+#         raise PylpsUnimplementedOutcomeError(arg.BaseClass)
