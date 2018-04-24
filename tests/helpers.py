@@ -7,15 +7,19 @@ LINUX_SPLIT_CHAR = '\n'
 WINDOWS_SPLIT_CHAR = '\r\n'
 
 
-def run_pylps_example(example_name):
+def run_pylps_example(example_name, use_helper=False):
     path = ''
     split_char = WINDOWS_SPLIT_CHAR
+    EXEC = 'python'
     if TEST_ENV:
         path = CIRCLE_CI_PATH
         split_char = LINUX_SPLIT_CHAR
 
+    if use_helper:
+        EXEC = 'pylps'
+
     completed = subprocess.run(
-        ['python', path + 'examples/' + example_name + '.py'],
+        [EXEC, path + 'examples/' + example_name + '.py'],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )

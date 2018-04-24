@@ -1,4 +1,4 @@
-initialise(max_time=10, create_variables=False)
+initialise(max_time=10, create_vars=False)
 
 
 create_actions(
@@ -10,7 +10,7 @@ create_facts('flammable(_)')
 create_events('deal_with_fire')
 
 observe(ignite('sofa').frm(1, 2))
-observe(ignite('sofa').frm(4, 5))
+observe(ignite('bed').frm(4, 5))
 observe(refill.frm(7, 8))
 
 initially(water)
