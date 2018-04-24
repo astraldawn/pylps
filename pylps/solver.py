@@ -178,7 +178,10 @@ class _Solver(object):
             display(action)
         display()
 
-    def backtrack_solve(self, start: State, pos=0, reactive=False):
+    def backtrack_solve(
+        self, start: State, pos=0,
+        reactive=False, current_time=None
+    ):
         '''
         AND step of solving
         Solve all inside here, except for the case when deferring
@@ -189,6 +192,9 @@ class _Solver(object):
 
         start_state = copy.deepcopy(start)
         states.append(start_state)
+
+        if current_time:
+            self.current_time = current_time
 
         while states:
             cur_state = states.pop()
@@ -229,8 +235,8 @@ class _Solver(object):
         if isinstance(goal, tuple):
             outcome, goal = goal[1], goal[0]
 
-        # debug_display('EXPAND', goal)
-        # debug_display('EXPAND_R', reify_obj_args(goal, cur_state.subs))
+        debug_display('EXPAND', goal)
+        debug_display('EXPAND_R', reify_obj_args(goal, cur_state.subs))
 
         if self.reactive and \
                 (goal.BaseClass is ACTION or goal.BaseClass is EVENT):
@@ -250,7 +256,7 @@ class _Solver(object):
         else:
             raise UnimplementedOutcomeError(goal.BaseClass)
 
-        # debug_display()
+        debug_display()
 
     def expand_action(self, goal, cur_state, states):
         new_state = copy.deepcopy(cur_state)
@@ -301,13 +307,13 @@ class _Solver(object):
         valid = constraints_satisfied(
             goal, new_state, self.cycle_proposed)
 
-        if not valid and CONFIG.debug:
-            debug_display('C_CHECK_F', goal)
-            print()
-            debug_display('C_CHECK_F_STATE', new_state)
-            print()
-            debug_display('C_CHECK_F_PROPOSED', self.cycle_proposed)
-            print('\n\n')
+        # if not valid and CONFIG.debug:
+        #     debug_display('C_CHECK_F', goal)
+        #     print()
+        #     debug_display('C_CHECK_F_STATE', new_state)
+        #     print()
+        #     debug_display('C_CHECK_F_PROPOSED', self.cycle_proposed)
+        #     print('\n\n')
 
         # Done
         if valid:
@@ -410,7 +416,7 @@ class _Solver(object):
     def expand_fluent(self, fluent, cur_state, states, outcome=True):
         cur_subs = cur_state.subs
 
-        # debug_display('FLUENT', fluent, outcome)
+        # debug_display('FLUENT', fluent, outcome, cur_subs)
 
         # TODO: There might be a need for better temporal handling here
         all_subs = list(unify_fluent(
@@ -428,6 +434,7 @@ class _Solver(object):
 
                 if cur_subs.get(k):
                     res = reify(k, cur_subs)
+                    # print('F_MATCH_SUBS', v, res)
                     if not isinstance(res, Var) and v != res:
                         valid_sub = False
 
