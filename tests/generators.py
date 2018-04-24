@@ -28,3 +28,13 @@ def create_test_variable(name):
     ret.name = name
     ret.BaseClass = VARIABLE
     return ret
+
+
+def generate_bubble_sort_swap(a, l1, b, l2, t1, t2):
+    return [
+        action('swap', [a, l1, b, l2], (t1, t2)),
+        fluent_initiate('location', [a, l2], t2),
+        fluent_initiate('location', [b, l1], t2),
+        fluent_terminate('location', [a, l1], t2),
+        fluent_terminate('location', [b, l2], t2),
+    ]

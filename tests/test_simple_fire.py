@@ -2,7 +2,7 @@ from .generators import *
 from .helpers import *
 
 
-def test_example_simple_fire():
+def test_simple_fire():
     actual = run_pylps_example('simple_fire')
 
     expected = [
