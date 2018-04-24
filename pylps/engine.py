@@ -64,6 +64,7 @@ class _ENGINE(object):
                 subs_list = list(SOLVER.backtrack_solve(
                     start=State(copy.deepcopy(conds), {}),
                     reactive=True,
+                    current_time=self.current_time
                 ))
 
                 substitutions = [s.subs for s in subs_list]
@@ -83,6 +84,7 @@ class _ENGINE(object):
                 KB.add_goals(new_goals, substitution)
 
     def _check_goals(self):
+        # debug_display('CG_KB_G', KB.goals, self.current_time)
         solutions = SOLVER.solve_goals(self.current_time)
 
         # debug_display('SOLUTIONS_ENGINE', solutions)

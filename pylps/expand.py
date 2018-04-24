@@ -28,7 +28,7 @@ def expand_expr(expr, cur_state, states, constraint=False):
     ]
 
     if expr.op is OP_ASSIGN:
-        debug_display('OP_ASSIGN', res[0], res[1])
+        # debug_display('OP_ASSIGN', res[0], res[1])
         new_state = copy.deepcopy(cur_state)
 
         if res[0].BaseClass is not VARIABLE:
