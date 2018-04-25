@@ -14,6 +14,7 @@ from pylps.utils import *
 
 from pylps.kb import KB
 from pylps.config import CONFIG
+from pylps.unifier import *
 
 
 def process_causalities(action, deconflict=True):
@@ -103,6 +104,7 @@ def _check_reqs(reqs, substitutions):
     Handles checking of condition for causality
     arg(X).initiates(f1 ... fn).iff( --> c1 ... cn <-- )
     '''
+    debug_display('CAUSALITY_CHECK_REQS', reqs)
     if reqs == []:
         return True
 

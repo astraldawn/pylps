@@ -87,7 +87,7 @@ class _ENGINE(object):
         # debug_display('CG_KB_G', KB.goals, self.current_time)
         solutions = SOLVER.solve_goals(self.current_time)
 
-        # debug_display('SOLUTIONS_ENGINE', solutions)
+        debug_display('SOLUTIONS_ENGINE', solutions)
         # debug_display('SOLUTION_COUNT', self.current_time, len(solutions))
 
         process_solutions(solutions, self.current_time)
