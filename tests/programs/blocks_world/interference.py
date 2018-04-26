@@ -84,14 +84,10 @@ fluents location(_,_).
 
 actions move(_,_).
 
-initially location(f,floor), location(b,f),location(e,b),
-location(a,floor), location(d,a),location(c,d).
+initially location(b, floor), location(c, b), location(a, floor).
 
 if true
-then make_tower([a,b,c,floor]) from T1 to T2.
-
-if true
-then make_tower([f,e,d,floor]) from T1 to T2.
+then make_tower([b,a,floor]) from T1 to T2.
 
 clear(Block) at T if Block \= floor,
     not location(_,Block) at T.

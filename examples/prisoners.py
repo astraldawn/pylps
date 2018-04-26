@@ -22,7 +22,7 @@ reactive_rule(bears_witness(P), refuses(Q)).then(
 gets(Prisoner, Years).initiates(total_years_in_jail(Prisoner, NewYears)).iff(
     total_years_in_jail(Prisoner, OldYears), NewYears.is_(OldYears + Years))
 
-# gets(Prisoner, Years).terminates(total_years_in_jail(Prisoner, OldYears))
+gets(Prisoner, Years).terminates(total_years_in_jail(Prisoner, OldYears))
 
 show_kb_causalities()
 
