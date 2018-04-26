@@ -131,12 +131,15 @@ class _KB(object):
                 outcome=outcome
             ))
 
-    def add_causality_req(self, action, items):
+    def set_causality_reqs(self, action, items):
         c_tuple = (action, action.fluent)
         if c_tuple not in self.causalities:
             self.causalities[c_tuple] = Causality(action)
 
-        self.causalities[c_tuple].add_req(items)
+        self.causalities[c_tuple].set_reqs([
+            Constraint(item[0], item[1])
+            for item in items
+        ])
 
     def exists_causality(self, action):
         ret = []

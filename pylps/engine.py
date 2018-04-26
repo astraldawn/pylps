@@ -3,7 +3,8 @@ import copy
 from pylps.utils import *
 
 from pylps.kb import KB
-from pylps.unifier import unify_conds, reify_goals, unify_obs
+from pylps.causality import unify_obs
+from pylps.unifier import reify_goals
 from pylps.solver import SOLVER
 from pylps.solver_utils import process_solutions
 from pylps.state import State

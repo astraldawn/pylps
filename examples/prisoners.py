@@ -6,7 +6,7 @@ create_fluents('total_years_in_jail(_, _)')
 create_actions('refuses(_)', 'bears_witness(_)', 'gets(_, _)')
 create_facts('other(_, _)')
 create_variables('P', 'Q', 'O', 'I', 'Prisoner', 'Years', 'NewYears',
-                 'OldYears', 'Years',)
+                 'OldYears',)
 
 initially(total_years_in_jail('me', 0), total_years_in_jail('you', 0),)
 observe(refuses('you').frm(1, 2))
@@ -24,9 +24,7 @@ gets(Prisoner, Years).initiates(total_years_in_jail(Prisoner, NewYears)).iff(
 
 gets(Prisoner, Years).terminates(total_years_in_jail(Prisoner, OldYears))
 
-show_kb_causalities()
-
-execute(debug=False)
+execute(debug=True)
 
 show_kb_log()
 

@@ -78,7 +78,7 @@ class Action(LPSObject):
         converted += [arg for arg in args
                       if isinstance(arg, tuple)]
 
-        KB.add_causality_req(self, converted)
+        KB.set_causality_reqs(self, converted)
 
         return self
 

@@ -14,7 +14,22 @@ from pylps.utils import *
 
 from pylps.kb import KB
 from pylps.config import CONFIG
-from pylps.unifier import *
+
+from pylps.state import State, Proposed
+from pylps.constraints import check_constraint
+
+
+def unify_obs(observation):
+    # TODO: There should be an IC check
+    action = copy.deepcopy(observation.action)
+    action.update_start_time(observation.start_time)
+    action.update_end_time(observation.end_time)
+
+    KB.log_action_new(action, from_obs=True)
+    KB.add_cycle_obs(observation)
+
+    initiates, terminates = process_causalities(action)
+    commit_outcomes(initiates, terminates)
 
 
 def process_causalities(action, deconflict=True):
@@ -35,31 +50,38 @@ def process_causalities(action, deconflict=True):
         TODO: This check should be shifted into generating fluents
         Because the fluent might not be grounded yet
         '''
-        if not _check_reqs(causality.reqs, action_subs):
-            return OrderedSet(), OrderedSet()
+        constraint_subs = _check_reqs(causality.reqs, action_subs)
 
-        for causality_outcome in causality.outcomes:
-            outcome = causality_outcome.outcome
-            fluent = copy.deepcopy(causality_outcome.fluent)
+        if not constraint_subs:
+            continue
 
-            # debug_display('C_OUTCOME', fluent, outcome, action_subs)
-            # debug_display('C_R_ACTION', action)
+        # Handle the case where there is no constraint
+        if isinstance(constraint_subs, bool):
+            constraint_subs = [action_subs]
 
-            fluent.args = reify_args(fluent.args, action_subs)
+        for c_sub in constraint_subs:
+            for causality_outcome in causality.outcomes:
+                outcome = causality_outcome.outcome
+                fluent = copy.deepcopy(causality_outcome.fluent)
 
-            fluents = generate_outcome_fluents(fluent)
+                # debug_display('C_OUTCOME', fluent, outcome, action_subs)
+                # debug_display('C_R_ACTION', action)
 
-            if outcome is A_INITIATE:
-                for f in fluents:
-                    initiates.add((f, action.end_time))
-            elif outcome is A_TERMINATE:
-                for f in fluents:
-                    terminates.add((f, action.end_time))
-            else:
-                raise UnknownOutcomeError(outcome)
+                fluent.args = reify_args(fluent.args, c_sub)
 
-    # debug_display('INITIATES', initiates)
-    # debug_display('TERMINATES', terminates)
+                fluents = generate_outcome_fluents(fluent)
+
+                if outcome is A_INITIATE:
+                    for f in fluents:
+                        initiates.add((f, action.end_time))
+                elif outcome is A_TERMINATE:
+                    for f in fluents:
+                        terminates.add((f, action.end_time))
+                else:
+                    raise UnknownOutcomeError(outcome)
+
+    debug_display('INITIATES', initiates)
+    debug_display('TERMINATES', terminates)
 
     if deconflict:
         terminates = terminates - initiates
@@ -99,30 +121,15 @@ Helper functions
 '''
 
 
-def _check_reqs(reqs, substitutions):
+def _check_reqs(reqs, subs):
     '''
     Handles checking of condition for causality
     arg(X).initiates(f1 ... fn).iff( --> c1 ... cn <-- )
     '''
-    debug_display('CAUSALITY_CHECK_REQS', reqs)
     if reqs == []:
         return True
 
-    for req in reqs:
-        true_satis = True
-        # false_satis = True
-        for (obj_original, state) in req:
-            # copy object, do not want to modify KB
-            obj = copy.deepcopy(obj_original)
-            if obj.BaseClass == FACT:
-                obj.args = reify_args(obj.args, substitutions)
-                fact_exists = KB.exists_fact(obj)
-                if state and not fact_exists:
-                    true_satis = False
-            else:
-                raise UnhandledObjectError(obj.BaseClass)
+    res = list(check_constraint(reqs, Proposed(), subs))
+    res = [r.subs for r in res]
 
-        if not true_satis:
-            return False
-
-    return True
+    return res
