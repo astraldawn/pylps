@@ -79,8 +79,8 @@ def unify_action(cond, cycle_time):
             continue
 
         unify_res = {
-            var(cond.start_time.name + SUFFIX): obs.start_time,
-            var(cond.end_time.name + SUFFIX): obs.end_time
+            var(rename_str(cond.start_time.name, SUFFIX)): obs.start_time,
+            var(rename_str(cond.end_time.name, SUFFIX)): obs.end_time
         }
         unify_res.update(unify_args(cond.args, obs.action.args))
         yield unify_res

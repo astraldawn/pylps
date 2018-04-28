@@ -125,8 +125,8 @@ class State(object):
             else:
                 r_goal = reify_obj_args(t_goal, self.subs)
 
-            ret += "Goal %s\n" % (str(item))
-            ret += "%s\n%s\n" % (str(goal), str(r_goal))
+            ret += "Goal %d\n" % (item)
+            ret += "N%d: %s\nR%d: %s\n" % (item, str(goal), item, str(r_goal))
 
         ret += "Subs: %s\n" % (str(self._subs))
         ret += "Temporal used: %s\n" % self._temporal_used

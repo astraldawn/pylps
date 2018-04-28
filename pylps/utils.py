@@ -73,6 +73,24 @@ def debug_display(*args):
             print()
 
 
+def convert_args_to_python(obj):
+    converted_args = []
+    for arg in obj.args:
+        try:
+            if arg.BaseClass is LIST:
+                converted_args.append(arg.to_python())
+                continue
+            if arg.BaseClass is CONSTANT:
+                converted_args.append(arg.const)
+                continue
+        except AttributeError:
+            pass
+
+        converted_args.append(arg)
+
+    return converted_args
+
+
 def reify_single(arg, substitutions):
     try:
         r_arg = reify(Var(arg.name), substitutions)
@@ -226,3 +244,10 @@ def rename_arg(counter, arg):
         arg.name += VAR_SEPARATOR + str(counter)
     else:
         raise PylpsUnimplementedOutcomeError(arg.BaseClass)
+
+
+def rename_str(name, suffix):
+    if VAR_SEPARATOR in name:
+        return name
+
+    return name + suffix

@@ -83,6 +83,20 @@ def test_action_defer_5():
     assert actual == expected
 
 
+def test_action_trigger():
+    # GIVEN
+    expected = [
+        action('hello', ['A', 5], (1, 2)),
+        action('say', ['A', 5], (2, 3)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('misc', 'action_trigger')
+
+    # THEN
+    assert actual == expected
+
+
 def test_causality_1():
     # GIVEN
     expected = [

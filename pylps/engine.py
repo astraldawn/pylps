@@ -27,9 +27,10 @@ class _ENGINE(object):
             self._check_rules()
             self._check_goals()
 
-            KB.clear_cycle_obs()
-
             self.current_time += 1
+
+            KB.clear_cycle_obs(current_time=self.current_time)
+            # print(KB.cycle_obs, self.current_time)
 
     def _check_observations(self):
         for observation in KB.observations:
@@ -80,7 +81,7 @@ class _ENGINE(object):
                     continue
 
                 new_goals = reify_goals(rule.goals, substitution)
-                # print(new_goals, substitution)
+                # debug_display('SUB_NEW_GOALS', new_goals, substitution)
 
                 KB.add_goals(new_goals, substitution)
 
@@ -88,10 +89,12 @@ class _ENGINE(object):
         # debug_display('CG_KB_G', KB.goals, self.current_time)
         solutions = SOLVER.solve_goals(self.current_time)
 
-        debug_display('SOLUTIONS_ENGINE', solutions)
+        debug_display('SOLUTIONS_ENGINE', solutions, self.current_time)
         # debug_display('SOLUTION_COUNT', self.current_time, len(solutions))
 
         process_solutions(solutions, self.current_time)
+
+        debug_display('CG_KB_AFTER', KB.goals, self.current_time)
 
         # debug_display('KB_FLUENTS_ENGINE', self.current_time, KB.fluents)
 

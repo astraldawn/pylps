@@ -284,8 +284,14 @@ class _KB(object):
     def add_cycle_obs(self, observation):
         self._cycle_obs.add(observation)
 
-    def clear_cycle_obs(self):
-        self._cycle_obs = OrderedSet()
+    def clear_cycle_obs(self, current_time):
+        new_cycle_obs = []
+        for obs in self.cycle_obs:
+            if obs.end_time != current_time:
+                continue
+            new_cycle_obs.append(obs)
+
+        self._cycle_obs = OrderedSet(new_cycle_obs)
 
     # @property
     # def cycle_actions(self):
@@ -327,22 +333,11 @@ class _KB(object):
             [action.BaseClass, action.name, action.args, temporal_vars,
              from_obs])
 
-    def log_action_new(self, action, from_obs=False):
-        converted_args = []
+    def log_action_new(self, action, converted_args=None, from_obs=False):
 
-        # Argument conversion for final display
-        for arg in action.args:
-            try:
-                if arg.BaseClass is LIST:
-                    converted_args.append(arg.to_python())
-                    continue
-                if arg.BaseClass is CONSTANT:
-                    converted_args.append(arg.const)
-                    continue
-            except AttributeError:
-                pass
-
-            converted_args.append(arg)
+        if not converted_args:
+            # Argument conversion for final display
+            converted_args = convert_args_to_python(action)
 
         self.log.append(
             [action.BaseClass, action.name, converted_args,
