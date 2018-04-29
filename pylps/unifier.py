@@ -10,7 +10,6 @@ from pylps.constants import *
 from pylps.exceptions import *
 from pylps.utils import *
 
-from pylps.causality import *
 from pylps.kb import KB
 
 
@@ -80,8 +79,8 @@ def unify_action(cond, cycle_time):
             continue
 
         unify_res = {
-            var(cond.start_time.name + SUFFIX): obs.start_time,
-            var(cond.end_time.name + SUFFIX): obs.end_time
+            var(rename_str(cond.start_time.name, SUFFIX)): obs.start_time,
+            var(rename_str(cond.end_time.name, SUFFIX)): obs.end_time
         }
         unify_res.update(unify_args(cond.args, obs.action.args))
         yield unify_res
@@ -134,6 +133,10 @@ def unify_fact(fact, reactive=False):
 
     for kb_fact in kb_facts:
         unify_res = unify_args(fact.args, kb_fact.args)
+
+        if unify_res == {}:
+            continue
+
         yield unify_res
 
     return substitutions
@@ -160,16 +163,3 @@ def reify_goals(goals, subs):
         new_goals.append(new_goal)
 
     return copy.deepcopy(new_goals)
-
-
-def unify_obs(observation):
-    # TODO: There should be an IC check
-    action = copy.deepcopy(observation.action)
-    action.update_start_time(observation.start_time)
-    action.update_end_time(observation.end_time)
-
-    KB.log_action_new(action, from_obs=True)
-    KB.add_cycle_obs(observation)
-
-    initiates, terminates = process_causalities(action)
-    commit_outcomes(initiates, terminates)

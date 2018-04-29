@@ -3,7 +3,8 @@ import copy
 from pylps.utils import *
 
 from pylps.kb import KB
-from pylps.unifier import unify_conds, reify_goals, unify_obs
+from pylps.causality import unify_obs
+from pylps.unifier import reify_goals
 from pylps.solver import SOLVER
 from pylps.solver_utils import process_solutions
 from pylps.state import State
@@ -26,9 +27,10 @@ class _ENGINE(object):
             self._check_rules()
             self._check_goals()
 
-            KB.clear_cycle_obs()
-
             self.current_time += 1
+
+            KB.clear_cycle_obs(current_time=self.current_time)
+            # print(KB.cycle_obs, self.current_time)
 
     def _check_observations(self):
         for observation in KB.observations:
@@ -46,9 +48,15 @@ class _ENGINE(object):
 
             conds = []
             true_trigger = False
+            only_facts = True
 
             for cond in rule.conds:
                 cond_object = copy.deepcopy(cond)
+
+                # Flag setting for fact triggers
+                if cond_object.BaseClass != FACT:
+                    only_facts = False
+
                 rename_args(0, cond_object)
                 conds.append(cond_object)
 
@@ -64,12 +72,15 @@ class _ENGINE(object):
                 subs_list = list(SOLVER.backtrack_solve(
                     start=State(copy.deepcopy(conds), {}),
                     reactive=True,
+                    only_facts=only_facts,
                     current_time=self.current_time
                 ))
 
                 substitutions = [s.subs for s in subs_list]
 
-            # print(true_trigger, conds, substitutions, self.current_time)
+            # debug_display(
+            #     'ENGINE_C_R_',
+            #     true_trigger, conds, substitutions, self.current_time)
 
             if not substitutions:
                 continue
@@ -79,7 +90,7 @@ class _ENGINE(object):
                     continue
 
                 new_goals = reify_goals(rule.goals, substitution)
-                # print(new_goals, substitution)
+                # debug_display('SUB_NEW_GOALS', new_goals, substitution)
 
                 KB.add_goals(new_goals, substitution)
 
@@ -87,10 +98,12 @@ class _ENGINE(object):
         # debug_display('CG_KB_G', KB.goals, self.current_time)
         solutions = SOLVER.solve_goals(self.current_time)
 
-        # debug_display('SOLUTIONS_ENGINE', solutions)
+        debug_display('SOLUTIONS_ENGINE', solutions, self.current_time)
         # debug_display('SOLUTION_COUNT', self.current_time, len(solutions))
 
         process_solutions(solutions, self.current_time)
+
+        debug_display('CG_KB_AFTER', KB.goals, self.current_time)
 
         # debug_display('KB_FLUENTS_ENGINE', self.current_time, KB.fluents)
 

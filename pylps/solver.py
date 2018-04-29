@@ -30,7 +30,10 @@ class _Solver(object):
         self.current_time = 1
         self.cycle_proposed = Proposed()
         self.iterations = 0
+
+        # Reactive rule solving
         self.reactive = False
+        self.only_facts = False
 
     def solve_goals(self, current_time):
         '''
@@ -180,7 +183,8 @@ class _Solver(object):
 
     def backtrack_solve(
         self, start: State, pos=0,
-        reactive=False, current_time=None
+        reactive=False, only_facts=False,  # Reactive rule solver
+        current_time=None
     ):
         '''
         AND step of solving
@@ -188,6 +192,7 @@ class _Solver(object):
         This function should return a generator
         '''
         self.reactive = reactive
+        self.only_facts = only_facts
         states = deque()
 
         start_state = copy.deepcopy(start)
@@ -389,7 +394,10 @@ class _Solver(object):
 
     def expand_fact(self, fact, cur_state, states):
         cur_subs = cur_state.subs
-        all_subs = list(unify_fact(fact, reactive=self.reactive))
+
+        # Only facts checks if the reactive rule is only made up of facts
+        # In that case, trigger once
+        all_subs = list(unify_fact(fact, reactive=self.only_facts))
         subs = []
 
         for sub in all_subs:
@@ -434,7 +442,7 @@ class _Solver(object):
 
                 if cur_subs.get(k):
                     res = reify(k, cur_subs)
-                    # print('F_MATCH_SUBS', v, res)
+                    # debug_display('F_MATCH_SUBS', v, res)
                     if not isinstance(res, Var) and v != res:
                         valid_sub = False
 

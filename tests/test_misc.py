@@ -39,7 +39,7 @@ def test_action_defer_3():
         action('p1a', [2], (1, 2)),
         action('p2a', [1], (1, 2)),
         action('p1a', [2], (2, 3)),
-        action('p2a', [1], (2, 3))
+        action('p2a', [1], (2, 3)),
     ]
 
     # WHEN
@@ -56,7 +56,7 @@ def test_action_defer_4():
         action('p1a', [1], (1, 2)),
         action('p2a', [1], (1, 2)),
         action('p1a', [1], (2, 3)),
-        action('p2a', [1], (2, 3))
+        action('p2a', [1], (2, 3)),
     ]
 
     # WHEN
@@ -73,11 +73,41 @@ def test_action_defer_5():
         action('p1a', [2], (1, 2)),
         action('p2a', [1], (1, 2)),
         action('p1a', [2], (2, 3)),
-        action('p2a', [1], (2, 3))
+        action('p2a', [1], (2, 3)),
     ]
 
     # WHEN
     actual = run_pylps_test_program('misc', 'action_defer_5')
+
+    # THEN
+    assert actual == expected
+
+
+def test_action_trigger():
+    # GIVEN
+    expected = [
+        action('hello', ['A', 5], (1, 2)),
+        action('say', ['A', 5], (2, 3)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('misc', 'action_trigger')
+
+    # THEN
+    assert actual == expected
+
+
+def test_causality_1():
+    # GIVEN
+    expected = [
+        fluent_initiate('test', ['A', 0], 0),
+        action('hello', ['A', 5], (1, 2)),
+        fluent_initiate('test', ['A', 5], 2),
+        fluent_terminate('test', ['A', 0], 2),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('misc', 'causality_1')
 
     # THEN
     assert actual == expected

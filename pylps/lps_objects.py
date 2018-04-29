@@ -63,11 +63,13 @@ class Action(LPSObject):
         return self
 
     def initiates(self, fluent):
-        KB.add_causality_outcome(self, fluent, A_INITIATE)
+        self.fluent = fluent
+        KB.add_causality_outcome(self, A_INITIATE)
         return self
 
     def terminates(self, fluent):
-        KB.add_causality_outcome(self, fluent, A_TERMINATE)
+        self.fluent = fluent
+        KB.add_causality_outcome(self, A_TERMINATE)
         return self
 
     def iff(self, *args):
@@ -76,7 +78,7 @@ class Action(LPSObject):
         converted += [arg for arg in args
                       if isinstance(arg, tuple)]
 
-        KB.add_causality_req(self, converted)
+        KB.set_causality_reqs(self, converted)
 
         return self
 

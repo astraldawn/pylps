@@ -32,8 +32,8 @@ class Causality(object):
     def reqs(self):
         return self._reqs
 
-    def add_req(self, req):
-        self._reqs.append(req)
+    def set_reqs(self, reqs):
+        self._reqs = reqs
 
 
 class CausalityOutcome(object):

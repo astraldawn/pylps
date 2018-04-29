@@ -71,13 +71,19 @@ def constraints_satisfied(o_goal, state, cycle_proposed: Proposed):
     return True
 
 
-def check_constraint(constraint, all_proposed):
+def check_constraint(constraint, all_proposed, custom_start_subs=None):
+
+    # debug_display('CHECK_CONS', constraint)
+
     states = deque()
 
     start_state = State(
         goals=[copy.deepcopy(c) for c in constraint],
         subs={}
     )
+
+    if custom_start_subs:
+        start_state._subs = custom_start_subs
 
     states.append(start_state)
 
@@ -92,6 +98,8 @@ def check_constraint(constraint, all_proposed):
 
 
 def expand_constraint(constraint, cur_state, states, all_proposed):
+
+    # debug_display('EXPAND_CONS', constraint)
 
     goal = constraint.goal
 
@@ -199,7 +207,7 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
         if causality_outcome.outcome == A_INITIATE:
             if causality_outcome.fluent in fluents:
                 continue
-            # debug_display('CFLUENT', causality_outcome.fluent)
+            debug_display('CFLUENT', causality_outcome.fluent)
             fluents.append(causality_outcome.fluent)
 
         # TODO: Why does this work?
@@ -236,7 +244,15 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
             continue
 
         new_state = copy.deepcopy(cur_state)
-        res = unify_args(cons_fluent.args, fluent.args)
+        cons_fluent_res = reify_args(cons_fluent.args, cur_subs)
+        # res = unify_args(cons_fluent.args, fluent.args)
+        res = unify_args(cons_fluent_res, fluent.args)
+
+        # debug_display(
+        # 'MATCHING', cons_fluent_res, res, cur_subs, fluent.args)
+
+        if res == {}:
+            continue
 
         new_state.update_subs(res)
         states.append(new_state)

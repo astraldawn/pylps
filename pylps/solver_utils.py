@@ -6,6 +6,7 @@ from pylps.constants import *
 from pylps.exceptions import *
 from pylps.utils import *
 
+from pylps.lps_objects import Observation
 from pylps.kb import KB
 from pylps.config import CONFIG
 
@@ -56,6 +57,7 @@ def process_solutions(solutions, cycle_time):
 
                 new_kb_goals.add(new_state)
             elif state.result is G_DISCARD:
+                processed.add(state.reactive_id)
                 continue
             elif state.result is G_NPROCESSED:
                 continue
@@ -89,7 +91,15 @@ def _process_state(state, unique_actions):
         # else:
         r_action = action
 
-        KB.log_action_new(r_action)
+        # Convert args for action
+        converted_args = convert_args_to_python(r_action)
+
+        # Add into observations
+        KB.add_cycle_obs(Observation(
+            r_action, action.start_time, action.end_time))
+
+        # Log action
+        KB.log_action_new(r_action, converted_args=converted_args)
         unique_actions.add(r_action)
 
         if CONFIG.cycle_fluents:

@@ -10,6 +10,13 @@ from pylps.config import CONFIG
 from pylps.lps_data_structures import LPSList, LPSTuple
 
 
+def append_extend(python_list, possible_iterable):
+    try:
+        python_list.extend(possible_iterable)
+    except TypeError:
+        python_list.append(possible_iterable)
+
+
 def strictly_increasing(iterable):
     return all(x < y for x, y in zip(iterable, iterable[1:]))
 
@@ -21,6 +28,10 @@ def unify_args(args_with_var, args_grounded, cur_subs=None):
     substitutions = {}
     for v_arg, g_arg in zip(args_with_var, args_grounded):
         try:
+            if v_arg.BaseClass == CONSTANT and g_arg.BaseClass == CONSTANT:
+                if v_arg.const != g_arg.const:
+                    return {}
+
             if v_arg.BaseClass == VARIABLE:
                 res = unify(var(v_arg.name), g_arg)
 
@@ -64,6 +75,24 @@ def debug_display(*args):
             print('DEBUG', args)
         else:
             print()
+
+
+def convert_args_to_python(obj):
+    converted_args = []
+    for arg in obj.args:
+        try:
+            if arg.BaseClass is LIST:
+                converted_args.append(arg.to_python())
+                continue
+            if arg.BaseClass is CONSTANT:
+                converted_args.append(arg.const)
+                continue
+        except AttributeError:
+            pass
+
+        converted_args.append(arg)
+
+    return converted_args
 
 
 def reify_single(arg, substitutions):
@@ -196,8 +225,8 @@ def rename_args(counter, obj):
         rename_arg(counter, arg)
 
     if obj.BaseClass is ACTION or obj.BaseClass is EVENT:
-            obj._start_time.name += sub_constant
-            obj._end_time.name += sub_constant
+        obj._start_time.name += sub_constant
+        obj._end_time.name += sub_constant
 
 
 def rename_arg(counter, arg):
@@ -219,3 +248,10 @@ def rename_arg(counter, arg):
         arg.name += VAR_SEPARATOR + str(counter)
     else:
         raise PylpsUnimplementedOutcomeError(arg.BaseClass)
+
+
+def rename_str(name, suffix):
+    if VAR_SEPARATOR in name:
+        return name
+
+    return name + suffix
