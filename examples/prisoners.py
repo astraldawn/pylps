@@ -10,7 +10,9 @@ create_variables('P', 'Q', 'O', 'I', 'Prisoner', 'Years', 'NewYears',
 
 initially(total_years_in_jail('me', 0), total_years_in_jail('you', 0),)
 observe(refuses('you').frm(1, 2))
+# observe(refuses('me').frm(1, 2))
 observe(bears_witness('me').frm(1, 2))
+# observe(bears_witness('you').frm(1, 2))
 
 other('me', 'you')
 other('you', 'me')
@@ -19,12 +21,26 @@ reactive_rule(bears_witness(P), refuses(Q)).then(
     gets(P, 0).frm(T2, T3), gets(Q, 3).frm(T2, T3)
 )
 
+reactive_rule(bears_witness(P), bears_witness(Q), other(P, Q)).then(
+    gets(P, 2).frm(T2, T3)
+)
+
+reactive_rule(refuses(P), refuses(Q), other(P, Q)).then(
+    gets(P, 1).frm(T2, T3)
+)
+
+reactive_rule(refuses(O), other(I, O)).then(
+    refuses(I).frm(T2, T3))
+
+reactive_rule(bears_witness(O), other(I, O)).then(
+    bears_witness(I).frm(T2, T3))
+
 gets(Prisoner, Years).initiates(total_years_in_jail(Prisoner, NewYears)).iff(
     total_years_in_jail(Prisoner, OldYears), NewYears.is_(OldYears + Years))
 
 gets(Prisoner, Years).terminates(total_years_in_jail(Prisoner, OldYears))
 
-execute(debug=True)
+execute(debug=False)
 
 show_kb_log()
 

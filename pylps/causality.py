@@ -64,11 +64,10 @@ def process_causalities(action, deconflict=True):
                 outcome = causality_outcome.outcome
                 fluent = copy.deepcopy(causality_outcome.fluent)
 
-                # debug_display('C_OUTCOME', fluent, outcome, action_subs)
+                debug_display('C_OUTCOME', fluent, outcome, c_sub)
                 # debug_display('C_R_ACTION', action)
 
                 fluent.args = reify_args(fluent.args, c_sub)
-
                 fluents = generate_outcome_fluents(fluent)
 
                 if outcome is A_INITIATE:

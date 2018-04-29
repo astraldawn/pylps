@@ -48,9 +48,15 @@ class _ENGINE(object):
 
             conds = []
             true_trigger = False
+            only_facts = True
 
             for cond in rule.conds:
                 cond_object = copy.deepcopy(cond)
+
+                # Flag setting for fact triggers
+                if cond_object.BaseClass != FACT:
+                    only_facts = False
+
                 rename_args(0, cond_object)
                 conds.append(cond_object)
 
@@ -66,12 +72,15 @@ class _ENGINE(object):
                 subs_list = list(SOLVER.backtrack_solve(
                     start=State(copy.deepcopy(conds), {}),
                     reactive=True,
+                    only_facts=only_facts,
                     current_time=self.current_time
                 ))
 
                 substitutions = [s.subs for s in subs_list]
 
-            # print(true_trigger, conds, substitutions, self.current_time)
+            # debug_display(
+            #     'ENGINE_C_R_',
+            #     true_trigger, conds, substitutions, self.current_time)
 
             if not substitutions:
                 continue

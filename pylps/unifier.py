@@ -133,6 +133,10 @@ def unify_fact(fact, reactive=False):
 
     for kb_fact in kb_facts:
         unify_res = unify_args(fact.args, kb_fact.args)
+
+        if unify_res == {}:
+            continue
+
         yield unify_res
 
     return substitutions

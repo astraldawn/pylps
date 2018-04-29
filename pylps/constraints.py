@@ -207,7 +207,7 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
         if causality_outcome.outcome == A_INITIATE:
             if causality_outcome.fluent in fluents:
                 continue
-            # debug_display('CFLUENT', causality_outcome.fluent)
+            debug_display('CFLUENT', causality_outcome.fluent)
             fluents.append(causality_outcome.fluent)
 
         # TODO: Why does this work?
@@ -247,6 +247,12 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
         cons_fluent_res = reify_args(cons_fluent.args, cur_subs)
         # res = unify_args(cons_fluent.args, fluent.args)
         res = unify_args(cons_fluent_res, fluent.args)
+
+        # debug_display(
+        # 'MATCHING', cons_fluent_res, res, cur_subs, fluent.args)
+
+        if res == {}:
+            continue
 
         new_state.update_subs(res)
         states.append(new_state)

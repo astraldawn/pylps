@@ -158,3 +158,48 @@ def test_bubble_sort():
 
     # THEN
     assert actual == expected
+
+
+def test_prisoners():
+    # GIVEN
+    expected = [
+        fluent_initiate('total_years_in_jail', ['me', 0], 0),
+        fluent_initiate('total_years_in_jail', ['you', 0], 0),
+
+        action('refuses', ['you'], (1, 2)),
+        action('bears_witness', ['me'], (1, 2)),
+        action('gets', ['me', 0], (2, 3)),
+        action('gets', ['you', 3], (2, 3)),
+        fluent_initiate('total_years_in_jail', ['you', 3], 3),
+        fluent_terminate('total_years_in_jail', ['you', 0], 3),
+
+        action('refuses', ['me'], (2, 3)),
+        action('bears_witness', ['you'], (2, 3)),
+        action('gets', ['you', 0], (3, 4)),
+        action('gets', ['me', 3], (3, 4)),
+        fluent_initiate('total_years_in_jail', ['me', 3], 4),
+        fluent_terminate('total_years_in_jail', ['me', 0], 4),
+
+        action('refuses', ['you'], (3, 4)),
+        action('bears_witness', ['me'], (3, 4)),
+        action('gets', ['me', 0], (4, 5)),
+        action('gets', ['you', 3], (4, 5)),
+        fluent_initiate('total_years_in_jail', ['you', 6], 5),
+        fluent_terminate('total_years_in_jail', ['you', 3], 5),
+
+        action('refuses', ['me'], (4, 5)),
+        action('bears_witness', ['you'], (4, 5)),
+        action('gets', ['you', 0], (5, 6)),
+        action('gets', ['me', 3], (5, 6)),
+        fluent_initiate('total_years_in_jail', ['me', 6], 6),
+        fluent_terminate('total_years_in_jail', ['me', 3], 6),
+
+        action('refuses', ['you'], (5, 6)),
+        action('bears_witness', ['me'], (5, 6)),
+    ]
+
+    # WHEN
+    actual = run_pylps_example('prisoners')
+
+    # THEN
+    assert actual == expected

@@ -28,6 +28,10 @@ def unify_args(args_with_var, args_grounded, cur_subs=None):
     substitutions = {}
     for v_arg, g_arg in zip(args_with_var, args_grounded):
         try:
+            if v_arg.BaseClass == CONSTANT and g_arg.BaseClass == CONSTANT:
+                if v_arg.const != g_arg.const:
+                    return {}
+
             if v_arg.BaseClass == VARIABLE:
                 res = unify(var(v_arg.name), g_arg)
 
