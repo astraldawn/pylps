@@ -94,7 +94,7 @@ class Solution(object):
 
 
 class State(object):
-    def __init__(self, goals, subs,
+    def __init__(self, goals=[], subs={},
                  proposed=Proposed(), from_reactive=False):
         self._goals = goals
         self._subs = subs

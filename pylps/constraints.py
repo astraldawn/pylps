@@ -16,7 +16,8 @@ from pylps.state import State, Proposed
 from pylps.unifier import unify_fact
 
 
-def constraints_satisfied(o_goal, state, cycle_proposed: Proposed):
+def constraints_satisfied(o_goal, state, cycle_proposed: Proposed,
+                          return_failure=False):
     # Handle goal
     goal = reify_obj_args(o_goal, state.subs)
     all_proposed = copy.deepcopy(cycle_proposed)
@@ -64,9 +65,16 @@ def constraints_satisfied(o_goal, state, cycle_proposed: Proposed):
 
         try:
             res = next(check_constraint(constraint, all_proposed))
+
+            if return_failure:
+                return (False, res)
+
             return False
         except StopIteration:
             continue
+
+    if return_failure:
+        return (True, True)
 
     return True
 
@@ -99,7 +107,7 @@ def check_constraint(constraint, all_proposed, custom_start_subs=None):
 
 def expand_constraint(constraint, cur_state, states, all_proposed):
 
-    # debug_display('EXPAND_CONS', constraint)
+    debug_display('EXPAND_CONS', constraint)
 
     goal = constraint.goal
 
@@ -113,6 +121,8 @@ def expand_constraint(constraint, cur_state, states, all_proposed):
         expand_fluent(constraint, cur_state, states, all_proposed)
     else:
         raise PylpsUnimplementedOutcomeError(goal.BaseClass)
+
+    debug_display()
 
 
 def expand_action(constraint, cur_state, states, all_proposed):
@@ -143,6 +153,7 @@ def expand_action(constraint, cur_state, states, all_proposed):
             cons_action.args, action.args,
             cur_subs=cur_subs
         )
+
         new_state.update_subs(res)
 
         # Attempt to ground
@@ -207,8 +218,11 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
         if causality_outcome.outcome == A_INITIATE:
             if causality_outcome.fluent in fluents:
                 continue
-            debug_display('CFLUENT', causality_outcome.fluent)
-            fluents.append(causality_outcome.fluent)
+
+            # TODO: Hotfix, force grounded
+            if is_grounded(causality_outcome.fluent):
+                # debug_display('CFLUENT', causality_outcome.fluent)
+                fluents.append(causality_outcome.fluent)
 
         # TODO: Why does this work?
         # elif causality_outcome.outcome == A_TERMINATE:

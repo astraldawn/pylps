@@ -13,6 +13,11 @@ def fluent_terminate(name, args, time):
         name, str(args), str(time))
 
 
+def rejected_observation(name, args, time):
+    return "['Rejected observation', '%s', %s, %s]" % (
+        name, str(args), str(time))
+
+
 def action(name, args, time):
     return "['action', '%s', %s, %s]" % (
         name, str(args), str(time))
@@ -37,4 +42,14 @@ def generate_bubble_sort_swap(a, l1, b, l2, t1, t2):
         fluent_initiate('location', [b, l1], t2),
         fluent_terminate('location', [a, l1], t2),
         fluent_terminate('location', [b, l2], t2),
+    ]
+
+
+def generate_bank_transfer(a, b, amount, a_balance, b_balance, t1, t2):
+    return [
+        action('transfer', [a, b, amount], (t1, t2)),
+        fluent_initiate('balance', [b, b_balance + amount], t2),
+        fluent_initiate('balance', [a, a_balance - amount], t2),
+        fluent_terminate('balance', [b, b_balance], t2),
+        fluent_terminate('balance', [a, a_balance], t2),
     ]

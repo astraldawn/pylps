@@ -16,20 +16,40 @@ from pylps.kb import KB
 from pylps.config import CONFIG
 
 from pylps.state import State, Proposed
-from pylps.constraints import check_constraint
+from pylps.constraints import check_constraint, constraints_satisfied
 
 
 def unify_obs(observation):
-    # TODO: There should be an IC check
     action = copy.deepcopy(observation.action)
     action.update_start_time(observation.start_time)
     action.update_end_time(observation.end_time)
+
+    # Constraint check
+    action_cons, return_state = constraints_satisfied(
+        action, State(), Proposed(), return_failure=True)
+
+    if not action_cons:
+        return_state.update_subs({
+            var('T1'): observation.start_time,
+            var('T2'): observation.end_time,
+        })
+        process_return_state(observation, return_state)
+        return
 
     KB.log_action_new(action, from_obs=True)
     KB.add_cycle_obs(observation)
 
     initiates, terminates = process_causalities(action)
     commit_outcomes(initiates, terminates)
+
+
+def process_return_state(observation, return_state):
+    # TODO: Optional display message for return state
+    KB.log_rejected_observation(observation)
+    subs = return_state.subs
+    for constraint in return_state.goals:
+        obj = constraint.goal
+        res = reify_obj_args(obj, subs)
 
 
 def process_causalities(action, deconflict=True):
@@ -64,7 +84,7 @@ def process_causalities(action, deconflict=True):
                 outcome = causality_outcome.outcome
                 fluent = copy.deepcopy(causality_outcome.fluent)
 
-                debug_display('C_OUTCOME', fluent, outcome, c_sub)
+                # debug_display('C_OUTCOME', fluent, outcome, c_sub)
                 # debug_display('C_R_ACTION', action)
 
                 fluent.args = reify_args(fluent.args, c_sub)
@@ -79,8 +99,8 @@ def process_causalities(action, deconflict=True):
                 else:
                     raise UnknownOutcomeError(outcome)
 
-    debug_display('INITIATES', initiates)
-    debug_display('TERMINATES', terminates)
+    # debug_display('INITIATES', initiates)
+    # debug_display('TERMINATES', terminates)
 
     if deconflict:
         terminates = terminates - initiates

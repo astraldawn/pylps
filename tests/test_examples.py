@@ -203,3 +203,23 @@ def test_prisoners():
 
     # THEN
     assert actual == expected
+
+
+def test_bank_transfer():
+    # GIVEN
+    expected = [
+        fluent_initiate('balance', ['bob', 0], 0),
+        fluent_initiate('balance', ['fariba', 100], 0),
+    ]
+
+    expected.extend(generate_bank_transfer('fariba', 'bob', 10, 100, 0, 1, 2))
+    expected.extend(generate_bank_transfer('bob', 'fariba', 10, 10, 90, 2, 3))
+    expected.extend(generate_bank_transfer('fariba', 'bob', 20, 100, 0, 3, 4))
+    expected.extend(generate_bank_transfer('bob', 'fariba', 10, 20, 80, 4, 5))
+    expected.extend(generate_bank_transfer('fariba', 'bob', 20, 90, 10, 5, 6))
+
+    # WHEN
+    actual = run_pylps_example('bank_transfer')
+
+    # THEN
+    assert actual == expected
