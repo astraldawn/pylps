@@ -78,11 +78,16 @@ def unify_action(cond, cycle_time):
         if len(obs.action.args) != len(cond.args):
             continue
 
-        unify_res = {
+        unify_res = unify_args(cond.args, obs.action.args)
+
+        if unify_res == {}:
+            continue
+
+        unify_res.update({
             var(rename_str(cond.start_time.name, SUFFIX)): obs.start_time,
             var(rename_str(cond.end_time.name, SUFFIX)): obs.end_time
-        }
-        unify_res.update(unify_args(cond.args, obs.action.args))
+        })
+
         yield unify_res
 
     return substitutions
@@ -116,6 +121,11 @@ def unify_fluent(cond, cycle_time, counter=0):
 
     for kb_fluent in kb_fluents:
         unify_res = unify_args(fluent.args, kb_fluent.args)
+
+        if unify_res == {}:
+            continue
+
+        # debug_display('FLUENT_UNIFY_RES', unify_res)
 
         unify_res.update(unify(
             var(temporal_var.name + VAR_SEPARATOR + str(counter)),

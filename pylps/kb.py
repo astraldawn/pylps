@@ -363,6 +363,14 @@ class _KB(object):
         self.log.append([action_type, fluent.name,
                          converted_args, time, False])
 
+    def log_rejected_observation(self, observation):
+        converted_args = convert_args_to_python(observation.action)
+
+        self.log.append([
+            WARNING_REJECTED_OBSERVATION, observation.action.name,
+            converted_args, (observation.start_time, observation.end_time),
+            False])
+
     def show_log(self, show_events=False):
         for item in self.log:
             # Override to always show observation

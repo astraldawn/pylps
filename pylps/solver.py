@@ -240,8 +240,8 @@ class _Solver(object):
         if isinstance(goal, tuple):
             outcome, goal = goal[1], goal[0]
 
-        debug_display('EXPAND', goal)
-        debug_display('EXPAND_R', reify_obj_args(goal, cur_state.subs))
+        # debug_display('EXPAND', goal)
+        # debug_display('EXPAND_R', reify_obj_args(goal, cur_state.subs))
 
         if self.reactive and \
                 (goal.BaseClass is ACTION or goal.BaseClass is EVENT):
@@ -277,7 +277,7 @@ class _Solver(object):
             if cur_state.temporal_used:
                 new_state._goal_pos -= 1
                 new_state.set_result(G_DEFER)
-                debug_display('DEFER_IF', goal)
+                # debug_display('DEFER_IF', goal)
                 states.append(new_state)
                 return
             else:
@@ -297,7 +297,7 @@ class _Solver(object):
             if not temporal_valid:
                 new_state._goal_pos -= 1
                 new_state.set_result(G_DEFER)
-                debug_display('DEFER_ELSE', goal)
+                # debug_display('DEFER_ELSE', goal)
                 states.append(new_state)
                 return
 
