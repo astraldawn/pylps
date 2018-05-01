@@ -68,12 +68,18 @@ class LPSConstant(LPSComparable):
 
     # COMPARISON
     def __eq__(self, other):
-        return self._to_tuple() == other._to_tuple()
+        try:
+            if self.BaseClass != other.BaseClass:
+                return False
+        except AttributeError:
+            return False
+
+        return self.to_tuple() == other.to_tuple()
 
     def __hash__(self):
-        return hash(self._to_tuple())
+        return hash(self.to_tuple())
 
-    def _to_tuple(self):
+    def to_tuple(self):
         convert = self.const
         return convert
 
@@ -124,6 +130,15 @@ class LPSList(object):
         ret = "LPSList: %s" % self._list
         return ret
 
+    def __eq__(self, other):
+        return self.to_tuple() == other.to_tuple()
+
+    def __hash__(self):
+        return hash(self.to_tuple())
+
+    def to_tuple(self):
+        return tuple(item.to_tuple() for item in self._list)
+
     @property
     def head(self):
         try:
@@ -139,7 +154,27 @@ class LPSList(object):
             return LPSConstant(None)
 
     def to_python(self):
-        return list([x.to_python() for x in self._list])
+        ret = []
+        for item in self._list:
+
+            # Handle list_head
+            if item.BaseClass is TUPLE:
+                first = item._tuple[0]
+                if first.BaseClass is CONSTANT \
+                        and first.const == MATCH_LIST_HEAD:
+                    tail = item._tuple[2].to_python()
+
+                    # TODO: EXPENSIVE OPERATION
+                    tail.insert(0, item._tuple[1].to_python())
+
+                    ret.extend(tail)
+                continue
+
+                ret.append(item.to_python())
+
+            ret.append(item.to_python())
+
+        return ret
 
 
 class LPSTuple(object):
@@ -155,12 +190,24 @@ class LPSTuple(object):
         ret = "LPSTuple: %s" % str(self._tuple)
         return ret
 
+    def __eq__(self, other):
+        return self.to_tuple() == other.to_tuple()
+
+    def __hash__(self):
+        return hash(self.to_tuple())
+
+    def to_tuple(self):
+        return tuple(item.to_tuple() for item in self._tuple)
+
     def __or__(self, other):
         return (MATCH_LIST_HEAD, self, other)
 
     @property
     def tuple(self):
         return self._tuple
+
+    def to_python(self):
+        return tuple(x.to_python() for x in self._tuple)
 
 
 class Expr(LPSComparable):
@@ -178,9 +225,6 @@ class Expr(LPSComparable):
         return ret
 
     def to_tuple(self):
-        return self._to_tuple()
-
-    def _to_tuple(self):
         return (
             self.BaseClass, self.op, str(self.left), str(self.right)
         )

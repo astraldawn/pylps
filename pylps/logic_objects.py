@@ -15,12 +15,12 @@ class Variable(LPSComparable):
         return ret
 
     def __eq__(self, other):
-        return self._to_tuple() == other._to_tuple()
+        return self.to_tuple() == other.to_tuple()
 
     def __hash__(self):
-        return hash(self._to_tuple())
+        return hash(self.to_tuple())
 
-    def _to_tuple(self):
+    def to_tuple(self):
         return (
             self.BaseClass, self.name
         )

@@ -84,3 +84,28 @@ def test_lists_nested_complex():
 
     # THEN
     assert actual == expected
+
+
+def test_lists_append_basic():
+    # GIVEN
+    expected = [
+        action('say', [[], [], []], (1, 2)),
+        action('say', [[], ['a'], ['a']], (1, 2)),
+        action('say', [['a'], [], ['a']], (1, 2)),
+        action('say', [
+            ['a', 'b'],
+            ['c', 'd'],
+            ['a', 'b', 'c', 'd']
+        ], (1, 2)),
+        action('say', [
+            ['a', 'b', ['1', '2', ['3']]],
+            ['c', ['d']],
+            ['a', 'b', ['1', '2', ['3']], 'c', ['d']]
+        ], (1, 2)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('lists', 'append_basic')
+
+    # THEN
+    assert actual == expected

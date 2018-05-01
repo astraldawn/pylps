@@ -103,7 +103,7 @@ class _ENGINE(object):
 
         process_solutions(solutions, self.current_time)
 
-        debug_display('CG_KB_AFTER', KB.goals, self.current_time)
+        # debug_display('CG_KB_AFTER', KB.goals, self.current_time)
 
         # debug_display('KB_FLUENTS_ENGINE', self.current_time, KB.fluents)
 

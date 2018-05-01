@@ -20,7 +20,7 @@ class Proposed(object):
         return ret
 
     def __eq__(self, other):
-        return self.to_tuple() == other.to_tuple()
+        return self._to_tuple() == other._to_tuple()
 
     def __hash__(self):
         return hash(self.to_tuple())
@@ -128,7 +128,9 @@ class State(object):
             ret += "Goal %d\n" % (item)
             ret += "N%d: %s\nR%d: %s\n" % (item, str(goal), item, str(r_goal))
 
-        ret += "Subs: %s\n" % (str(self._subs))
+        ret += "Subs:\n"
+        for item in self.subs.items():
+            ret += str(item) + '\n'
         ret += "Temporal used: %s\n" % self._temporal_used
         ret += "Counter %s\n" % self._counter
         ret += "%s\n" % (str(self._proposed))

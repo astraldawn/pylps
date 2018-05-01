@@ -144,9 +144,10 @@ def reify_actions(state, reify=True):
 def match_clause_goal(clause, goal, new_subs, counter):
     SUFFIX = VAR_SEPARATOR + str(counter)
 
-    # debug_display('MCG_CLAUSE', clause)
-    # debug_display('MCG_GOAL', goal)
-    # debug_display('MCG_SUBS', new_subs)
+    debug_display('MCG_CLAUSE', clause)
+    debug_display('MCG_GOAL', goal)
+    debug_display('MCG_SUBS', new_subs)
+    debug_display()
 
     if clause.BaseClass is CONSTANT:
         if goal.BaseClass is CONSTANT:
@@ -195,6 +196,18 @@ def match_clause_goal(clause, goal, new_subs, counter):
             new_subs = old_subs
             return False
 
+        return True
+
+    if clause.BaseClass is LIST and goal.BaseClass is VARIABLE:
+        # Copy and rename
+        new_clause = copy.deepcopy(clause)
+        for item in new_clause._list:
+            rename_arg(counter, item)
+
+        new_subs.update({
+            var(goal.name): new_clause,
+        })
+        # debug_display('LIST_MATCH', new_subs)
         return True
 
     if clause.BaseClass is LIST and goal.BaseClass is LIST:
