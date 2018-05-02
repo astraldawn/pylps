@@ -214,7 +214,7 @@ class _Solver(object):
             # Nothing left
             goal = cur_state.get_next_goal()
 
-            if self.iterations > 10000 and CONFIG.debug:
+            if self.iterations > 1000 and CONFIG.debug:
                 break
 
             # debug_display(self.iterations, goal)
@@ -300,6 +300,7 @@ class _Solver(object):
                 states.append(new_state)
                 return
 
+            # TODO: This might be changed to < 0
             temporal_exceed = new_state.subs[end_time] - self.current_time < 1
 
             if temporal_exceed:
@@ -359,7 +360,7 @@ class _Solver(object):
         # goal.args = reify_args(goal.args, cur_subs)
         goal_args = reify_args(goal.args, cur_subs)
 
-        # debug_display('ME_REIFY_ARGS', goal.args)
+        # debug_display('ME_REIFY_ARGS', goal_args)
         # debug_display('ME_REIFY_SUBS', cur_subs)
 
         new_state = copy.deepcopy(cur_state)

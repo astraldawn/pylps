@@ -21,13 +21,16 @@ create_variables('X', 'Y', 'Z', 'L1', 'L2', 'L3')
 
 lists([], [])
 lists([], ['a'])
-lists(['a'], [])
-lists(['a', 'b'], ['c', 'd'])
-lists(['a', 'b', ['1', '2', ['3']]], ['c', ['d']])
+lists(['a'], ['b'])
+lists(['a', 'b'], ['a', 'b', 'c', 'd'])
+lists(
+    ['a', 'b', ['1', '2', ['3']]],
+    ['a', 'b', ['1', '2', ['3']], 'c', ['d']]
+)
 
 reactive_rule(lists(X, Y)).then(
-    append(X, Y, Z),
-    say(X, Y, Z),
+    append(X, Z, Y),
+    say(X, Z, Y),
 )
 
 goal(append([], X, X)).requires()
@@ -47,8 +50,8 @@ lists([], [b]).
 lists([a], [b]).
 
 if lists(X, Y) then
-custom_append(X, Y, Z) from T1 to T2,
-say(X, Y, Z) from T1 to T2.
+custom_append(X, Z, Y) from T1 to T2,
+say(X, Z, Y) from T1 to T2.
 
 custom_append([], X, X) from T1 to T2 if true.
 

@@ -1,3 +1,7 @@
+'''
+MARKED FOR DEPRECATION
+'''
+'''
 import operator
 from pylps.constants import *
 from pylps.exceptions import *
@@ -38,3 +42,4 @@ class Variable(LPSComparable):
 
 class TemporalVar(Variable):
     BaseClass = TEMPORAL_VARIABLE
+'''

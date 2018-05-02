@@ -168,11 +168,18 @@ def match_clause_goal(clause, goal, new_subs, counter):
         except AttributeError:
             pass
 
-        new_subs.update({
-            var(clause.name + SUFFIX): goal
-        })
+        new_var = var(clause.name + SUFFIX)
 
-        return True
+        if new_var not in new_subs:
+            new_subs.update({
+                new_var: goal
+            })
+            return True
+
+        if new_subs[new_var] == goal:
+            return True
+
+        return False
 
     if clause.BaseClass is TUPLE and goal.BaseClass is TUPLE:
         if len(clause) != len(goal):
@@ -239,6 +246,9 @@ def match_clause_goal(clause, goal, new_subs, counter):
                         clause_head.tuple[2], goal_head.tuple[2],
                         new_subs, counter)
                 else:
+                    # Attempting to peel off an empty list
+                    if len(goal) == 0:
+                        return False
 
                     match_head = match_clause_goal(
                         clause_head.tuple[1], goal_head, new_subs, counter)

@@ -2,8 +2,7 @@ import inspect
 from pylps.constants import *
 from pylps.exceptions import *
 from pylps.lps_objects import Action, Event, Fact, Fluent
-from pylps.logic_objects import Variable, TemporalVar
-from pylps.lps_data_structures import convert_arg
+from pylps.lps_data_structures import convert_arg, Variable, TemporalVar
 from pylps.kb import KB
 
 types_dict = {
