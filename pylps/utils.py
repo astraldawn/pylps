@@ -10,6 +10,16 @@ from pylps.config import CONFIG
 from pylps.lps_data_structures import LPSList, LPSTuple
 
 
+def pylps_equality(self, other):
+    try:
+        if self.BaseClass != other.BaseClass:
+            return False
+    except AttributeError:
+        return False
+
+    return self._to_tuple() == other._to_tuple()
+
+
 def append_extend(python_list, possible_iterable):
     try:
         python_list.extend(possible_iterable)
@@ -54,13 +64,48 @@ def is_constant(arg):
     return isinstance(arg, str) or isinstance(arg, int)
 
 
+# def is_grounded(obj):
+#     for arg in obj.args:
+#         try:
+#             if arg.BaseClass is VARIABLE:
+#                 return False
+#         except AttributeError:
+#             pass
+
+#     return True
+
 def is_grounded(obj):
     for arg in obj.args:
-        try:
-            if arg.BaseClass is VARIABLE:
+        if not is_grounded_arg(arg):
+            return False
+
+    return True
+
+
+def is_grounded_list(lst):
+    for item in lst:
+        if not is_grounded_arg(item):
+            return False
+
+    return True
+
+
+def is_grounded_arg(arg):
+    if is_constant(arg) or arg.BaseClass is CONSTANT:
+        return True
+
+    if arg.BaseClass is VARIABLE:
+        return False
+
+    if arg.BaseClass is TUPLE:
+        for item in arg._tuple:
+            if not is_grounded_arg(item):
                 return False
-        except AttributeError:
-            continue
+
+    if arg.BaseClass is LIST:
+        for item in arg._list:
+            if not is_grounded_arg(item):
+                return False
 
     return True
 
@@ -82,7 +127,7 @@ def convert_args_to_python(obj):
     for arg in obj.args:
         try:
             if arg.BaseClass is LIST:
-                converted_args.append(arg.to_python())
+                converted_args.append(list(arg.to_python()))
                 continue
             if arg.BaseClass is CONSTANT:
                 converted_args.append(arg.const)
@@ -91,6 +136,8 @@ def convert_args_to_python(obj):
             pass
 
         converted_args.append(arg)
+
+    debug_display('CONVERT_ARGS', obj.args, converted_args)
 
     return converted_args
 
@@ -101,7 +148,8 @@ def reify_single(arg, substitutions):
         # debug_display('R_SINGLE', arg, r_arg, type(arg), type(r_arg))
         if isinstance(r_arg, Var):
             return arg
-        return r_arg
+
+        return reify_arg_helper(r_arg, substitutions)
     except AttributeError:
         return arg
 
@@ -130,6 +178,7 @@ def reify_arg_helper(arg, substitutions):
 
     if arg.BaseClass is VARIABLE or arg.BaseClass is TEMPORAL_VARIABLE:
         # arg = reify(var(arg.name), substitutions)
+        # debug_display('REIFY_VAR', reify(var(arg.name), substitutions))
         return reify_single(arg, substitutions)
 
     if arg.BaseClass is EXPR:
@@ -144,6 +193,19 @@ def reify_arg_helper(arg, substitutions):
             reify_arg_helper(item, substitutions)
             for item in arg._list
         ]
+
+        prev_list = []
+
+        while True:
+            if prev_list == r_list or is_grounded_list(r_list):
+                break
+
+            prev_list = copy.deepcopy(r_list)
+            r_list = [
+                reify_arg_helper(item, substitutions)
+                for item in r_list
+            ]
+
         return LPSList(copy.deepcopy(r_list))
 
     if arg.BaseClass == TUPLE:
@@ -151,6 +213,19 @@ def reify_arg_helper(arg, substitutions):
             reify_arg_helper(item, substitutions)
             for item in arg._tuple
         ]
+
+        prev_list = []
+
+        while True:
+            if prev_list == r_list or is_grounded_list(r_list):
+                break
+
+            prev_list = copy.deepcopy(r_list)
+            r_list = [
+                reify_arg_helper(item, substitutions)
+                for item in r_list
+            ]
+
         return LPSTuple(copy.deepcopy(r_list))
 
     raise PylpsUnimplementedOutcomeError((arg.BaseClass, type(arg), arg))

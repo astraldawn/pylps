@@ -2,7 +2,6 @@
 Revised solver that will recursively yield solutions
 '''
 import copy
-import operator
 from collections import deque
 
 from more_itertools import peekable
@@ -215,7 +214,7 @@ class _Solver(object):
             # Nothing left
             goal = cur_state.get_next_goal()
 
-            if self.iterations > 10000 and CONFIG.debug:
+            if self.iterations > 1000 and CONFIG.debug:
                 break
 
             # debug_display(self.iterations, goal)
@@ -240,8 +239,8 @@ class _Solver(object):
         if isinstance(goal, tuple):
             outcome, goal = goal[1], goal[0]
 
-        # debug_display('EXPAND', goal)
-        # debug_display('EXPAND_R', reify_obj_args(goal, cur_state.subs))
+        debug_display('EXPAND', goal)
+        debug_display('EXPAND_R', reify_obj_args(goal, cur_state.subs))
 
         if self.reactive and \
                 (goal.BaseClass is ACTION or goal.BaseClass is EVENT):
@@ -301,6 +300,7 @@ class _Solver(object):
                 states.append(new_state)
                 return
 
+            # TODO: This might be changed to < 0
             temporal_exceed = new_state.subs[end_time] - self.current_time < 1
 
             if temporal_exceed:
@@ -360,7 +360,7 @@ class _Solver(object):
         # goal.args = reify_args(goal.args, cur_subs)
         goal_args = reify_args(goal.args, cur_subs)
 
-        # debug_display('ME_REIFY_ARGS', goal.args)
+        # debug_display('ME_REIFY_ARGS', goal_args)
         # debug_display('ME_REIFY_SUBS', cur_subs)
 
         new_state = copy.deepcopy(cur_state)
@@ -374,7 +374,9 @@ class _Solver(object):
                 clause_arg, goal_arg,
                 new_subs, counter
             )
-            # debug_display('MATCH_RES', clause.goal[0].args, match_res)
+
+            # debug_display('MATCH_RES', clause_arg, goal_arg, match_res)
+            # debug_display()
 
             # If the matching fails, cannot proceed, return
             if not match_res:
