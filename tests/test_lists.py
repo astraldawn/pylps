@@ -157,3 +157,39 @@ def test_lists_append_second_missing():
 
     # THEN
     assert actual == expected
+
+
+def test_lists_member_basic():
+    # GIVEN
+    expected = [
+        action('say', [[], [[]]], (1, 2)),
+        action('say', ['a', ['b', 'c', 'a']], (1, 2)),
+        action('say', [
+            ['b', 'c'],
+            ['d', ['a', 'c'], ['b', 'c']]
+        ], (1, 2)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('lists', 'member_basic')
+
+    # THEN
+    assert actual == expected
+
+
+def test_lists_reverse():
+    # GIVEN
+    expected = [
+        action('say', [[], []], (1, 2)),
+        action('say', [[1, 2, 3, 4, 5], [5, 4, 3, 2, 1]], (1, 2)),
+        action('say', [
+            [['a', 'b'], 5, [10, 'd']],
+            [[10, 'd'], 5, ['a', 'b']]
+        ], (1, 2)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('lists', 'reverse')
+
+    # THEN
+    assert actual == expected
