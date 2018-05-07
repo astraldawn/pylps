@@ -211,3 +211,19 @@ def test_lists_reverse():
 
     # THEN
     assert actual == expected
+
+
+def test_list_assign_to_var():
+    # GIVEN
+    expected = [
+        action('say', [[[], []]], (1, 2)),
+        action('say', [['a', 'b', 'c', 'a']], (1, 2)),
+        action('say', [[['b', 'c'], 'd', ['a', 'c'], ['b', 'c']]], (1, 2)),
+
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('lists', 'assign_to_var')
+
+    # THEN
+    assert actual == expected
