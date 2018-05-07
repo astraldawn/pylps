@@ -140,8 +140,18 @@ def unify_fluent(cond, cycle_time, counter=0):
 def unify_fact(fact, reactive=False):
     substitutions = []
     kb_facts = KB.get_facts(fact, reactive)
+    grounded = is_grounded(fact)
+
+    if grounded:
+        debug_display('GROUNDED')
+        for kb_fact in kb_facts:
+            if fact.args == kb_fact.args:
+                yield True
+
+        yield False
 
     for kb_fact in kb_facts:
+        debug_display('KB_FACT', kb_fact)
         unify_res = unify_args(fact.args, kb_fact.args)
 
         if unify_res == {}:

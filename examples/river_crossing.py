@@ -1,3 +1,53 @@
+from pylps.core import *
+from pylps.lps_data_structures import LPSConstant
+
+initialise(max_time=1)
+
+create_actions('show(_)', 'valid(_)', 'say(_, _)')
+create_events('river(_, _, _, _)', 'member(_, _)')
+create_facts('inp(_, _)', 'crossing(_, _, _)')
+create_variables(
+    'A', 'B', 'C', 'P', 'V', 'X', 'Y', 'Z', 'Tail',
+    'Action', 'Start', 'End', 'Plan',
+)
+
+inp(['l', 'l', 'l', 'l'], ['r', 'r', 'r', 'r'])
+
+# crossing(['l', X, Y, Z], ['r', X, Y, Z], 'farmer_cross')
+
+crossing(['l', X, 'l', Z], ['r', X, 'r', Z], 'goose_cross')
+crossing(['r', X, 'r', Z], ['l', X, 'l', Z], 'goose_back')
+
+reactive_rule(inp(Start, End)).then(
+    river(Start, End, [Start], P).frm(T1, T2),
+    show(P),
+)
+
+goal(member(X, [X | _])).requires()
+
+goal(member(X, [Y | Tail])).requires(
+    member(X, Tail),
+)
+
+goal(river(A, A, _, []).frm(T, T))
+
+goal(river(A, B, V, P).frm(T1, T3)).requires(
+    crossing(A, C, Action),
+    # ~member(C, V),
+    valid(C).frm(T1, T2),
+    say(Action, C).frm(T1, T2),
+    river(C, B, [C | V], Plan).frm(T2, T3),
+    P.is_([Action | Plan]),
+)
+
+# false_if(valid([A, B, B, C]), A != B)
+# false_if(valid([A, C, B, B]), A != B)
+# false_if(valid(X), valid(Y), X != Y)
+
+execute(debug=True)
+
+show_kb_log()
+
 '''
 % The ability to give a solution depends on the ordering of the facts,
 % if attempting to only perform 1 move per time step

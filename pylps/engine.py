@@ -90,7 +90,7 @@ class _ENGINE(object):
                     continue
 
                 new_goals = reify_goals(rule.goals, substitution)
-                debug_display('SUB_NEW_GOALS', new_goals, substitution)
+                # debug_display('SUB_NEW_GOALS', new_goals, substitution)
 
                 KB.add_goals(new_goals, substitution)
 
@@ -98,7 +98,7 @@ class _ENGINE(object):
         # debug_display('CG_KB_G', KB.goals, self.current_time)
         solutions = SOLVER.solve_goals(self.current_time)
 
-        debug_display('SOLUTIONS_ENGINE', solutions, self.current_time)
+        # debug_display('SOLUTIONS_ENGINE', solutions, self.current_time)
         # debug_display('SOLUTION_COUNT', self.current_time, len(solutions))
 
         process_solutions(solutions, self.current_time)

@@ -214,7 +214,7 @@ class _Solver(object):
             # Nothing left
             goal = cur_state.get_next_goal()
 
-            if self.iterations > 10 and CONFIG.debug:
+            if self.iterations > 10000 and CONFIG.debug:
                 break
 
             # debug_display(self.iterations, goal)
@@ -356,7 +356,7 @@ class _Solver(object):
                 res = self.match_event(
                     goal, clause, cur_state, states, outcome)
 
-                debug_display('ME', clause, res)
+                # debug_display('ME', clause, res)
 
                 if res:
                     all_false = False
@@ -422,10 +422,33 @@ class _Solver(object):
 
     def expand_fact(self, fact, cur_state, states):
         cur_subs = cur_state.subs
+        grounded = check_grounded(fact, cur_subs)
+
+        debug_display('FACT', fact, grounded)
 
         # Only facts checks if the reactive rule is only made up of facts
         # In that case, trigger once
-        all_subs = list(unify_fact(fact, reactive=self.only_facts))
+        # all_subs = []
+        # all_subs = list(unify_fact(fact, reactive=self.only_facts))
+
+        if self.only_facts:
+            all_subs = list(unify_fact(fact, reactive=self.only_facts))
+        else:
+            cur_fact = copy.deepcopy(fact)
+            cur_fact.args = reify_args(cur_fact.args, cur_subs)
+            all_subs = list(unify_fact(cur_fact))
+
+            debug_display(all_subs)
+
+        # Handle the case where fact is grounded (existence check)
+        if grounded:
+            debug_display('CUR_FACT', cur_fact, grounded, all_subs[0])
+            if all_subs[0]:
+                new_state = copy.deepcopy(cur_state)
+                states.append(new_state)
+
+            return
+
         subs = []
 
         for sub in all_subs:
@@ -443,6 +466,9 @@ class _Solver(object):
                 subs.append(sub)
 
         subs.reverse()
+
+        debug_display('EXPAND_FACT_ALL_SUBS', all_subs)
+        debug_display('EXPAND_FACT_VALID_SUBS', subs)
 
         for sub in subs:
             new_state = copy.deepcopy(cur_state)

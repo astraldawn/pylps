@@ -38,7 +38,7 @@ goal(path(X, Y).frm(T1, T2)).requires(
     path(Z, Y).frm(T1, T2),
 )
 
-execute(single_clause=False, n_solutions=-1,)
+execute(single_clause=False, n_solutions=-1, debug=False)
 
 show_kb_log()
 

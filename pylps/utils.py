@@ -57,6 +57,10 @@ def unify_args(args_with_var, args_grounded, cur_subs=None):
         except AttributeError:
             continue
 
+    debug_display('UNIFY_ARGS', args_with_var, args_grounded)
+    debug_display('UNIFY_ARGS_SUBS', substitutions)
+    debug_display()
+
     return substitutions
 
 
@@ -320,7 +324,7 @@ def rename_arg(counter, arg):
         for item in arg._tuple:
             rename_arg(counter, item)
     elif arg.BaseClass is VARIABLE:
-        arg.name += VAR_SEPARATOR + str(counter)
+        arg.name = rename_str(arg.name, VAR_SEPARATOR + str(counter))
     else:
         raise PylpsUnimplementedOutcomeError(arg.BaseClass)
 
