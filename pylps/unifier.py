@@ -169,7 +169,13 @@ def reify_goals(goals, subs):
 
     for goal in goals:
         new_goal = copy.deepcopy(goal)
-        rename_args(0, new_goal)
+
+        # Negated goals
+        if isinstance(new_goal, tuple) and len(new_goal) == 2:
+            rename_args(0, new_goal[0])
+        else:
+            rename_args(0, new_goal)
+
         new_goals.append(new_goal)
 
     return copy.deepcopy(new_goals)

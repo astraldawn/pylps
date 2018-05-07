@@ -90,7 +90,7 @@ class _ENGINE(object):
                     continue
 
                 new_goals = reify_goals(rule.goals, substitution)
-                # debug_display('SUB_NEW_GOALS', new_goals, substitution)
+                debug_display('SUB_NEW_GOALS', new_goals, substitution)
 
                 KB.add_goals(new_goals, substitution)
 

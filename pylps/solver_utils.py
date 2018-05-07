@@ -144,10 +144,10 @@ def reify_actions(state, reify=True):
 def match_clause_goal(clause, goal, new_subs, counter):
     SUFFIX = VAR_SEPARATOR + str(counter)
 
-    debug_display('MCG_CLAUSE', clause)
-    debug_display('MCG_GOAL', goal)
-    debug_display('MCG_SUBS', new_subs)
-    debug_display()
+    # debug_display('MCG_CLAUSE', clause)
+    # debug_display('MCG_GOAL', goal)
+    # debug_display('MCG_SUBS', new_subs)
+    # debug_display()
 
     if clause.BaseClass is CONSTANT:
         if goal.BaseClass is CONSTANT:

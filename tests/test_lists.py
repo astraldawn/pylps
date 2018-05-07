@@ -177,6 +177,24 @@ def test_lists_member_basic():
     assert actual == expected
 
 
+def test_lists_not_member_basic():
+    # GIVEN
+    expected = [
+        action('say', ['z', ['a']], (1, 2)),
+        action('say', ['z', ['a', 'b', 'c', 'd', 'e']], (1, 2)),
+        action('say', [
+            ['b', 'c'],
+            ['d', ['a', 'c']]
+        ], (1, 2)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('lists', 'not_member_basic')
+
+    # THEN
+    assert actual == expected
+
+
 def test_lists_reverse():
     # GIVEN
     expected = [

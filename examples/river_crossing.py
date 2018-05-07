@@ -26,9 +26,9 @@ if input(Start, End) then
     river(Start, End, [Start], P) from T1 to T2,
     show(P).
 
-river(A,A,_,[]) from T1 to T2 if true.
+river(A,A,_,[]) from T to T.
 
-river(A, B, V, P) from T1 to T2 if
+river(A, B, V, P) from T1 to T3 if
     crossing(A, C, Action),
     \+ member(C, V),
     valid(C) from T1 to T2,
