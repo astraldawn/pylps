@@ -12,7 +12,8 @@ create_variables(
 )
 
 inp(['l', 'l', 'l', 'l'], ['r', 'r', 'r', 'r'])
-inp(['l', 'l', 'l', 'l'], ['r', 'l', 'r', 'l'])
+# inp(['l', 'l', 'l', 'l'], ['r', 'l', 'l', 'l'])
+# inp(['l', 'l', 'l', 'l'], ['r', 'l', 'r', 'l'])
 
 crossing(['l', X, Y, Z], ['r', X, Y, Z], 'farmer_cross')
 crossing(['r', X, Y, Z], ['l', X, Y, Z], 'farmer_back')
@@ -52,7 +53,7 @@ false_if(valid([A, B, B, C]), A != B)
 false_if(valid([A, C, B, B]), A != B)
 # false_if(valid(X), valid(Y), X != Y)
 
-execute(debug=False)
+execute(debug=True, solution_preference=SOLN_PREF_MAX)
 
 show_kb_log()
 

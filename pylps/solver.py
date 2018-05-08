@@ -342,6 +342,7 @@ class _Solver(object):
     def expand_event(self, goal, cur_state, states, outcome=True):
         all_false = True
         all_true = True
+        res_success = 0
 
         # Need to reverse here for DFS like iteration
         KB_clauses = list(KB.get_clauses(goal))
@@ -356,9 +357,10 @@ class _Solver(object):
                 res = self.match_event(
                     goal, clause, cur_state, states, outcome)
 
-                # debug_display('ME', clause, res)
+                debug_display('ME', clause, res)
 
                 if res:
+                    res_success += 1
                     all_false = False
                 else:
                     all_true = False
@@ -373,6 +375,10 @@ class _Solver(object):
                 states.append(new_state)
 
             if all_true:
+                # The successful states must be popped off the stack
+                for i in range(res_success):
+                    states.pop()
+
                 new_state = copy.deepcopy(cur_state)
                 new_state.set_result(G_DISCARD)
                 states.append(new_state)
@@ -452,7 +458,8 @@ class _Solver(object):
                 if not valid_sub:
                     continue
 
-                if cur_subs.get(k):
+                # Do not want to consider local variables here
+                if cur_subs.get(k) and VAR_SEPARATOR in k.token:
                     res = reify(k, cur_subs)
                     if not isinstance(res, Var) and v != res:
                         valid_sub = False
@@ -462,8 +469,7 @@ class _Solver(object):
 
         subs.reverse()
 
-        # debug_display('EXPAND_FACT_ALL_SUBS', all_subs)
-        # debug_display('EXPAND_FACT_VALID_SUBS', subs)
+        debug_display('EXPAND_FACT_VALID_SUBS', subs)
 
         for sub in subs:
             new_state = copy.deepcopy(cur_state)
