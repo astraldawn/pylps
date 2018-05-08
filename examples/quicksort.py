@@ -12,7 +12,7 @@ observe(sort([5, 4, 3, 2, 1, 10]).frm(1, 2))
 
 class python_sort(LPSFunction):
     def func(self, iterable):
-        self.result = sorted(iterable)
+        return sorted(iterable)
 
 
 reactive_rule(sort(X)).then(

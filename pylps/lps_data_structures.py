@@ -268,7 +268,7 @@ class LPSFunction(object):
 
     def execute(self):
         self.args_to_python()
-        self.func(*self.converted_args)
+        self.result = self.func(*self.converted_args)
         self.result_to_pylps()
         return copy.deepcopy(self.result_converted)
 
