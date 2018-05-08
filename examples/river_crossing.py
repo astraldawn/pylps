@@ -1,7 +1,7 @@
 from pylps.core import *
 from pylps.lps_data_structures import LPSConstant
 
-initialise(max_time=2)
+initialise(max_time=10)
 
 create_actions('show(_)', 'valid(_)', 'say(_, _)')
 create_events('river(_, _, _, _)', 'member(_, _)')
@@ -16,8 +16,14 @@ inp(['l', 'l', 'l', 'l'], ['r', 'r', 'r', 'r'])
 crossing(['l', X, Y, Z], ['r', X, Y, Z], 'farmer_cross')
 crossing(['r', X, Y, Z], ['l', X, Y, Z], 'farmer_back')
 
+crossing(['l', 'l', Y, Z], ['r', 'r', Y, Z], 'fox_cross')
+crossing(['r', 'r', Y, Z], ['l', 'l', Y, Z], 'fox_back')
+
 crossing(['l', X, 'l', Z], ['r', X, 'r', Z], 'goose_cross')
 crossing(['r', X, 'r', Z], ['l', X, 'l', Z], 'goose_back')
+
+crossing(['l', X, Y, 'l'], ['r', X, Y, 'r'], 'beans_cross')
+crossing(['r', X, Y, 'r'], ['l', X, Y, 'l'], 'beans_back')
 
 reactive_rule(inp(Start, End)).then(
     river(Start, End, [Start], P).frm(T1, T2),
@@ -45,7 +51,7 @@ false_if(valid([A, B, B, C]), A != B)
 false_if(valid([A, C, B, B]), A != B)
 # false_if(valid(X), valid(Y), X != Y)
 
-execute(debug=True, solution_preference=SOLN_PREF_MAX)
+execute(debug=False)
 
 show_kb_log()
 
