@@ -45,7 +45,7 @@ def process_solutions(solutions, cycle_time):
                 _process_state(state, unique_actions)
 
             elif state.result is G_DEFER:
-                soln_max_solved = True
+                # soln_max_solved = True
                 processed.add(state.reactive_id)
                 _process_state(state, unique_actions)
 

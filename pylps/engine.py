@@ -104,8 +104,8 @@ class _ENGINE(object):
 
         process_solutions(solutions, self.current_time)
 
-        debug_display('CG_A_TIME / N_GOALS', self.current_time, len(KB.goals))
-        debug_display('CG_KB_AFT', KB.goals)
+        # debug_display('CG_A_TIME / N_GOALS', self.current_time, len(KB.goals))
+        # debug_display('CG_KB_AFT', KB.goals)
 
         # debug_display('KB_FLUENTS_ENGINE', self.current_time, KB.fluents)
 

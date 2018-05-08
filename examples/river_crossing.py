@@ -1,7 +1,6 @@
 from pylps.core import *
-from pylps.lps_data_structures import LPSConstant
 
-initialise(max_time=10)
+initialise(max_time=4)
 
 create_actions('show(_)', 'valid(_)', 'say(_, _)')
 create_events('river(_, _, _, _)', 'member(_, _)')
