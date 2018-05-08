@@ -30,6 +30,7 @@ def process_solutions(solutions, cycle_time):
     unique_actions = set()
     processed = set()
     solved = False
+    soln_max_solved = False
 
     for solution in solutions:
 
@@ -39,9 +40,12 @@ def process_solutions(solutions, cycle_time):
         for state in solution.states:
 
             if state.result is G_SOLVED:
+                soln_max_solved = True
                 processed.add(state.reactive_id)
                 _process_state(state, unique_actions)
+
             elif state.result is G_DEFER:
+                soln_max_solved = True
                 processed.add(state.reactive_id)
                 _process_state(state, unique_actions)
 
@@ -62,7 +66,7 @@ def process_solutions(solutions, cycle_time):
             elif state.result is G_NPROCESSED:
                 continue
 
-        if preference is SOLN_PREF_MAX or solved:
+        if (preference is SOLN_PREF_MAX and soln_max_solved) or solved:
             break
 
     unsolved_existing_goals = OrderedSet()

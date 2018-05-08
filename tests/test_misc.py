@@ -111,3 +111,17 @@ def test_causality_1():
 
     # THEN
     assert actual == expected
+
+
+def test_constraint_validity():
+    # GIVEN
+    expected = [
+        action('valid', [['l', 'l', 'l', 'l']], (1, 2)),
+        action('valid', [['r', 'l', 'r', 'l']], (1, 2)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('misc', 'constraint_validity')
+
+    # THEN
+    assert actual == expected

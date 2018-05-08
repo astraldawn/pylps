@@ -143,7 +143,6 @@ def unify_fact(fact, reactive=False):
     grounded = is_grounded(fact)
 
     if grounded:
-        debug_display('GROUNDED')
         for kb_fact in kb_facts:
             if fact.args == kb_fact.args:
                 yield True
@@ -151,7 +150,6 @@ def unify_fact(fact, reactive=False):
         yield False
 
     for kb_fact in kb_facts:
-        debug_display('KB_FACT', kb_fact)
         unify_res = unify_args(fact.args, kb_fact.args)
 
         if unify_res == {}:

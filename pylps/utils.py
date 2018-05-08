@@ -39,7 +39,7 @@ def unify_args(args_with_var, args_grounded, cur_subs=None):
     assert len(args_with_var) == len(args_grounded), \
         ERROR_UNIFY_ARGS_ARITY_MISMATCH
 
-    debug_display('UNIFY_ARGS', args_with_var, args_grounded)
+    # debug_display('UNIFY_ARGS', args_with_var, args_grounded)
 
     subs = {}
     for v_arg, g_arg in zip(args_with_var, args_grounded):
@@ -48,8 +48,8 @@ def unify_args(args_with_var, args_grounded, cur_subs=None):
         if not res:
             return {}
 
-    debug_display('UNIFY_ARGS_SUBS', subs)
-    debug_display()
+    # debug_display('UNIFY_ARGS_SUBS', subs)
+    # debug_display()
 
     return subs
 
@@ -325,17 +325,6 @@ def goal_temporal_satisfied(goal, clause_goal):
     temporal_satisfied = (temporal_satisfied_cnt == len(clause_goal[1:]))
 
     return temporal_satisfied
-
-
-def check_grounded(obj_with_args, substitutions):
-    for arg in obj_with_args.args:
-        try:
-            if not substitutions.get(var(arg.name)):
-                return False
-        except AttributeError:
-            continue
-
-    return True
 
 
 def rename_args(counter, obj):

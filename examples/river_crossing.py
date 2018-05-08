@@ -1,7 +1,7 @@
 from pylps.core import *
 from pylps.lps_data_structures import LPSConstant
 
-initialise(max_time=1)
+initialise(max_time=2)
 
 create_actions('show(_)', 'valid(_)', 'say(_, _)')
 create_events('river(_, _, _, _)', 'member(_, _)')
@@ -13,7 +13,8 @@ create_variables(
 
 inp(['l', 'l', 'l', 'l'], ['r', 'r', 'r', 'r'])
 
-# crossing(['l', X, Y, Z], ['r', X, Y, Z], 'farmer_cross')
+crossing(['l', X, Y, Z], ['r', X, Y, Z], 'farmer_cross')
+crossing(['r', X, Y, Z], ['l', X, Y, Z], 'farmer_back')
 
 crossing(['l', X, 'l', Z], ['r', X, 'r', Z], 'goose_cross')
 crossing(['r', X, 'r', Z], ['l', X, 'l', Z], 'goose_back')
@@ -33,18 +34,18 @@ goal(river(A, A, _, []).frm(T, T))
 
 goal(river(A, B, V, P).frm(T1, T3)).requires(
     crossing(A, C, Action),
-    # ~member(C, V),
+    ~member(C, V),
     valid(C).frm(T1, T2),
     say(Action, C).frm(T1, T2),
     river(C, B, [C | V], Plan).frm(T2, T3),
     P.is_([Action | Plan]),
 )
 
-# false_if(valid([A, B, B, C]), A != B)
-# false_if(valid([A, C, B, B]), A != B)
+false_if(valid([A, B, B, C]), A != B)
+false_if(valid([A, C, B, B]), A != B)
 # false_if(valid(X), valid(Y), X != Y)
 
-execute(debug=True)
+execute(debug=True, solution_preference=SOLN_PREF_MAX)
 
 show_kb_log()
 

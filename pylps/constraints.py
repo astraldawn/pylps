@@ -133,7 +133,8 @@ def expand_action(constraint, cur_state, states, all_proposed):
     cons_action, outcome = constraint.goal, constraint.outcome
     cur_subs = cur_state.subs
 
-    grounded = check_grounded(cons_action, cur_subs)
+    r_action = reify_obj_args(cons_action, cur_subs)
+    grounded = is_grounded(r_action)
     # debug_display(grounded, cons_action, cur_subs)
 
     for action in all_proposed.actions:
@@ -141,8 +142,8 @@ def expand_action(constraint, cur_state, states, all_proposed):
             continue
 
         if grounded:
-            res = reify_args(cons_action.args, cur_subs)
-            if res == action.args:
+            # res = reify_args(cons_action.args, cur_subs)
+            if r_action.args == action.args:
                 new_state = copy.deepcopy(cur_state)
                 states.append(new_state)
             continue
@@ -158,9 +159,7 @@ def expand_action(constraint, cur_state, states, all_proposed):
 
         # Attempt to ground
         r_action = reify_obj_args(cons_action, new_state.subs)
-        r_grounded = check_grounded(r_action, new_state.subs)
-
-        # debug_display(new_state.subs)
+        r_grounded = is_grounded(r_action)
 
         if not r_grounded:
             states.append(new_state)
