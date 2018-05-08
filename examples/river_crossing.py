@@ -12,6 +12,7 @@ create_variables(
 )
 
 inp(['l', 'l', 'l', 'l'], ['r', 'r', 'r', 'r'])
+inp(['l', 'l', 'l', 'l'], ['r', 'l', 'r', 'l'])
 
 crossing(['l', X, Y, Z], ['r', X, Y, Z], 'farmer_cross')
 crossing(['r', X, Y, Z], ['l', X, Y, Z], 'farmer_back')

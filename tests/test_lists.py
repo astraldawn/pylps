@@ -177,6 +177,24 @@ def test_lists_member_basic():
     assert actual == expected
 
 
+def test_lists_member_modified():
+    # GIVEN
+    expected = [
+        action('say', [
+            ['b', 'c'],
+            [['a', 'b'], ['a', 'b'], ['b', 'c'], ['d', 'f']]], (1, 2)),
+        action('say', [
+            ['d', 'f'],
+            [['a', 'b'], ['a', 'b'], ['b', 'c'], ['d', 'f']]], (1, 2)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('lists', 'member_modified')
+
+    # THEN
+    assert actual == expected
+
+
 def test_lists_not_member_basic():
     # GIVEN
     expected = [
