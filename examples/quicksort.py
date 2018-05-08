@@ -1,16 +1,18 @@
 from pylps.core import *
+from pylps.lps_data_structures import LPSFunction
 
-initialise(max_time=5)
+initialise(max_time=2)
 
 create_fluents('total_years_in_jail(_, _)')
 create_actions('sort(_)', 'say(_)')
 create_variables('X', 'Y')
 
-observe(sort(['1', '2', '3', '4']).frm(1, 2))
+observe(sort([5, 4, 3, 2, 1, 10]).frm(1, 2))
 
 
-def python_sort(iterable):
-    return sorted(iterable)
+class python_sort(LPSFunction):
+    def func(self, iterable):
+        return sorted(iterable)
 
 
 reactive_rule(sort(X)).then(
@@ -18,7 +20,7 @@ reactive_rule(sort(X)).then(
     say(Y).frm(T2, T3),
 )
 
-execute(debug=True)
+execute(debug=False)
 
 show_kb_log()
 

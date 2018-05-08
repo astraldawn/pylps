@@ -160,6 +160,20 @@ def test_bubble_sort():
     assert actual == expected
 
 
+def test_quick_sort():
+    # GIVEN
+    expected = [
+        action('sort', [[5, 4, 3, 2, 1, 10]], (1, 2)),
+        action('say', [[1, 2, 3, 4, 5, 10]], (2, 3)),
+    ]
+
+    # WHEN
+    actual = run_pylps_example('quicksort')
+
+    # THEN
+    assert actual == expected
+
+
 def test_prisoners():
     # GIVEN
     expected = [

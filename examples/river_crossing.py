@@ -31,17 +31,11 @@ reactive_rule(inp(Start, End)).then(
     show(P),
 )
 
-goal(member(X, [X | _])).requires()
-
-goal(member(X, [Y | Tail])).requires(
-    member(X, Tail),
-)
-
 goal(river(A, A, _, []).frm(T, T))
 
 goal(river(A, B, V, P).frm(T1, T3)).requires(
     crossing(A, C, Action),
-    ~member(C, V),
+    C.not_in(V),
     valid(C).frm(T1, T2),
     say(Action, C).frm(T1, T2),
     river(C, B, [C | V], Plan).frm(T2, T3),
@@ -52,7 +46,7 @@ false_if(valid([A, B, B, C]), A != B)
 false_if(valid([A, C, B, B]), A != B)
 # false_if(valid(X), valid(Y), X != Y)
 
-execute(debug=True, solution_preference=SOLN_PREF_MAX)
+execute(debug=False, solution_preference=SOLN_PREF_MAX)
 
 show_kb_log()
 

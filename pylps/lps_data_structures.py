@@ -1,5 +1,6 @@
 import itertools
 import operator
+import copy
 
 from collections import deque
 from pylps.constants import *
@@ -86,6 +87,13 @@ class Variable(LPSComparable):
     def is_(self, other):
         return Expr(OP_ASSIGN, self, convert_arg(other))
 
+    # IS IN
+    def is_in(self, other):
+        return Expr(OP_IS_IN, self, convert_arg(other))
+
+    def not_in(self, other):
+        return Expr(OP_NOT_IN, self, convert_arg(other))
+
 
 class TemporalVar(Variable):
     BaseClass = TEMPORAL_VARIABLE
@@ -137,13 +145,6 @@ class LPSConstant(LPSComparable):
 
     def __gt__(self, other):
         return self.const > other.const
-
-    # # MATH
-    # def __add__(self, other):
-    #     return Expr(operator.add, self, other)
-
-    # def __sub__(self, other):
-    #     return Expr(operator.sub, self, other)
 
     # MISC
     def to_python(self):
@@ -244,6 +245,28 @@ class LPSTuple(object):
 
     def to_python(self):
         return tuple(x.to_python() for x in self._tuple)
+
+
+class LPSFunction(object):
+    BaseClass = FUNCTION
+
+    def __init__(self, *args):
+        self.args = args
+        self.converted_args = None
+        self.result = None
+
+    def __repr__(self):
+        ret = "| %s, result: %s, args: %s, converted_args: %s |" % (
+            self.BaseClass, self.result, self.args, self.converted_args)
+        return ret
+
+    def args_to_python(self):
+        self.converted_args = [x.to_python() for x in self.args]
+
+    def execute(self):
+        self.args_to_python()
+        self.result = convert_arg(self.func(*self.converted_args))
+        return copy.deepcopy(self.result)
 
 
 class Expr(LPSComparable):
