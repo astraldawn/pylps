@@ -31,42 +31,82 @@ def strictly_increasing(iterable):
     return all(x < y for x, y in zip(iterable, iterable[1:]))
 
 
-def unify_args(args_with_var, args_grounded, cur_subs=None):
-    assert len(args_with_var) == len(args_grounded), \
-        "unify args arity mismatch"
-
-    substitutions = {}
-    for v_arg, g_arg in zip(args_with_var, args_grounded):
-        try:
-            if v_arg.BaseClass == CONSTANT and g_arg.BaseClass == CONSTANT:
-                if v_arg.const != g_arg.const:
-                    return {}
-
-            if v_arg.BaseClass == VARIABLE:
-                res = unify(var(v_arg.name), g_arg)
-
-                if not cur_subs:
-                    substitutions.update(res)
-                    continue
-
-                if var(v_arg.name) in cur_subs and v_arg.name != '_':
-                    continue
-
-                substitutions.update(res)
-
-        except AttributeError:
-            continue
-
-    debug_display('UNIFY_ARGS', args_with_var, args_grounded)
-    debug_display('UNIFY_ARGS_SUBS', substitutions)
-    debug_display()
-
-    return substitutions
-
-
 def is_constant(arg):
     return isinstance(arg, str) or isinstance(arg, int)
 
+
+def unify_args(args_with_var, args_grounded, cur_subs=None):
+    assert len(args_with_var) == len(args_grounded), \
+        ERROR_UNIFY_ARGS_ARITY_MISMATCH
+
+    debug_display('UNIFY_ARGS', args_with_var, args_grounded)
+
+    subs = {}
+    for v_arg, g_arg in zip(args_with_var, args_grounded):
+        res = unify_args_single(v_arg, g_arg, subs, cur_subs)
+
+        if not res:
+            return {}
+
+    debug_display('UNIFY_ARGS_SUBS', subs)
+    debug_display()
+
+    return subs
+
+
+def unify_args_single(v_arg, g_arg, subs, cur_subs=None):
+    # CONSTANT handling
+    try:
+        if v_arg.BaseClass is CONSTANT and g_arg.BaseClass is CONSTANT:
+            return v_arg.const == g_arg.const
+    except AttributeError:
+        pass
+
+    if is_constant(v_arg) and is_constant(g_arg):
+        return v_arg == g_arg
+
+    # VARIABLE handling
+    if v_arg.BaseClass is VARIABLE:
+        res = unify(var(v_arg.name), g_arg)
+
+        if not cur_subs:
+            subs.update(res)
+            return True
+
+        if var(v_arg.name) in cur_subs and v_arg.name != '_':
+            return True
+
+        subs.update(res)
+
+    if g_arg.BaseClass is VARIABLE and v_arg.BaseClass is not VARIABLE:
+        res = unify(var(g_arg.name), v_arg)
+
+        if not cur_subs:
+            subs.update(res)
+            return True
+
+        if var(g_arg.name) in cur_subs and g_arg.name != '_':
+            return True
+
+        subs.update(res)
+
+    # Matching failures (if not same type)
+    if v_arg.BaseClass is not VARIABLE and v_arg.BaseClass != g_arg.BaseClass:
+        return False
+
+    # LIST unfolding
+    if v_arg.BaseClass is LIST:
+        # Lists must be of same length
+        if len(v_arg) != len(g_arg):
+            return False
+
+        for v_i, g_i in zip(v_arg._list, g_arg._list):
+            res = unify_args_single(v_i, g_i, subs, cur_subs)
+
+            if not res:
+                return False
+
+    return True
 
 # def is_grounded(obj):
 #     for arg in obj.args:
@@ -77,6 +117,7 @@ def is_constant(arg):
 #             pass
 
 #     return True
+
 
 def is_grounded(obj):
     for arg in obj.args:
@@ -119,11 +160,14 @@ def display(item):
 
 
 def debug_display(*args):
-    if CONFIG.debug:
-        if args:
-            print('DEBUG', args)
-        else:
-            print()
+    try:
+        if CONFIG.debug:
+            if args:
+                print('DEBUG', args)
+            else:
+                print()
+    except KeyError:
+        pass
 
 
 def convert_args_to_python(obj):
