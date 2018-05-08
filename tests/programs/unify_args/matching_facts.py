@@ -11,6 +11,8 @@ create_variables(
 )
 
 inp(['l', 'l', 'l', 'l'], ['r', 'r', 'r', 'r'])
+inp(['r', 'l', 'r', 'l'], ['r', 'r', 'r', 'r'])
+inp(['r', 'l', 'l', 'l'], ['r', 'r', 'r', 'r'])
 
 crossing(['l', X, 'l', Z], ['r', X, 'r', Z], 'goose_cross')
 crossing(['r', X, 'r', Z], ['l', X, 'l', Z], 'goose_back')
@@ -20,6 +22,6 @@ reactive_rule(inp(Start, End)).then(
     say(Action, C).frm(T1, T2),
 )
 
-execute(debug=True)
+execute(debug=False)
 
 show_kb_log()
