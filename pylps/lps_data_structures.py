@@ -263,14 +263,10 @@ class LPSFunction(object):
     def args_to_python(self):
         self.converted_args = [x.to_python() for x in self.args]
 
-    def result_to_pylps(self):
-        self.result_converted = convert_arg(self.result)
-
     def execute(self):
         self.args_to_python()
-        self.result = self.func(*self.converted_args)
-        self.result_to_pylps()
-        return copy.deepcopy(self.result_converted)
+        self.result = convert_arg(self.func(*self.converted_args))
+        return copy.deepcopy(self.result)
 
 
 class Expr(LPSComparable):
