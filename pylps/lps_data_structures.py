@@ -86,6 +86,13 @@ class Variable(LPSComparable):
     def is_(self, other):
         return Expr(OP_ASSIGN, self, convert_arg(other))
 
+    # IS IN
+    def is_in(self, other):
+        return Expr(OP_IS_IN, self, convert_arg(other))
+
+    def not_in(self, other):
+        return Expr(OP_NOT_IN, self, convert_arg(other))
+
 
 class TemporalVar(Variable):
     BaseClass = TEMPORAL_VARIABLE
@@ -137,13 +144,6 @@ class LPSConstant(LPSComparable):
 
     def __gt__(self, other):
         return self.const > other.const
-
-    # # MATH
-    # def __add__(self, other):
-    #     return Expr(operator.add, self, other)
-
-    # def __sub__(self, other):
-    #     return Expr(operator.sub, self, other)
 
     # MISC
     def to_python(self):

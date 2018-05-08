@@ -47,6 +47,24 @@ def expand_expr(expr, cur_state, states, constraint=False):
         states.append(new_state)
         return
 
+    if expr.op is OP_IS_IN or expr.op is OP_NOT_IN:
+        item = res[0]
+        lps_list = res[1]
+        operator_in = expr.op is OP_IS_IN
+
+        if lps_list.BaseClass is not LIST:
+            return
+
+        unfolded_list = []
+        unfold_list(lps_list, unfolded_list)
+        in_unfolded = item in unfolded_list
+
+        if in_unfolded == operator_in:
+            new_state = copy.deepcopy(cur_state)
+            states.append(new_state)
+
+        return
+
     if expr.op in valid_ops:
         expr.left = res[0]
         expr.right = res[1]
@@ -74,3 +92,16 @@ def _evaluate_pylps_expr(expr):
     right = _evaluate_pylps_expr(expr.right)
 
     return expr.op(left, right)
+
+
+def unfold_list(lps_list, unfolded_list):
+    for item in lps_list._list:
+        if item.BaseClass is TUPLE and item._tuple[0].const is MATCH_LIST_HEAD:
+            item1 = item._tuple[1]
+            item2 = item._tuple[2]
+
+            unfolded_list.append(item1)
+            unfold_list(item2, unfolded_list)
+            continue
+
+        unfolded_list.append(item)

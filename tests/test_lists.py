@@ -213,6 +213,74 @@ def test_lists_not_member_basic():
     assert actual == expected
 
 
+def test_lists_member_isin():
+    # GIVEN
+    expected = [
+        action('say', [[], [[]]], (1, 2)),
+        action('say', ['a', ['b', 'c', 'a']], (1, 2)),
+        action('say', [
+            ['b', 'c'],
+            ['d', ['a', 'c'], ['b', 'c']]
+        ], (1, 2)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('lists', 'member_isin')
+
+    # THEN
+    assert actual == expected
+
+
+def test_lists_member_notin():
+    # GIVEN
+    expected = [
+        action('say', ['z', ['a', 'b', 'c', 'd', 'e']], (1, 2)),
+        action('say', [
+            ['b', 'c'],
+            ['d', ['a', 'c']]
+        ], (1, 2)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('lists', 'member_notin')
+
+    # THEN
+    assert actual == expected
+
+
+def test_lists_member_modified_isin():
+    # GIVEN
+    expected = [
+        action('say', [
+            ['b', 'c'],
+            [['a', 'b'], ['a', 'b'], ['b', 'c'], ['d', 'f']]], (1, 2)),
+        action('say', [
+            ['d', 'f'],
+            [['a', 'b'], ['a', 'b'], ['b', 'c'], ['d', 'f']]], (1, 2)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('lists', 'member_modified_isin')
+
+    # THEN
+    assert actual == expected
+
+
+def test_lists_member_modified_notin():
+    # GIVEN
+    expected = [
+        action('say', [
+            ['q', 'z'],
+            [['a', 'b'], ['a', 'b'], ['b', 'c'], ['d', 'f']]], (1, 2)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('lists', 'member_modified_notin')
+
+    # THEN
+    assert actual == expected
+
+
 def test_lists_reverse():
     # GIVEN
     expected = [
