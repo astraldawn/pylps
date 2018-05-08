@@ -116,6 +116,10 @@ class Event(LPSObject):
         return self
 
 
+class Fact(LPSObject):
+    BaseClass = FACT
+
+
 class Fluent(LPSObject):
     BaseClass = FLUENT
 
@@ -131,10 +135,6 @@ class Fluent(LPSObject):
     def at(self, time):
         self._time = time
         return self
-
-
-class Fact(LPSObject):
-    BaseClass = FACT
 
 
 class ReactiveRule(object):

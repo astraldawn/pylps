@@ -15,6 +15,7 @@ CONSTRAINT = 'constraint'
 FACT = 'fact'
 FLUENT = 'fluent'
 FLUENTS = 'fluents'
+FUNCTION = 'function'
 OBS = 'obs'
 RULE = 'rule'
 LPS_OBJECTS = ['ACTION', 'EVENT', 'FLUENT', 'RULE']

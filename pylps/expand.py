@@ -35,7 +35,7 @@ def expand_expr(expr, cur_state, states, constraint=False):
         if res[0].BaseClass is not VARIABLE:
             raise PylpsTypeError(res[0].BaseClass)
 
-        if res[1].BaseClass is EXPR:
+        if res[1].BaseClass is EXPR or res[1].BaseClass is FUNCTION:
             res[1] = _evaluate_pylps_expr(res[1])
 
             if is_constant(res[1]):
@@ -87,6 +87,9 @@ def expand_expr(expr, cur_state, states, constraint=False):
 def _evaluate_pylps_expr(expr):
     if expr.BaseClass is CONSTANT:
         return expr.const
+
+    if expr.BaseClass is FUNCTION:
+        return expr.execute()
 
     left = _evaluate_pylps_expr(expr.left)
     right = _evaluate_pylps_expr(expr.right)

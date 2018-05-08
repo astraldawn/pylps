@@ -1,5 +1,6 @@
 import itertools
 import operator
+import copy
 
 from collections import deque
 from pylps.constants import *
@@ -244,6 +245,32 @@ class LPSTuple(object):
 
     def to_python(self):
         return tuple(x.to_python() for x in self._tuple)
+
+
+class LPSFunction(object):
+    BaseClass = FUNCTION
+
+    def __init__(self, *args):
+        self.args = args
+        self.converted_args = None
+        self.result = None
+
+    def __repr__(self):
+        ret = "| %s, result: %s, args: %s, converted_args: %s |" % (
+            self.BaseClass, self.result, self.args, self.converted_args)
+        return ret
+
+    def args_to_python(self):
+        self.converted_args = [x.to_python() for x in self.args]
+
+    def result_to_pylps(self):
+        self.result_converted = convert_arg(self.result)
+
+    def execute(self):
+        self.args_to_python()
+        self.func(*self.converted_args)
+        self.result_to_pylps()
+        return copy.deepcopy(self.result_converted)
 
 
 class Expr(LPSComparable):

@@ -236,6 +236,14 @@ def reify_arg_helper(arg, substitutions):
         ret.args = [ret.left, ret.right]
         return ret
 
+    if arg.BaseClass is FUNCTION:
+        r_arg = copy.deepcopy(arg)
+
+        r_arg.args = [
+            reify_arg_helper(item, substitutions) for item in arg.args
+        ]
+        return r_arg
+
     if arg.BaseClass == LIST:
         r_list = [
             reify_arg_helper(item, substitutions)
@@ -347,7 +355,7 @@ def rename_arg(counter, arg):
     '''
     if is_constant(arg) or arg.BaseClass is CONSTANT:
         return
-    elif arg.BaseClass is EXPR:
+    elif arg.BaseClass is EXPR or arg.BaseClass is FUNCTION:
         for item in arg.args:
             rename_arg(counter, item)
     elif arg.BaseClass is LIST:
