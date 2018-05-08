@@ -214,7 +214,7 @@ class _Solver(object):
             # Nothing left
             goal = cur_state.get_next_goal()
 
-            if self.iterations > 1000 and CONFIG.debug:
+            if self.iterations > 10000 and CONFIG.debug:
                 break
 
             # debug_display(self.iterations, goal)
@@ -239,7 +239,7 @@ class _Solver(object):
         if isinstance(goal, tuple):
             outcome, goal = goal[1], goal[0]
 
-        debug_display('EXPAND', goal)
+        debug_display('EXPAND', goal, outcome)
         debug_display('EXPAND_R', reify_obj_args(goal, cur_state.subs))
 
         if self.reactive and \
@@ -250,7 +250,7 @@ class _Solver(object):
         if goal.BaseClass is ACTION:
             self.expand_action(goal, cur_state, states)
         elif goal.BaseClass is EVENT:
-            self.expand_event(goal, cur_state, states)
+            self.expand_event(goal, cur_state, states, outcome)
         elif goal.BaseClass is EXPR:
             expand_expr(goal, cur_state, states)
         elif goal.BaseClass is FACT:
@@ -339,7 +339,10 @@ class _Solver(object):
             new_state.update_subs(sub)
             states.append(new_state)
 
-    def expand_event(self, goal, cur_state, states):
+    def expand_event(self, goal, cur_state, states, outcome=True):
+        all_false = True
+        all_true = True
+        res_success = 0
 
         # Need to reverse here for DFS like iteration
         KB_clauses = list(KB.get_clauses(goal))
@@ -351,9 +354,36 @@ class _Solver(object):
                 KB_clauses = [KB_clauses[-1]]
 
             for clause in KB_clauses:
-                self.match_event(goal, clause, cur_state, states)
+                res = self.match_event(
+                    goal, clause, cur_state, states, outcome)
 
-    def match_event(self, goal, clause, cur_state, states):
+                debug_display('ME', clause, res)
+
+                if res:
+                    res_success += 1
+                    all_false = False
+                else:
+                    all_true = False
+        else:
+            # cannot be false if no clauses
+            all_false = False
+
+        # Negation of goals
+        if not outcome:
+            if all_false:
+                new_state = copy.deepcopy(cur_state)
+                states.append(new_state)
+
+            if all_true:
+                # The successful states must be popped off the stack
+                for i in range(res_success):
+                    states.pop()
+
+                new_state = copy.deepcopy(cur_state)
+                new_state.set_result(G_DISCARD)
+                states.append(new_state)
+
+    def match_event(self, goal, clause, cur_state, states, outcome):
         cur_subs = cur_state.subs
 
         # Reify if possible
@@ -380,7 +410,7 @@ class _Solver(object):
 
             # If the matching fails, cannot proceed, return
             if not match_res:
-                return
+                return False
 
         s_utils.create_clause_variables(
             clause, counter, goal, new_subs, new_reqs
@@ -391,15 +421,35 @@ class _Solver(object):
 
         new_state.update_subs(new_subs)
 
-        new_state.replace_event(goal, copy.deepcopy(new_reqs))
+        new_state.replace_event(goal, outcome, copy.deepcopy(new_reqs))
         states.append(new_state)
+
+        return True
 
     def expand_fact(self, fact, cur_state, states):
         cur_subs = cur_state.subs
+        r_fact = reify_obj_args(fact, cur_subs)
+        grounded = is_grounded(r_fact)
+
+        # debug_display('FACT', fact, grounded)
 
         # Only facts checks if the reactive rule is only made up of facts
         # In that case, trigger once
-        all_subs = list(unify_fact(fact, reactive=self.only_facts))
+        if self.only_facts:
+            all_subs = list(unify_fact(fact, reactive=self.only_facts))
+        else:
+            all_subs = list(unify_fact(r_fact))
+
+        debug_display('EXPAND_F', all_subs)
+
+        # Handle the case where fact is grounded (existence check)
+        if grounded:
+            if all_subs[0]:
+                new_state = copy.deepcopy(cur_state)
+                states.append(new_state)
+
+            return
+
         subs = []
 
         for sub in all_subs:
@@ -408,7 +458,8 @@ class _Solver(object):
                 if not valid_sub:
                     continue
 
-                if cur_subs.get(k):
+                # Do not want to consider local variables here
+                if cur_subs.get(k) and VAR_SEPARATOR in k.token:
                     res = reify(k, cur_subs)
                     if not isinstance(res, Var) and v != res:
                         valid_sub = False
@@ -417,6 +468,8 @@ class _Solver(object):
                 subs.append(sub)
 
         subs.reverse()
+
+        debug_display('EXPAND_FACT_VALID_SUBS', subs)
 
         for sub in subs:
             new_state = copy.deepcopy(cur_state)

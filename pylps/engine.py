@@ -95,15 +95,17 @@ class _ENGINE(object):
                 KB.add_goals(new_goals, substitution)
 
     def _check_goals(self):
-        # debug_display('CG_KB_G', KB.goals, self.current_time)
+        debug_display('CG_B_TIME / N_GOALS', self.current_time, len(KB.goals))
+        debug_display('CG_KB_BEF', KB.goals)
         solutions = SOLVER.solve_goals(self.current_time)
 
-        debug_display('SOLUTIONS_ENGINE', solutions, self.current_time)
-        # debug_display('SOLUTION_COUNT', self.current_time, len(solutions))
+        debug_display('CG_S_TIME / N_SOLN', self.current_time, len(solutions))
+        debug_display('CG_SOLN', solutions)
 
         process_solutions(solutions, self.current_time)
 
-        # debug_display('CG_KB_AFTER', KB.goals, self.current_time)
+        # debug_display('CG_A_TIME / N_GOALS', self.current_time, len(KB.goals))
+        # debug_display('CG_KB_AFT', KB.goals)
 
         # debug_display('KB_FLUENTS_ENGINE', self.current_time, KB.fluents)
 

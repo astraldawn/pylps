@@ -79,3 +79,18 @@ def test_unify_args_path_ask():
 
     # THEN
     assert actual == expected
+
+
+def test_unify_args_matching_facts():
+    # GIVEN
+    expected = [
+        action('say', ['goose_cross', ['r', 'l', 'r', 'l']], (1, 2)),
+        action('say', ['goose_back', ['l', 'l', 'l', 'l']], (1, 2)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program(
+        'unify_args', 'matching_facts')
+
+    # THEN
+    assert actual == expected

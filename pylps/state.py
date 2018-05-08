@@ -183,20 +183,30 @@ class State(object):
     def goals(self):
         return self._goals
 
-    def replace_event(self, event, reqs):
+    def replace_event(self, event, outcome, reqs):
+        # Workaround for now
+        n_reqs = []
+
+        for req in reqs:
+            if isinstance(req, tuple):
+                n_reqs.append(req)
+            else:
+                n_reqs.append((req, outcome))
+
         new_goals = deque()
 
         for goal in self.goals:
 
+            goal_obj = goal
+
             if isinstance(goal, tuple):
+                goal_obj = goal[0]
+
+            if goal_obj != event:
                 new_goals.append(goal)
                 continue
 
-            if goal != event:
-                new_goals.append(goal)
-                continue
-
-            new_goals.extend(copy.deepcopy(reqs))
+            new_goals.extend(copy.deepcopy(n_reqs))
 
         self._goals = new_goals
 

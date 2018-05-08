@@ -140,6 +140,14 @@ def unify_fluent(cond, cycle_time, counter=0):
 def unify_fact(fact, reactive=False):
     substitutions = []
     kb_facts = KB.get_facts(fact, reactive)
+    grounded = is_grounded(fact)
+
+    if grounded:
+        for kb_fact in kb_facts:
+            if fact.args == kb_fact.args:
+                yield True
+
+        yield False
 
     for kb_fact in kb_facts:
         unify_res = unify_args(fact.args, kb_fact.args)
@@ -169,7 +177,13 @@ def reify_goals(goals, subs):
 
     for goal in goals:
         new_goal = copy.deepcopy(goal)
-        rename_args(0, new_goal)
+
+        # Negated goals
+        if isinstance(new_goal, tuple) and len(new_goal) == 2:
+            rename_args(0, new_goal[0])
+        else:
+            rename_args(0, new_goal)
+
         new_goals.append(new_goal)
 
     return copy.deepcopy(new_goals)

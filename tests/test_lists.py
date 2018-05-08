@@ -157,3 +157,91 @@ def test_lists_append_second_missing():
 
     # THEN
     assert actual == expected
+
+
+def test_lists_member_basic():
+    # GIVEN
+    expected = [
+        action('say', [[], [[]]], (1, 2)),
+        action('say', ['a', ['b', 'c', 'a']], (1, 2)),
+        action('say', [
+            ['b', 'c'],
+            ['d', ['a', 'c'], ['b', 'c']]
+        ], (1, 2)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('lists', 'member_basic')
+
+    # THEN
+    assert actual == expected
+
+
+def test_lists_member_modified():
+    # GIVEN
+    expected = [
+        action('say', [
+            ['b', 'c'],
+            [['a', 'b'], ['a', 'b'], ['b', 'c'], ['d', 'f']]], (1, 2)),
+        action('say', [
+            ['d', 'f'],
+            [['a', 'b'], ['a', 'b'], ['b', 'c'], ['d', 'f']]], (1, 2)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('lists', 'member_modified')
+
+    # THEN
+    assert actual == expected
+
+
+def test_lists_not_member_basic():
+    # GIVEN
+    expected = [
+        action('say', ['z', ['a']], (1, 2)),
+        action('say', ['z', ['a', 'b', 'c', 'd', 'e']], (1, 2)),
+        action('say', [
+            ['b', 'c'],
+            ['d', ['a', 'c']]
+        ], (1, 2)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('lists', 'not_member_basic')
+
+    # THEN
+    assert actual == expected
+
+
+def test_lists_reverse():
+    # GIVEN
+    expected = [
+        action('say', [[], []], (1, 2)),
+        action('say', [[1, 2, 3, 4, 5], [5, 4, 3, 2, 1]], (1, 2)),
+        action('say', [
+            [['a', 'b'], 5, [10, 'd']],
+            [[10, 'd'], 5, ['a', 'b']]
+        ], (1, 2)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('lists', 'reverse')
+
+    # THEN
+    assert actual == expected
+
+
+def test_list_assign_to_var():
+    # GIVEN
+    expected = [
+        action('say', [[[], []]], (1, 2)),
+        action('say', [['a', 'b', 'c', 'a']], (1, 2)),
+        action('say', [[['b', 'c'], 'd', ['a', 'c'], ['b', 'c']]], (1, 2)),
+
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('lists', 'assign_to_var')
+
+    # THEN
+    assert actual == expected

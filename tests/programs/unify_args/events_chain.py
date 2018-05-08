@@ -25,7 +25,7 @@ goal(respond(X, Y).frm(T1, T3)).requires(
     respond(Z, Y).frm(T1, T2),
     say(X, Z).frm(T2, T3))
 
-execute(single_clause=False)
+execute(single_clause=False, debug=False)
 
 show_kb_log()
 

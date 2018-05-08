@@ -1,3 +1,61 @@
+from pylps.core import *
+
+initialise(max_time=4)
+
+create_actions('show(_)', 'valid(_)', 'say(_, _)')
+create_events('river(_, _, _, _)', 'member(_, _)')
+create_facts('inp(_, _)', 'crossing(_, _, _)')
+create_variables(
+    'A', 'B', 'C', 'P', 'V', 'X', 'Y', 'Z', 'Tail',
+    'Action', 'Start', 'End', 'Plan',
+)
+
+inp(['l', 'l', 'l', 'l'], ['r', 'r', 'r', 'r'])
+# inp(['l', 'l', 'l', 'l'], ['r', 'l', 'l', 'l'])
+# inp(['l', 'l', 'l', 'l'], ['r', 'l', 'r', 'l'])
+
+crossing(['l', X, Y, Z], ['r', X, Y, Z], 'farmer_cross')
+crossing(['r', X, Y, Z], ['l', X, Y, Z], 'farmer_back')
+
+crossing(['l', 'l', Y, Z], ['r', 'r', Y, Z], 'fox_cross')
+crossing(['r', 'r', Y, Z], ['l', 'l', Y, Z], 'fox_back')
+
+crossing(['l', X, 'l', Z], ['r', X, 'r', Z], 'goose_cross')
+crossing(['r', X, 'r', Z], ['l', X, 'l', Z], 'goose_back')
+
+crossing(['l', X, Y, 'l'], ['r', X, Y, 'r'], 'beans_cross')
+crossing(['r', X, Y, 'r'], ['l', X, Y, 'l'], 'beans_back')
+
+reactive_rule(inp(Start, End)).then(
+    river(Start, End, [Start], P).frm(T1, T2),
+    show(P),
+)
+
+goal(member(X, [X | _])).requires()
+
+goal(member(X, [Y | Tail])).requires(
+    member(X, Tail),
+)
+
+goal(river(A, A, _, []).frm(T, T))
+
+goal(river(A, B, V, P).frm(T1, T3)).requires(
+    crossing(A, C, Action),
+    ~member(C, V),
+    valid(C).frm(T1, T2),
+    say(Action, C).frm(T1, T2),
+    river(C, B, [C | V], Plan).frm(T2, T3),
+    P.is_([Action | Plan]),
+)
+
+false_if(valid([A, B, B, C]), A != B)
+false_if(valid([A, C, B, B]), A != B)
+# false_if(valid(X), valid(Y), X != Y)
+
+execute(debug=True, solution_preference=SOLN_PREF_MAX)
+
+show_kb_log()
+
 '''
 % The ability to give a solution depends on the ordering of the facts,
 % if attempting to only perform 1 move per time step
@@ -26,9 +84,9 @@ if input(Start, End) then
     river(Start, End, [Start], P) from T1 to T2,
     show(P).
 
-river(A,A,_,[]) from T1 to T2 if true.
+river(A,A,_,[]) from T to T.
 
-river(A, B, V, P) from T1 to T2 if
+river(A, B, V, P) from T1 to T3 if
     crossing(A, C, Action),
     \+ member(C, V),
     valid(C) from T1 to T2,

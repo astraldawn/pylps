@@ -1,3 +1,4 @@
+from collections import deque
 from unittest.mock import MagicMock
 
 from pylps.constants import *
@@ -28,10 +29,25 @@ def event(name, args, time):
         name, str(args), str(time))
 
 
+def create_test_constant(const):
+    ret = MagicMock()
+    ret.BaseClass = CONSTANT
+    ret.const = const
+    return ret
+
+
 def create_test_variable(name):
     ret = MagicMock()
     ret.name = name
     ret.BaseClass = VARIABLE
+    return ret
+
+
+def create_test_list(items):
+    ret = MagicMock()
+    ret.BaseClass = LIST
+    ret._list = deque(items)
+    ret.__len__.return_value = len(items)
     return ret
 
 
