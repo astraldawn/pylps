@@ -323,24 +323,3 @@ def create_clause_variables(
     # debug_display('SUBS', new_subs)
     # debug_display('REQS', clause.reqs)
     # debug_display('NEW_REQS', new_reqs)
-
-
-# def _rename_arg(counter, arg):
-#     '''
-#     No need to do a deepcopy here, done in calling fx
-#     '''
-#     if is_constant(arg) or arg.BaseClass is CONSTANT:
-#         return
-#     elif arg.BaseClass is EXPR:
-#         for item in arg.args:
-#             _rename_arg(counter, item)
-#     elif arg.BaseClass is LIST:
-#         for item in arg._list:
-#             _rename_arg(counter, item)
-#     elif arg.BaseClass is TUPLE:
-#         for item in arg._tuple:
-#             _rename_arg(counter, item)
-#     elif arg.BaseClass is VARIABLE:
-#         arg.name += VAR_SEPARATOR + str(counter)
-#     else:
-#         raise PylpsUnimplementedOutcomeError(arg.BaseClass)
