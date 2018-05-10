@@ -145,3 +145,8 @@ def show_kb_log(show_events=False):
 
 def show_kb_rules():
     return KB.show_reactive_rules()
+
+
+def kb_display_log(show_events=False, print_log=False):
+    KB.show_log(show_events=show_events, print_log=False)
+    return KB.display_log

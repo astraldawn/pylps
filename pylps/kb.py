@@ -22,6 +22,8 @@ class _KB(object):
     _fact_used_reactive = set()
     _cycle_obs = OrderedSet()
 
+    display_log = []
+
     log = []
 
     ''' Rule controls '''
@@ -371,16 +373,23 @@ class _KB(object):
             converted_args, (observation.start_time, observation.end_time),
             False])
 
-    def show_log(self, show_events=False):
+    def show_log(self, show_events=False, print_log=True):
+        self.display_log = []
         for item in self.log:
             # Override to always show observation
             if item[4]:
-                display(item[:4])
+                if print_log:
+                    display(item[:4])
+
+                self.display_log.append(item[:4])
                 continue
 
             if item[0] is EVENT and not show_events:
                 continue
-            display(item[:4])
+
+            if print_log:
+                display(item[:4])
+            self.display_log.append(item[:4])
 
 
 KB = _KB()
