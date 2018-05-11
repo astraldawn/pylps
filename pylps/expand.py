@@ -20,7 +20,7 @@ def expand_expr(expr, cur_state, states, constraint=False):
 
     cur_subs = cur_state.subs
     res = reify_args(expr.args, cur_subs)
-    debug_display('EXPAND_EXPR_SUBS', res, cur_subs)
+    # debug_display('EXPAND_EXPR_SUBS', res, cur_subs)
 
     valid_ops = [
         operator.ne, operator.lt,

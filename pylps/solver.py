@@ -58,6 +58,9 @@ class _Solver(object):
         soln_cnt = 0
         solutions = []
 
+        solver_loop_iterations = 0
+        solver_loop_iterations_limit = 25  # VERY IMPORTANT FOR PERFORMANCE
+
         if CONFIG.experimental:
             solutions = OrderedSet()
 
@@ -69,6 +72,11 @@ class _Solver(object):
 
             # FORWARD
             while not back:
+                solver_loop_iterations += 1
+                if solver_loop_iterations > solver_loop_iterations_limit:
+                    end = True
+                    break
+
                 if cur_goal_pos >= len(KB.goals):
 
                     if len(self.cycle_proposed.actions) >= max_soln:
@@ -83,7 +91,6 @@ class _Solver(object):
                                 states=copy.deepcopy(states_stack)
                             ))
                         max_soln = len(self.cycle_proposed.actions)
-                        # debug_display('FOUND_SOLN', max_soln)
 
                     # allow for non-maximal soln
                     if CONFIG.experimental:
@@ -121,6 +128,11 @@ class _Solver(object):
 
             # BACK
             while back:
+                solver_loop_iterations += 1
+                if solver_loop_iterations > solver_loop_iterations_limit:
+                    end = True
+                    break
+
                 cur_goal_pos -= 1
                 # debug_display('BACK', cur_goal_pos)
 
@@ -194,6 +206,13 @@ class _Solver(object):
         self.only_facts = only_facts
         states = deque()
 
+        '''
+        Additional empty state to cover the case where
+        the reactive rule is not chosen for solving
+        '''
+        if CONFIG.solution_preference is SOLN_PREF_MAX:
+            yield State([], {})
+
         start_state = copy.deepcopy(start)
         states.append(start_state)
 
@@ -201,11 +220,12 @@ class _Solver(object):
             self.current_time = current_time
 
         while states:
+            # cur_state = states.popleft()
             cur_state = states.pop()
 
             self.iterations += 1
 
-            debug_display('STATE_BT', cur_state)
+            # debug_display('STATE_BT', cur_state)
 
             if cur_state.result is G_DEFER or cur_state.result is G_DISCARD:
                 yield cur_state
@@ -226,11 +246,8 @@ class _Solver(object):
             else:
                 self.expand_goal(goal, cur_state, states)
 
-        '''
-        Additional empty state to cover the case where
-        the reactive rule is not chosen for solving
-        '''
-        yield State([], {})
+        if CONFIG.solution_preference is SOLN_PREF_FIRST:
+            yield State([], {})
 
     def expand_goal(self, goal, cur_state, states):
 
@@ -240,7 +257,7 @@ class _Solver(object):
             outcome, goal = goal[1], goal[0]
 
         debug_display('EXPAND', goal, outcome)
-        debug_display('EXPAND_R', reify_obj_args(goal, cur_state.subs))
+        # debug_display('EXPAND_R', reify_obj_args(goal, cur_state.subs))
 
         if self.reactive and \
                 (goal.BaseClass is ACTION or goal.BaseClass is EVENT):
@@ -416,10 +433,20 @@ class _Solver(object):
             clause, counter, goal, new_subs, new_reqs
         )
 
-        # debug_display('CLAUSE_REQS', new_reqs)
-        # debug_display('CLAUSE_SUBS', new_subs)
-
         new_state.update_subs(new_subs)
+
+        for n_req in new_reqs:
+            # Check if it is possible to continue, otherwise hold off
+            req = n_req
+            if isinstance(n_req, tuple):
+                req = n_req[0]
+            if req.BaseClass is ACTION:
+                start_time = reify(var(req.start_time.name), new_state.subs)
+                end_time = reify(var(req.end_time.name), new_state.subs)
+
+                if (isinstance(start_time, Var) or isinstance(end_time, Var)) \
+                        and new_state.temporal_used:
+                    new_state.set_result(G_DEFER)
 
         new_state.replace_event(goal, outcome, copy.deepcopy(new_reqs))
         states.append(new_state)

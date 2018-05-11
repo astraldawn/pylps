@@ -24,11 +24,12 @@ def process_solutions(solutions, cycle_time):
             key=lambda sol: (sol.solved, len(sol.proposed.actions)),
             reverse=True)
 
-    new_kb_goals = OrderedSet()
+    new_kb_goals = []
 
     # Ensure that actions executed per cycle are unique
     unique_actions = set()
     processed = set()
+    solved_goals = set()
     solved = False
     soln_max_solved = False
 
@@ -41,11 +42,16 @@ def process_solutions(solutions, cycle_time):
 
             if state.result is G_SOLVED:
                 soln_max_solved = True
+                solved_goals.add(state.reactive_id)
                 processed.add(state.reactive_id)
                 _process_state(state, unique_actions)
 
             elif state.result is G_DEFER:
                 # soln_max_solved = True
+
+                if state.reactive_id in solved_goals:
+                    continue
+
                 processed.add(state.reactive_id)
                 _process_state(state, unique_actions)
 
@@ -59,7 +65,7 @@ def process_solutions(solutions, cycle_time):
                 # Allow another temporal sub
                 new_state.set_temporal_used(False)
 
-                new_kb_goals.add(new_state)
+                new_kb_goals.append(new_state)
             elif state.result is G_DISCARD:
                 processed.add(state.reactive_id)
                 continue
@@ -72,12 +78,18 @@ def process_solutions(solutions, cycle_time):
     unsolved_existing_goals = OrderedSet()
 
     for start_state in KB.goals:
-        if start_state.reactive_id in processed:
+        if start_state.reactive_id in processed or \
+                start_state.reactive_id in solved_goals:
             continue
 
         unsolved_existing_goals.add(start_state)
 
-    unsolved_existing_goals.update(new_kb_goals)
+    for state in new_kb_goals:
+
+        if state.reactive_id in solved_goals:
+            continue
+
+        unsolved_existing_goals.add(state)
 
     KB.set_goals(unsolved_existing_goals)
 

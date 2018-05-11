@@ -1,6 +1,6 @@
 from pylps.core import *
 
-initialise(max_time=4)
+initialise(max_time=10)
 
 create_actions('show(_)', 'valid(_)', 'say(_, _)')
 create_events('river(_, _, _, _)', 'member(_, _)')
@@ -28,7 +28,7 @@ crossing(['r', X, Y, 'r'], ['l', X, Y, 'l'], 'beans_back')
 
 reactive_rule(inp(Start, End)).then(
     river(Start, End, [Start], P).frm(T1, T2),
-    show(P),
+    show(P).frm(T2, T3),
 )
 
 goal(river(A, A, _, []).frm(T, T))
