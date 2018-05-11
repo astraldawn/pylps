@@ -1,0 +1,10 @@
+[run]
+omit =
+    pylps\exceptions.py
+    pylps\visualiser.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    debug_display

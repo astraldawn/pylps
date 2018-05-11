@@ -1,4 +1,5 @@
 import inspect
+import sys
 from pylps.constants import *
 from pylps.exceptions import *
 from pylps.lps_objects import Action, Event, Fact, Fluent
@@ -60,10 +61,11 @@ def ClassFactory(name, arity, base_type):
 
 
 def create_objects(args, object_type):
-    stack = inspect.stack()
+    # stack = inspect.stack()
 
     # TODO: This is mega hacky
-    locals_ = stack[-1][0].f_locals
+    # locals_ = stack[-1][0].f_locals
+    locals_ = sys._getframe(2).f_locals
 
     for arg in args:
         '''
@@ -71,10 +73,11 @@ def create_objects(args, object_type):
         For example, check if the object is already in locals
         Tweak the argument string to accept arguments
         '''
-
         if object_type == VARIABLE:
+            # globals()[arg] = Variable(arg)
             locals_[arg] = Variable(arg)
         elif object_type == TEMPORAL_VARIABLE:
+            # globals()[arg] = TemporalVar(arg)
             locals_[arg] = TemporalVar(arg)
         elif object_type in valid_dynamic_types:
             name, arity = (arg, 0)
@@ -85,6 +88,7 @@ def create_objects(args, object_type):
             new_object = ClassFactory(
                 name, arity, base_type=object_type
             )
+            # globals()[name] = new_object if arity else new_object()
             locals_[name] = new_object if arity else new_object()
         else:
             raise TypeError('Invalid object')

@@ -70,7 +70,7 @@ def initialise(max_time=5, create_vars=True):
     # Must call create object directly due to stack issues
     if create_vars:
         create_objects(['T', 'T1', 'T2', 'T3', 'T4', 'T5'], TEMPORAL_VARIABLE)
-        create_variables('_')
+        create_objects(['_'], VARIABLE)
 
     ENGINE.set_params(max_time=max_time)
 
