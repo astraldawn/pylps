@@ -205,7 +205,7 @@ class _Solver(object):
 
             self.iterations += 1
 
-            # debug_display('STATE_BT', cur_state)
+            debug_display('STATE_BT', cur_state)
 
             if cur_state.result is G_DEFER or cur_state.result is G_DISCARD:
                 yield cur_state
@@ -357,7 +357,7 @@ class _Solver(object):
                 res = self.match_event(
                     goal, clause, cur_state, states, outcome)
 
-                debug_display('ME', clause, res)
+                # debug_display('ME', goal, clause, res)
 
                 if res:
                     res_success += 1

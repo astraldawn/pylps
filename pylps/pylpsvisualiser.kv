@@ -1,0 +1,40 @@
+#:kivy 1.0
+
+<PylpsVisualiser>:
+
+    BoxLayout:
+        orientation: 'vertical'
+
+        GridLayout:
+            cols: 1
+            size_hint: (1, .1)
+
+            Label:
+                text: root.current_time_str + ' / ' + root.max_time_str
+
+        GridLayout:
+            cols: 1
+            size_hint: (1, .75)
+
+            Label:
+                text: root.info
+
+        GridLayout:
+            cols: 5
+            size_hint: (1, .15)
+
+            Button:
+                text: 'BACK_ALL'
+                on_press: root.move_timepoint('BACK_ALL')
+            Button:
+                text: 'BACK_1'
+                on_press: root.move_timepoint('BACK_1')
+            Button:
+                text: 'PLAY'
+                on_press: root.play()
+            Button:
+                text: 'FORWARD_1'
+                on_press: root.move_timepoint('FWD_1')
+            Button:
+                text: 'FORWARD_ALL'
+                on_press: root.move_timepoint('FWD_ALL')
