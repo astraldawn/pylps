@@ -59,10 +59,7 @@ class _Solver(object):
         solutions = []
 
         solver_loop_iterations = 0
-        solver_loop_iterations_limit = 25  # VERY IMPORTANT FOR PERFORMANCE
-
-        if CONFIG.experimental:
-            solutions = OrderedSet()
+        solver_loop_iterations_limit = 500  # VERY IMPORTANT FOR PERFORMANCE
 
         n_solutions = CONFIG.n_solutions
 
@@ -80,24 +77,11 @@ class _Solver(object):
                 if cur_goal_pos >= len(KB.goals):
 
                     if len(self.cycle_proposed.actions) >= max_soln:
-                        if CONFIG.experimental:
-                            solutions.add(Solution(
-                                proposed=copy.deepcopy(self.cycle_proposed),
-                                states=copy.deepcopy(states_stack)
-                            ))
-                        else:
-                            solutions.append(Solution(
-                                proposed=copy.deepcopy(self.cycle_proposed),
-                                states=copy.deepcopy(states_stack)
-                            ))
-                        max_soln = len(self.cycle_proposed.actions)
-
-                    # allow for non-maximal soln
-                    if CONFIG.experimental:
-                        solutions.add(Solution(
+                        solutions.append(Solution(
                             proposed=copy.deepcopy(self.cycle_proposed),
                             states=copy.deepcopy(states_stack)
                         ))
+                        max_soln = len(self.cycle_proposed.actions)
 
                     soln_cnt += 1
                     if soln_cnt >= n_solutions:
@@ -170,10 +154,6 @@ class _Solver(object):
 
     def add_cycle_proposed(self, state, future_solutions):
         # Add current state
-        # if CONFIG.experimental:
-        #     self.cycle_proposed.add_actions(
-        #         s_utils.reify_actions(state, reify=False))
-        # else:
         self.cycle_proposed.add_actions(
             s_utils.reify_actions(state, reify=True))
 
@@ -232,7 +212,7 @@ class _Solver(object):
                 continue
 
             # Nothing left
-            goal = cur_state.get_next_goal()
+            goal = cur_state.get_next_goal(reactive=reactive)
 
             if self.iterations > 10000 and CONFIG.debug:
                 break
@@ -292,6 +272,10 @@ class _Solver(object):
             # Start time has not been substituted
             if cur_state.temporal_used:
                 new_state._goal_pos -= 1
+
+                if CONFIG.experimental:
+                    new_state.add_to_goals(goal)
+
                 new_state.set_result(G_DEFER)
                 # debug_display('DEFER_IF', goal)
                 states.append(new_state)
@@ -312,6 +296,10 @@ class _Solver(object):
 
             if not temporal_valid:
                 new_state._goal_pos -= 1
+
+                if CONFIG.experimental:
+                    new_state.add_to_goals(goal)
+
                 new_state.set_result(G_DEFER)
                 # debug_display('DEFER_ELSE', goal)
                 states.append(new_state)
@@ -557,6 +545,10 @@ class _Solver(object):
             if subs:
                 debug_display('FLUENT_CHECK_F_DEFER')
                 new_state._goal_pos -= 1
+
+                if CONFIG.experimental:
+                    new_state.add_to_goals((fluent, outcome))
+
                 new_state.set_result(G_DEFER)
                 states.append(new_state)
                 return

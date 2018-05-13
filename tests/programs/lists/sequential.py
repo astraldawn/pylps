@@ -19,7 +19,7 @@ goal(handle_list([X | XS]).frm(T1, T2)).requires(
     handle_list(XS).frm(T1, T2)
 )
 
-execute(single_clause=False)
+execute(single_clause=False, debug=False)
 
 show_kb_log()
 

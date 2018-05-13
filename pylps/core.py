@@ -47,6 +47,12 @@ def reactive_rule(*args):
     return new_rule
 
 
+def event(*args):
+    new_clause = GoalClause(args)
+    KB.add_clause(new_clause)
+    return new_clause
+
+
 def goal(*args):
     new_clause = GoalClause(args)
     KB.add_clause(new_clause)

@@ -105,4 +105,4 @@ ENV/
 *.sublime-workspace
 
 # Test files
-output.*
+output*.*

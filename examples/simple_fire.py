@@ -20,7 +20,7 @@ goal(deal_with_fire.frm(T1, T2)).requires(
 
 eliminate.terminates(fire)
 
-execute()
+execute(debug=False)
 
 show_kb_log()
 

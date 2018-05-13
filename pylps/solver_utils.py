@@ -102,9 +102,6 @@ def _process_state(state, unique_actions):
         if action in unique_actions:
             continue
 
-        # if CONFIG.experimental:
-        #     r_action = reify_action(action, state.subs)
-        # else:
         r_action = action
 
         # Convert args for action

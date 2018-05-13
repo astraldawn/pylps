@@ -96,7 +96,7 @@ class Solution(object):
 class State(object):
     def __init__(self, goals=[], subs={},
                  proposed=Proposed(), from_reactive=False):
-        self._goals = goals
+        self._goals = deque(goals)
         self._subs = subs
         self._proposed = proposed
         self._temporal_used = False
@@ -145,14 +145,15 @@ class State(object):
     # COMPARISON
 
     def __eq__(self, other):
-        return self._to_tuple() == other._to_tuple()
+        return self.to_tuple() == other.to_tuple()
 
     def __hash__(self):
-        return hash(self._to_tuple())
+        return hash(self.to_tuple())
 
-    def _to_tuple(self):
+    def to_tuple(self):
         convert = tuple(goal for goal in self.goals) + \
             tuple((sub, val) for sub, val in self.subs.items())
+        # convert = tuple(goal for goal in self.goals)
         return convert
 
     @property
@@ -193,6 +194,11 @@ class State(object):
             else:
                 n_reqs.append((req, outcome))
 
+        if CONFIG.experimental:
+            self._goals.extendleft(reversed(copy.deepcopy(n_reqs)))
+            self._goal_pos -= 1
+            return
+
         new_goals = deque()
 
         for goal in self.goals:
@@ -213,13 +219,24 @@ class State(object):
         # Reduce due to the replacement
         self._goal_pos -= 1
 
+    def add_to_goals(self, goal):
+        self._goals.appendleft(copy.deepcopy(goal))
+
     @property
     def goal_pos(self):
         return self._goal_pos
 
-    def get_next_goal(self):
+    def get_next_goal(self, reactive=False):
         try:
-            cur_goal = self.goals[self.goal_pos]
+            if not CONFIG.experimental:
+                reactive = True
+
+            if reactive:
+                cur_goal = self.goals[self.goal_pos]
+            else:
+                cur_goal = self.goals[0]
+                self._goals.popleft()
+
             self._goal_pos += 1
             return cur_goal
         except IndexError:
