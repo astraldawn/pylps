@@ -15,8 +15,8 @@ observe(refill.frm(7, 8))
 
 initially(water)
 
-flammable('sofa')
-flammable('bed')
+flammable('sofa'), flammable('bed')
+# flammable(X)
 
 reactive_rule(fire.at(T1)).then(
     deal_with_fire.frm(T2, T3))
@@ -35,7 +35,7 @@ refill.initiates(water)
 
 false_if(eliminate, fire, ~water)
 
-execute(single_clause=False)
+execute(single_clause=False, debug=False)
 
 show_kb_log()
 
