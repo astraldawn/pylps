@@ -1,5 +1,5 @@
 from pylps.core import *
-from pylps.visualiser import PylpsVisualiserApp
+from pylps.visualiser import PylpsVisualiserApp, generate_states
 
 
 initialise(max_time=10)

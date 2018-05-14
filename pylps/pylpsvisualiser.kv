@@ -1,12 +1,20 @@
 #:kivy 1.0
 
-<TimePointDisplay>
+<PositionButton>
+    pos_hint: (root.x_offset, root.y_offset)
+    text: root.text
+
+<VSDisplay>
     size_hint_y: None
-    height: 300
+    height: 100
     id: root.identity
+    orientation: 'vertical'
 
     Label:
-        text: root.info
+        text: 'Time ' + root.time
+
+    BoxLayout:
+        id: tpdisplay
 
 <PylpsMainScreen>:
 

@@ -1,10 +1,18 @@
+import copy
+from collections import defaultdict
+
 import kivy
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
 from kivy.properties import *
 kivy.require('1.0.7')
+
+ACTION = 'action'
+FLUENT_INITIATE = 'fluent_initiate'
+FLUENT_TERMINATE = 'fluent_terminate'
 
 
 class LogObject(object):
@@ -24,35 +32,38 @@ class LogObject(object):
         return str(tuple((self.type, self.name, self.args, self.end_time)))
 
 
-class TimePoint(object):
-    def __init__(self, time):
-        self.time = time
-        self.events = []
-
-    def __repr__(self):
-        ret = "Time %s\n" % str(self.time)
-        for i in range(1):
-            for event in self.events:
-                ret += "%s\n" % str(event)
-        ret += '\n'
-        return ret
-
-    def add_event(self, event):
-        self.events.append(event)
-
-
 class PylpsScreenManager(ScreenManager):
     pass
 
 
-class TimePointDisplay(BoxLayout):
-    info = StringProperty()
-    identity = StringProperty()
+class PositionBox(Label):
+    text = StringProperty()
+    x_offset = NumericProperty()
+    y_offset = NumericProperty()
 
-    def __init__(self, timepoint):
+    def __init__(self, text, x_offset, y_offset):
         super().__init__()
-        self.identity = 'time' + str(timepoint.time)
-        self.info = str(timepoint)
+        self.text = str(text)
+
+
+class VSDisplay(BoxLayout):
+    identity = StringProperty()
+    time = StringProperty()
+
+    def __init__(self, visual_state):
+        super().__init__()
+        self.identity = 'time' + str(visual_state.time)
+        self.visual_state = visual_state
+        self.time = str(self.visual_state.time)
+
+        for args in sorted(
+                self.visual_state.fluents['location'], key=lambda x: x[1]):
+            self.add_event(text=args)
+
+    def add_event(self, text, x_offset=0, y_offset=0):
+        self.ids.tpdisplay.add_widget(
+            PositionBox(text=text, x_offset=x_offset, y_offset=y_offset)
+        )
 
 
 class PylpsMainScreen(Screen):
@@ -60,34 +71,24 @@ class PylpsMainScreen(Screen):
     current_time_str = StringProperty()
     max_time_str = StringProperty()
 
-    def __init__(self, display_log):
+    def __init__(self, visual_states):
         super().__init__()
-        self.display_log = display_log
-        self.timepoints = []
+        self.visual_states = visual_states
         self.current_time = 0
-        self.max_time = display_log[-1].end_time
+        self.max_time = visual_states[-1].time
         self.manual = False
-        self.tp_display_widgets = {}
+        self.vs_display_widgets = {}
         self.widget_pos = {}
 
-        # Generate data
-        self.generate_timepoints()
-
-        for timepoint in self.timepoints:
-            self.add_timepoint_display(timepoint)
+        for v in self.visual_states:
+            self.add_vs_display(v)
 
         self.update_display()
 
-    def add_timepoint_display(self, timepoint):
-        widget = TimePointDisplay(timepoint)
-        self.tp_display_widgets[timepoint.time] = widget
+    def add_vs_display(self, visual_state):
+        widget = VSDisplay(visual_state)
+        self.vs_display_widgets[visual_state.time] = widget
         self.ids.scrollgrid.add_widget(widget)
-
-    def generate_timepoints(self):
-        self.timepoints = [TimePoint(i) for i in range(self.max_time + 1)]
-
-        for item in self.display_log:
-            self.timepoints[item.end_time].add_event(item)
 
     def update_display(self, scroll=True):
         # Bound checking
@@ -102,7 +103,7 @@ class PylpsMainScreen(Screen):
 
         if scroll:
             self.ids.scrollgridview.scroll_to(
-                self.tp_display_widgets[self.current_time]
+                self.vs_display_widgets[self.current_time]
             )
 
     def move_timepoint(self, command):
@@ -139,7 +140,78 @@ class PylpsVisualiserApp(App):
 
     def __init__(self, display_log):
         super().__init__()
-        self.display_log = [LogObject(i) for i in display_log]
+        self.states = generate_states(display_log)
 
     def build(self):
-        return PylpsMainScreen(self.display_log)
+        return PylpsMainScreen(self.states)
+
+
+'''
+LOGIC FOR STATE GENERATION
+'''
+
+
+class VisualState(object):
+    def __init__(self, time):
+        self.time = time
+        self.actions = defaultdict(set)
+        self.fluents = defaultdict(set)
+
+    def __repr__(self):
+        ret = "Time %s\n" % str(self.time)
+        ret += "ACTIONS\n"
+        for action, args in self.actions.items():
+            ret += "[%s]: %s\n" % (action, str(args))
+
+        ret += "FLUENTS\n"
+        for fluent, args in self.fluents.items():
+            ret += "[%s]: %s\n" % (fluent, str(sorted(args)))
+        ret += '\n'
+        return ret
+
+    def add_action(self, action, args):
+        self.actions[action].add(args)
+
+    def remove_action(self, action, args):
+        self.actions[action].remove(args)
+
+    def clear_actions(self):
+        self.actions = defaultdict(set)
+
+    def add_fluent(self, fluent, args):
+        self.fluents[fluent].add(args)
+
+    def remove_fluent(self, fluent, args):
+        self.fluents[fluent].remove(args)
+
+
+def generate_states(display_log):
+    display_log = [LogObject(i) for i in display_log]
+    max_time = display_log[-1].end_time
+
+    states = [VisualState(0)]
+    ptr = 0
+
+    for i in range(max_time + 1):
+        if i > 0:
+            states.append(copy.deepcopy(states[i - 1]))
+            states[i].time += 1
+            states[i].clear_actions()
+
+        while ptr < len(display_log):
+            log_item = display_log[ptr]
+            if log_item.end_time > i:
+                break
+
+            if log_item.type is FLUENT_INITIATE:
+                states[i].add_fluent(log_item.name, tuple(log_item.args))
+
+            if log_item.type is FLUENT_TERMINATE:
+                states[i].remove_fluent(log_item.name, tuple(log_item.args))
+
+            if log_item.type is ACTION:
+                states[i].add_action(log_item.name, tuple(log_item.args))
+
+            ptr += 1
+
+    return states
