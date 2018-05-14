@@ -1,6 +1,14 @@
 #:kivy 1.0
 
-<PylpsVisualiser>:
+<TimePointDisplay>
+    size_hint_y: None
+    height: 300
+    id: root.identity
+
+    Label:
+        text: root.info
+
+<PylpsMainScreen>:
 
     BoxLayout:
         orientation: 'vertical'
@@ -14,14 +22,21 @@
 
         GridLayout:
             cols: 1
-            size_hint: (1, .75)
+            size_hint: (1, .8)
 
-            Label:
-                text: root.info
+            ScrollView:
+                id: scrollgridview
+                on_touch_down: root.scroll_view()
+
+                GridLayout:
+                    id: scrollgrid
+                    cols: 1
+                    size_hint_y: None
+                    height: self.minimum_height
 
         GridLayout:
             cols: 5
-            size_hint: (1, .15)
+            size_hint: (1, .10)
 
             Button:
                 text: 'BACK_ALL'
