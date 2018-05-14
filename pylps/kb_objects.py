@@ -54,7 +54,7 @@ class CausalityOutcome(object):
         return hash(self._to_tuple())
 
     def _to_tuple(self):
-        return tuple((self.outcome, self.fluent.to_tuple()))
+        return tuple((self.outcome, self.fluent._to_tuple()))
 
     @property
     def fluent(self):
@@ -86,7 +86,7 @@ class Constraint(object):
         return hash(self._to_tuple())
 
     def _to_tuple(self):
-        return tuple((self.outcome, self.goal.to_tuple()))
+        return tuple((self.outcome, self.goal._to_tuple()))
 
     @property
     def goal(self):

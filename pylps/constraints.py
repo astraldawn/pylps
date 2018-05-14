@@ -175,6 +175,8 @@ def expand_fact(constraint, cur_state, states):
 
     all_subs = list(unify_fact(fact))
 
+    debug_display('FACT_CONS', all_subs)
+
     subs = []
 
     for sub in all_subs:

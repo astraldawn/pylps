@@ -39,7 +39,9 @@ def test_unify_args_events_multi():
         action('say', ['e', 'c'], (1, 2)),
         action('say', ['a', 'b'], (2, 3)),
         action('say', ['d', 'e'], (2, 3)),
-        action('say', ['a', 'd'], (3, 4)),
+        action('say2', ['a', 'c'], (3, 4)),
+        # action('say', ['a', 'd'], (3, 4)),
+        # action('say2', ['a', 'c'], (4, 5)),
     ]
 
     # WHEN

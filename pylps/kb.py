@@ -235,6 +235,7 @@ class _KB(object):
     def get_facts(self, fact, reactive_rule=False):
         try:
             facts = self.facts[fact.name]
+            debug_display('FACTS', self.facts)
 
             if not reactive_rule:
                 return self._match_facts(fact, facts)

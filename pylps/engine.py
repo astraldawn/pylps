@@ -23,9 +23,9 @@ class _ENGINE(object):
         KB.reset_goals()
 
         while self.current_time <= self.max_time:
-            self._check_observations()
             self._check_rules()
             self._check_goals()
+            self._check_observations()
 
             self.current_time += 1
 
@@ -34,7 +34,7 @@ class _ENGINE(object):
 
     def _check_observations(self):
         for observation in KB.observations:
-            if observation.end_time == self.current_time:
+            if observation.start_time == self.current_time:
                 # Unify with the KB?
                 unify_obs(observation)
 

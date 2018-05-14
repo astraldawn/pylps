@@ -1,7 +1,3 @@
-'''
-Tuple based unification engine
-Referenced from: https://github.com/aimacode/aima-python/blob/master/logic.py
-'''
 import copy
 
 from unification import *
@@ -12,58 +8,58 @@ from pylps.utils import *
 
 from pylps.kb import KB
 
+# Marked for removal
+# def unify_conds(rule, cycle_time):
+#     conds = rule.conds
+#     substitutions = []
 
-def unify_conds(rule, cycle_time):
-    conds = rule.conds
-    substitutions = []
+#     debug_display('UNIFY_CONDS', conds)
 
-    debug_display('UNIFY_CONDS', conds)
+#     for cond in conds:
 
-    for cond in conds:
+#         cond_object = copy.deepcopy(cond)
 
-        cond_object = copy.deepcopy(cond)
+#         # Setup arguments
+#         for arg in cond_object.args:
+#             if is_constant(arg):
+#                 continue
 
-        # Setup arguments
-        for arg in cond_object.args:
-            if is_constant(arg):
-                continue
+#             if arg.BaseClass is VARIABLE:
+#                 arg.name += VAR_SEPARATOR + '0'
 
-            if arg.BaseClass is VARIABLE:
-                arg.name += VAR_SEPARATOR + '0'
+#         if cond_object.BaseClass is ACTION:
+#             substitutions.extend(
+#                 unify_action(cond_object, cycle_time))
 
-        if cond_object.BaseClass is ACTION:
-            substitutions.extend(
-                unify_action(cond_object, cycle_time))
+#         elif cond_object.BaseClass is CONSTANT:
+#             if cond_object.const is True:
+#                 substitutions.append({})
+#             else:
+#                 raise UnimplementedOutcomeError(cond_object.const)
 
-        elif cond_object.BaseClass is CONSTANT:
-            if cond_object.const is True:
-                substitutions.append({})
-            else:
-                raise UnimplementedOutcomeError(cond_object.const)
+#             rule._constant_trigger = True
+#         elif cond_object.BaseClass is EXPR:
+#             pass
 
-            rule._constant_trigger = True
-        elif cond_object.BaseClass is EXPR:
-            pass
+#         elif cond_object.BaseClass is EVENT:
+#             # If custom support is required for events, adjust here
+#             substitutions.extend(
+#                 unify_action(cond_object, cycle_time))
 
-        elif cond_object.BaseClass is EVENT:
-            # If custom support is required for events, adjust here
-            substitutions.extend(
-                unify_action(cond_object, cycle_time))
+#         elif cond_object.BaseClass is FACT:
+#             substitutions.extend(
+#                 unify_fact(cond_object, reactive_rule=True))
 
-        elif cond_object.BaseClass is FACT:
-            substitutions.extend(
-                unify_fact(cond_object, reactive_rule=True))
+#         elif cond_object.BaseClass is FLUENT:
+#             substitutions.extend(
+#                 unify_fluent(cond_object, cycle_time))
 
-        elif cond_object.BaseClass is FLUENT:
-            substitutions.extend(
-                unify_fluent(cond_object, cycle_time))
+#         else:
+#             raise UnhandledObjectError(cond_object.BaseClass)
 
-        else:
-            raise UnhandledObjectError(cond_object.BaseClass)
+#     debug_display('\nSUBS', substitutions)
 
-    debug_display('\nSUBS', substitutions)
-
-    return substitutions
+#     return substitutions
 
 
 def unify_action(cond, cycle_time):

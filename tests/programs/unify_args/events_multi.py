@@ -1,8 +1,8 @@
 from pylps.core import *
 
-initialise(max_time=5)
+initialise(max_time=10)
 
-create_actions('say(_, _)')
+create_actions('say(_, _)', 'say2(_, _)')
 create_events('respond(_, _)')
 create_facts('arc(_, _)', 'ask(_, _)')
 create_variables('X', 'Y', 'Z')
@@ -16,7 +16,9 @@ arc('e', 'c')
 ask('a', 'c')
 
 reactive_rule(ask(X, Y)).then(
-    respond(X, Y).frm(T1, T2))
+    respond(X, Y).frm(T1, T2),
+    say2(X, Y).frm(T2, T3)
+)
 
 goal(respond(X, Y).frm(T1, T2)).requires(
     arc(X, Y), say(X, Y).frm(T1, T2))
@@ -26,7 +28,7 @@ goal(respond(X, Y).frm(T1, T3)).requires(
     respond(Z, Y).frm(T1, T2),
     say(X, Z).frm(T2, T3))
 
-execute(single_clause=False, n_solutions=-1, debug=False)
+execute(solution_preference=SOLN_PREF_MAX, debug=False)
 
 show_kb_log()
 

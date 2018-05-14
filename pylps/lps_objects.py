@@ -20,15 +20,15 @@ class LPSObject(object):
     #     return False
 
     def __eq__(self, other):
-        return self.to_tuple() == other.to_tuple()
+        return self._to_tuple() == other._to_tuple()
 
     def __hash__(self):
-        return hash(self.to_tuple())
+        return hash(self._to_tuple())
 
     def __invert__(self):
         return (self, False)
 
-    def to_tuple(self):
+    def _to_tuple(self):
         return (
             self.BaseClass, self.name,
             tuple(str(arg) for arg in self.args)

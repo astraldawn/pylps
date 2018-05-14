@@ -72,6 +72,8 @@ def process_causalities(action, deconflict=True):
         '''
         constraint_subs = _check_reqs(causality.reqs, action_subs)
 
+        debug_display('BLAH', action_subs, constraint_subs)
+
         if not constraint_subs:
             continue
 

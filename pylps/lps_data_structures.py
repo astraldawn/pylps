@@ -67,12 +67,12 @@ class Variable(LPSComparable):
         return ret
 
     def __eq__(self, other):
-        return self.to_tuple() == other.to_tuple()
+        return self._to_tuple() == other._to_tuple()
 
     def __hash__(self):
-        return hash(self.to_tuple())
+        return hash(self._to_tuple())
 
-    def to_tuple(self):
+    def _to_tuple(self):
         return (
             self.BaseClass, self.name
         )
@@ -118,12 +118,12 @@ class LPSConstant(LPSComparable):
         except AttributeError:
             return False
 
-        return self.to_tuple() == other.to_tuple()
+        return self._to_tuple() == other._to_tuple()
 
     def __hash__(self):
-        return hash(self.to_tuple())
+        return hash(self._to_tuple())
 
-    def to_tuple(self):
+    def _to_tuple(self):
         convert = self.const
         return convert
 
@@ -168,13 +168,13 @@ class LPSList(object):
         return ret
 
     def __eq__(self, other):
-        return self.to_tuple() == other.to_tuple()
+        return self._to_tuple() == other._to_tuple()
 
     def __hash__(self):
-        return hash(self.to_tuple())
+        return hash(self._to_tuple())
 
-    def to_tuple(self):
-        return tuple(item.to_tuple() for item in self._list)
+    def _to_tuple(self):
+        return tuple(item._to_tuple() for item in self._list)
 
     @property
     def head(self):
@@ -228,13 +228,13 @@ class LPSTuple(object):
         return ret
 
     def __eq__(self, other):
-        return self.to_tuple() == other.to_tuple()
+        return self._to_tuple() == other._to_tuple()
 
     def __hash__(self):
-        return hash(self.to_tuple())
+        return hash(self._to_tuple())
 
-    def to_tuple(self):
-        return tuple(item.to_tuple() for item in self._tuple)
+    def _to_tuple(self):
+        return tuple(item._to_tuple() for item in self._tuple)
 
     def __or__(self, other):
         return (MATCH_LIST_HEAD, self, other)
@@ -283,7 +283,7 @@ class Expr(LPSComparable):
             self.BaseClass, self.op, str(self.args))
         return ret
 
-    def to_tuple(self):
+    def _to_tuple(self):
         return (
             self.BaseClass, self.op, str(self.left), str(self.right)
         )
