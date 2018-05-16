@@ -1,6 +1,7 @@
 from pylps.core import *
-from pylps.visualiser import PylpsVisualiserApp, generate_states
-
+from pylps.visualiser import PylpsVisualiserApp
+from pylps.vis_object import PylpsVisObject, pylps_vis_meta
+from kivy.uix.label import Label
 
 initialise(max_time=10)
 
@@ -46,5 +47,43 @@ execute()
 
 display_log = kb_display_log()
 
-app = PylpsVisualiserApp(display_log)
+
+# class location(object, metaclass=pylps_vis_meta):
+# class LocationDisplay(PylpsVisObject):
+class LocationDisplay():
+    def __init__(self, *args):
+        self.value = args[0]
+        self.pos = args[1]
+        self.x = -250 + self.pos * 100
+        self.y = 0
+
+    def get_widget(self):
+        w = Label(
+            text=self.value,
+            pos=(self.x, self.y)
+        )
+        return w
+
+
+class SwapDisplay():
+    def __init__(self, *args):
+        self.pos1 = args[1]
+        self.pos2 = args[3]
+        self.x = -200 + self.pos1 * 100
+        self.y = 20
+
+    def get_widget(self):
+        w = Label(
+            text="<--- SWAPPED --->",
+            pos=(self.x, self.y)
+        )
+        return w
+
+
+display_classes = {
+    'location': LocationDisplay,
+    'swap': SwapDisplay
+}
+
+app = PylpsVisualiserApp(display_log, display_classes)
 app.run()

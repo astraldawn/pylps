@@ -11,6 +11,7 @@ from kivy.properties import *
 kivy.require('1.0.7')
 
 ACTION = 'action'
+FLUENT = 'fluent'
 FLUENT_INITIATE = 'fluent_initiate'
 FLUENT_TERMINATE = 'fluent_terminate'
 
@@ -36,34 +37,41 @@ class PylpsScreenManager(ScreenManager):
     pass
 
 
-class PositionBox(Label):
-    text = StringProperty()
-    x_offset = NumericProperty()
-    y_offset = NumericProperty()
-
-    def __init__(self, text, x_offset, y_offset):
-        super().__init__()
-        self.text = str(text)
-
-
 class VSDisplay(BoxLayout):
     identity = StringProperty()
     time = StringProperty()
 
-    def __init__(self, visual_state):
+    def __init__(self, visual_state, display_classes):
         super().__init__()
+        self.display_classes = display_classes
         self.identity = 'time' + str(visual_state.time)
         self.visual_state = visual_state
         self.time = str(self.visual_state.time)
+        self.displayed_actions = []
+        self.displayed_fluents = []
+        self.cnt = 0
 
-        for args in sorted(
-                self.visual_state.fluents['location'], key=lambda x: x[1]):
-            self.add_event(text=args)
+        for cls_name, cls in self.display_classes.items():
+            if cls_name in self.visual_state.actions.keys():
+                for args in self.visual_state.actions[cls_name]:
+                    self.display(ACTION, cls, list(args))
 
-    def add_event(self, text, x_offset=0, y_offset=0):
-        self.ids.tpdisplay.add_widget(
-            PositionBox(text=text, x_offset=x_offset, y_offset=y_offset)
-        )
+            if cls_name in self.visual_state.fluents.keys():
+                for args in self.visual_state.fluents[cls_name]:
+                    self.display(FLUENT, cls, list(args))
+
+    def display(self, d_type, cls, args):
+        w = cls(*args).get_widget()
+
+        self.ids.tpdisplay.add_widget(w)
+
+        if d_type is ACTION:
+            self.displayed_actions.append(w)
+
+        if d_type is FLUENT:
+            self.displayed_fluents.append(w)
+
+        # print(self.displayed_fluents[0].parent)
 
 
 class PylpsMainScreen(Screen):
@@ -71,9 +79,10 @@ class PylpsMainScreen(Screen):
     current_time_str = StringProperty()
     max_time_str = StringProperty()
 
-    def __init__(self, visual_states):
+    def __init__(self, visual_states, display_classes):
         super().__init__()
         self.visual_states = visual_states
+        self.display_classes = display_classes
         self.current_time = 0
         self.max_time = visual_states[-1].time
         self.manual = False
@@ -86,7 +95,7 @@ class PylpsMainScreen(Screen):
         self.update_display()
 
     def add_vs_display(self, visual_state):
-        widget = VSDisplay(visual_state)
+        widget = VSDisplay(visual_state, self.display_classes)
         self.vs_display_widgets[visual_state.time] = widget
         self.ids.scrollgrid.add_widget(widget)
 
@@ -138,12 +147,13 @@ class PylpsMainScreen(Screen):
 
 class PylpsVisualiserApp(App):
 
-    def __init__(self, display_log):
+    def __init__(self, display_log, display_classes):
         super().__init__()
         self.states = generate_states(display_log)
+        self.display_classes = display_classes
 
     def build(self):
-        return PylpsMainScreen(self.states)
+        return PylpsMainScreen(self.states, self.display_classes)
 
 
 '''

@@ -1,19 +1,16 @@
 #:kivy 1.0
 
-<PositionButton>
-    pos_hint: (root.x_offset, root.y_offset)
-    text: root.text
-
 <VSDisplay>
     size_hint_y: None
     height: 100
     id: root.identity
     orientation: 'vertical'
 
-    Label:
-        text: 'Time ' + root.time
-
     BoxLayout:
+        Label:
+            text: 'Time ' + root.time
+
+    RelativeLayout:
         id: tpdisplay
 
 <PylpsMainScreen>:
@@ -45,6 +42,7 @@
         GridLayout:
             cols: 5
             size_hint: (1, .10)
+            row_default_height: 30
 
             Button:
                 text: 'BACK_ALL'
