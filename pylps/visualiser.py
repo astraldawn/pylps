@@ -1,6 +1,8 @@
 import copy
 from collections import defaultdict
 
+from pylps.core import *
+
 import kivy
 from kivy.app import App
 from kivy.clock import Clock
@@ -9,11 +11,6 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.properties import *
 kivy.require('1.0.7')
-
-ACTION = 'action'
-FLUENT = 'fluent'
-FLUENT_INITIATE = 'fluent_initiate'
-FLUENT_TERMINATE = 'fluent_terminate'
 
 
 class LogObject(object):
@@ -147,8 +144,13 @@ class PylpsMainScreen(Screen):
 
 class PylpsVisualiserApp(App):
 
-    def __init__(self, display_log, display_classes):
+    def __init__(self, display_log=[],
+                 display_classes={}, pylps_executor=None):
         super().__init__()
+
+        execute()
+        display_log = kb_display_log()
+        print(display_log)
         self.states = generate_states(display_log)
         self.display_classes = display_classes
 
@@ -213,10 +215,10 @@ def generate_states(display_log):
             if log_item.end_time > i:
                 break
 
-            if log_item.type is FLUENT_INITIATE:
+            if log_item.type is F_INITIATE:
                 states[i].add_fluent(log_item.name, tuple(log_item.args))
 
-            if log_item.type is FLUENT_TERMINATE:
+            if log_item.type is F_TERMINATE:
                 states[i].remove_fluent(log_item.name, tuple(log_item.args))
 
             if log_item.type is ACTION:

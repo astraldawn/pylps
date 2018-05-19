@@ -10,8 +10,11 @@ create_actions('swap(_, _, _, _)')
 create_events('swapped(_, _, _, _)')
 create_variables('X', 'Y', 'Z', 'N1', 'N2', 'N3')
 
+observe(swap('e', 5, 'f', 6).frm(5, 6))
+
 initially(
     location('d', 1), location('c', 2), location('b', 3), location('a', 4),
+    location('f', 5), location('e', 6)
 )
 
 reactive_rule(
@@ -44,9 +47,8 @@ swap(X, N1, Y, N2).terminates(location(Y, N2))
 false_if(swap(X, N1, Y, N2), swap(Y, N2, Z, N3),)
 
 execute()
-
-display_log = kb_display_log()
-
+execute()
+execute()
 
 # class location(object, metaclass=pylps_vis_meta):
 # class LocationDisplay(PylpsVisObject):
@@ -54,7 +56,7 @@ class LocationDisplay():
     def __init__(self, *args):
         self.value = args[0]
         self.pos = args[1]
-        self.x = -250 + self.pos * 100
+        self.x = -450 + self.pos * 100
         self.y = 0
 
     def get_widget(self):
@@ -69,7 +71,7 @@ class SwapDisplay():
     def __init__(self, *args):
         self.pos1 = args[1]
         self.pos2 = args[3]
-        self.x = -200 + self.pos1 * 100
+        self.x = -400 + self.pos1 * 100
         self.y = 20
 
     def get_widget(self):
@@ -85,5 +87,5 @@ display_classes = {
     'swap': SwapDisplay
 }
 
-app = PylpsVisualiserApp(display_log, display_classes)
+app = PylpsVisualiserApp(display_classes=display_classes)
 app.run()

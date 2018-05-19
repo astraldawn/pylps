@@ -13,6 +13,7 @@ class _KB(object):
     facts = {}
     fluents = {}
     reactive_rules = []
+    initial_fluents = []
 
     _clauses = {}
     _goals = OrderedSet()
@@ -23,7 +24,6 @@ class _KB(object):
     _cycle_obs = OrderedSet()
 
     display_log = []
-
     log = []
 
     ''' Rule controls '''
@@ -84,6 +84,9 @@ class _KB(object):
     def show_fluents(self):
         for _, fluent in self.fluents.items():
             display(fluent)
+
+    def clear_fluents(self):
+        self.fluents = {}
 
     ''' Goal control '''
 
@@ -391,6 +394,10 @@ class _KB(object):
             if print_log:
                 display(item[:4])
             self.display_log.append(item[:4])
+
+    def clear_logs(self):
+        self.log = []
+        self.display_log = []
 
 
 KB = _KB()
