@@ -1,3 +1,4 @@
+import asyncio
 import copy
 from collections import defaultdict
 
@@ -75,26 +76,48 @@ class PylpsMainScreen(Screen):
     info = StringProperty()
     current_time_str = StringProperty()
     max_time_str = StringProperty()
+    exec_status = StringProperty()
 
-    def __init__(self, visual_states, display_classes):
+    def __init__(self, display_classes={}, stepwise=False):
         super().__init__()
-        self.visual_states = visual_states
         self.display_classes = display_classes
         self.current_time = 0
-        self.max_time = visual_states[-1].time
         self.manual = False
         self.vs_display_widgets = {}
         self.widget_pos = {}
 
-        for v in self.visual_states:
-            self.add_vs_display(v)
+        self.visual_states = []
+        self.max_time = 0
 
+        self.update_visual_states()
         self.update_display()
+
+        self.stepwise_exec = False
+
+        if stepwise:
+            Clock.schedule_once(
+                lambda dt: self.pylps_execute(stepwise=True), 0.01)
+        else:
+            Clock.schedule_once(lambda dt: self.pylps_execute(), 0.01)
 
     def add_vs_display(self, visual_state):
         widget = VSDisplay(visual_state, self.display_classes)
         self.vs_display_widgets[visual_state.time] = widget
         self.ids.scrollgrid.add_widget(widget)
+
+    def update_visual_states(self):
+        self.exec_status = "Done"
+
+        if not self.visual_states:
+            return
+
+        if self.visual_states:
+            self.max_time = self.visual_states[-1].time
+
+        for v in self.visual_states:
+            self.add_vs_display(v)
+
+        self.update_display()
 
     def update_display(self, scroll=True):
         # Bound checking
@@ -108,9 +131,34 @@ class PylpsMainScreen(Screen):
         self.max_time_str = str(self.max_time)
 
         if scroll:
-            self.ids.scrollgridview.scroll_to(
-                self.vs_display_widgets[self.current_time]
-            )
+            try:
+                self.ids.scrollgridview.scroll_to(
+                    self.vs_display_widgets[self.current_time]
+                )
+            except KeyError:
+                pass
+
+    def reset_display(self, full_reset=False):
+        if full_reset:
+            self.max_time = 0
+            self.stepwise_exec = False
+
+        for _, w in self.vs_display_widgets.items():
+            self.ids.scrollgrid.remove_widget(w)
+        self.vs_display_widgets = {}
+        self.update_display()
+
+    def scroll_view(self):
+        if self.max_time == 0:
+            return
+
+        self.manual = True
+        scroll_pos = 1.1 - self.ids.scrollgridview.scroll_y
+        scroll_time = scroll_pos / (1 / self.max_time)
+        self.current_time = int(scroll_time)
+        self.update_display(scroll=False)
+
+    ''' BUTTONS '''
 
     def move_timepoint(self, command):
         commands = {
@@ -134,28 +182,64 @@ class PylpsMainScreen(Screen):
         self.manual = False
         self.move_auto(first=True)
 
-    def scroll_view(self):
-        self.manual = True
-        scroll_pos = 1.1 - self.ids.scrollgridview.scroll_y
-        scroll_time = scroll_pos / (1 / self.max_time)
-        self.current_time = int(scroll_time)
-        self.update_display(scroll=False)
+    '''PYLPS CONTROL'''
+
+    def update_exec_status(self, new_exec_status):
+        self.exec_status = new_exec_status
+
+    def pylps_execute(self, stepwise=False):
+        self.update_exec_status("In progress")
+
+        if stepwise:
+            Clock.schedule_once(
+                lambda dt: self.pylps_execute_stepwise_helper(), 0.01)
+        else:
+            Clock.schedule_once(
+                lambda dt: self.pylps_execute_helper(), 0.01)
+
+    def pylps_post_execute(self):
+        display_log = kb_display_log()
+        self.visual_states = generate_states(display_log)
+        self.reset_display()
+        self.update_visual_states()
+
+    def exec_debug_delay(self):
+        import time
+        time.sleep(0.5)
+
+    def pylps_execute_helper(self):
+        self.exec_debug_delay()
+        execute()
+        self.pylps_post_execute()
+
+    def pylps_execute_stepwise_helper(self):
+        self.exec_debug_delay()
+        if self.stepwise_exec:
+            execute_next_step()
+        else:
+            self.stepwise_exec = True
+            execute(stepwise=True)
+
+        self.pylps_post_execute()
+
+        # To force display
+        self.current_time = self.max_time
+        self.update_display()
 
 
 class PylpsVisualiserApp(App):
 
-    def __init__(self, display_log=[],
-                 display_classes={}, pylps_executor=None):
+    def __init__(self, display_classes={}, stepwise=False):
         super().__init__()
 
-        execute()
-        display_log = kb_display_log()
-        print(display_log)
-        self.states = generate_states(display_log)
+        self.stepwise = stepwise
         self.display_classes = display_classes
 
     def build(self):
-        return PylpsMainScreen(self.states, self.display_classes)
+        # return PylpsMainScreen(self.states, self.display_classes)
+        return PylpsMainScreen(
+            display_classes=self.display_classes,
+            stepwise=self.stepwise)
 
 
 '''

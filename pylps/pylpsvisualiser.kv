@@ -26,6 +26,9 @@
             Label:
                 text: root.current_time_str + ' / ' + root.max_time_str
 
+            Label:
+                text: 'Execution status: ' + root.exec_status
+
         GridLayout:
             cols: 1
             size_hint: (1, .8)
@@ -45,6 +48,19 @@
             size_hint: (1, .10)
             row_default_height: 30
 
+            Button:
+                text: ''
+            Button:
+                text: 'RUN'
+                on_press: root.pylps_execute()
+            Button:
+                text: 'RUN_1_STEP'
+                on_press: root.pylps_execute(stepwise=True)
+            Button:
+                text: 'RESET'
+                on_press: root.reset_display(full_reset=True)
+            Button:
+                text: ''
             Button:
                 text: 'BACK_ALL'
                 on_press: root.move_timepoint('BACK_ALL')

@@ -86,6 +86,7 @@ def execute(
     solution_preference=SOLN_PREF_FIRST,
     debug=False,
     experimental=False,
+    stepwise=False
 ):
     '''Execute pyLPS program
 
@@ -126,8 +127,11 @@ def execute(
         KB.log_fluent(fluent, 0, F_INITIATE)
 
     CONFIG.set_options(options_dict)
-    ENGINE.run()
+    ENGINE.run(stepwise=stepwise)
 
+
+def execute_next_step():
+    ENGINE.next_step()
 
 ''' Utility '''
 

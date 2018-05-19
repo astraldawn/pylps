@@ -46,12 +46,10 @@ swap(X, N1, Y, N2).terminates(location(Y, N2))
 
 false_if(swap(X, N1, Y, N2), swap(Y, N2, Z, N3),)
 
-execute()
-execute()
-execute()
-
 # class location(object, metaclass=pylps_vis_meta):
 # class LocationDisplay(PylpsVisObject):
+
+
 class LocationDisplay():
     def __init__(self, *args):
         self.value = args[0]
@@ -87,5 +85,5 @@ display_classes = {
     'swap': SwapDisplay
 }
 
-app = PylpsVisualiserApp(display_classes=display_classes)
+app = PylpsVisualiserApp(display_classes=display_classes, stepwise=True)
 app.run()
