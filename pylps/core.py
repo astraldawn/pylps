@@ -30,9 +30,7 @@ def create_variables(*args):
 
 
 def initially(*args):
-    for arg in args:
-        KB.add_fluent(arg)
-        KB.log_fluent(arg, 0, F_INITIATE)
+    KB.initial_fluents.extend(args)
 
 
 def observe(obs):
@@ -88,6 +86,7 @@ def execute(
     solution_preference=SOLN_PREF_FIRST,
     debug=False,
     experimental=False,
+    stepwise=False
 ):
     '''Execute pyLPS program
 
@@ -118,9 +117,21 @@ def execute(
         'experimental': experimental
     }
 
-    CONFIG.set_options(options_dict)
-    ENGINE.run()
+    # Resets
+    KB.clear_logs()
+    KB.clear_fluents()
 
+    # Initially
+    for fluent in KB.initial_fluents:
+        KB.add_fluent(fluent)
+        KB.log_fluent(fluent, 0, F_INITIATE)
+
+    CONFIG.set_options(options_dict)
+    ENGINE.run(stepwise=stepwise)
+
+
+def execute_next_step():
+    ENGINE.next_step()
 
 ''' Utility '''
 

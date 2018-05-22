@@ -33,6 +33,9 @@ jobs:
             python3 -m venv venv
             . venv/bin/activate
             pip install -r requirements.txt
+            pip install coverage
+            pip install pytest-cov
+            pip install codecov
             python setup.py develop
 
       - save_cache:
@@ -44,7 +47,8 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
-            pytest -v tests/
+            py.test --cov-report html --cov=pylps tests/
+            codecov
 
       - store_artifacts:
           path: test-reports

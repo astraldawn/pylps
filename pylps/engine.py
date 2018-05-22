@@ -18,19 +18,28 @@ class _ENGINE(object):
     def set_params(self, max_time):
         self.max_time = max_time
 
-    def run(self):
+    def run(self, stepwise=False):
         self.current_time = self.start_time
         KB.reset_goals()
 
-        while self.current_time <= self.max_time:
-            self._check_rules()
-            self._check_goals()
-            self._check_observations()
+        if not stepwise:
+            while self.current_time <= self.max_time:
+                self._next_iteration()
 
-            self.current_time += 1
+    def next_step(self):
+        if self.current_time > self.max_time:
+            return
 
-            KB.clear_cycle_obs(current_time=self.current_time)
-            # print(KB.cycle_obs, self.current_time)
+        self._next_iteration()
+
+    def _next_iteration(self):
+        self._check_rules()
+        self._check_goals()
+        self._check_observations()
+
+        self.current_time += 1
+
+        KB.clear_cycle_obs(current_time=self.current_time)
 
     def _check_observations(self):
         for observation in KB.observations:
