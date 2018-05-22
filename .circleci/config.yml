@@ -34,6 +34,7 @@ jobs:
             . venv/bin/activate
             pip install -r requirements.txt
             pip install coverage
+            pip install pytest-cov
             pip install codecov
             python setup.py develop
 
