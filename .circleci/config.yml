@@ -33,6 +33,7 @@ jobs:
             python3 -m venv venv
             . venv/bin/activate
             pip install -r requirements.txt
+            pip install codecov
             python setup.py develop
 
       - save_cache:
@@ -45,6 +46,7 @@ jobs:
           command: |
             . venv/bin/activate
             pytest -v tests/
+            codecov
 
       - store_artifacts:
           path: test-reports
