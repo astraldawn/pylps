@@ -1,5 +1,6 @@
 # pylps
 [![CircleCI](https://circleci.com/gh/astraldawn/pylps.svg?style=shield)](https://circleci.com/gh/astraldawn/pylps)
+[![codecov](https://codecov.io/gh/astraldawn/pylps/branch/master/graph/badge.svg)](https://codecov.io/gh/astraldawn/pylps)
 
 To run tests: pytest
 
