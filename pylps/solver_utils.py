@@ -172,24 +172,21 @@ def match_clause_goal(clause, goal, new_subs, counter):
                 return clause.const == goal.head.const
 
     if clause.BaseClass is VARIABLE:
+        new_var = var(clause.name + SUFFIX)
+
         try:
             if goal.BaseClass is VARIABLE:
                 new_subs.update({
-                    var(goal.name): var(clause.name + SUFFIX),
+                    var(goal.name): new_var,
                 })
                 return True
         except AttributeError:
             pass
 
-        new_var = var(clause.name + SUFFIX)
+        res = unify(new_var, goal, new_subs)
 
-        if new_var not in new_subs:
-            new_subs.update({
-                new_var: goal
-            })
-            return True
-
-        if new_subs[new_var] == goal:
+        if res:
+            new_subs.update(res)
             return True
 
         return False

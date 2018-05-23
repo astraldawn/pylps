@@ -106,3 +106,4 @@ ENV/
 
 # Test files
 output*.*
+test.py

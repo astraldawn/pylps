@@ -118,8 +118,7 @@ def execute(
     }
 
     # Resets
-    KB.clear_logs()
-    KB.clear_fluents()
+    KB.reset_kb()
 
     # Initially
     for fluent in KB.initial_fluents:
@@ -132,6 +131,7 @@ def execute(
 
 def execute_next_step():
     ENGINE.next_step()
+
 
 ''' Utility '''
 

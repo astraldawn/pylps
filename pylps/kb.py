@@ -26,6 +26,11 @@ class _KB(object):
     display_log = []
     log = []
 
+    def reset_kb(self):
+        self.reset_reactive_rules()
+        self.clear_logs()
+        self.clear_fluents()
+
     ''' Rule controls '''
 
     @property
@@ -38,6 +43,10 @@ class _KB(object):
     def show_reactive_rules(self):
         for rule in self.reactive_rules:
             display(rule)
+
+    def reset_reactive_rules(self):
+        for rule in self.reactive_rules:
+            rule._constant_trigger = False
 
     ''' Fluent control '''
 
