@@ -81,8 +81,6 @@ def constraints_satisfied(o_goal, state, cycle_proposed: Proposed,
 
 def check_constraint(constraint, all_proposed, custom_start_subs=None):
 
-    # debug_display('CHECK_CONS', constraint)
-
     states = deque()
 
     start_state = State(

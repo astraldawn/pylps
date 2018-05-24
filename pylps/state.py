@@ -54,6 +54,10 @@ class Proposed(object):
     def clear_fluents(self):
         self._fluents = OrderedSet()
 
+    def reset(self):
+        self.clear_actions()
+        self.clear_fluents()
+
 
 class Solution(object):
     def __init__(self, proposed: Proposed, states):

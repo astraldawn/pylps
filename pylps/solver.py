@@ -161,6 +161,8 @@ class _Solver(object):
     def alternate_solver(self):
         solutions = []
         backtrack_solutions = {}
+        empty_state = State([], {})
+        goal_ids = []
 
         if len(KB.goals) == 0:
             solutions.append(Solution(
@@ -170,23 +172,41 @@ class _Solver(object):
         for i, goal in enumerate(KB.goals):
             backtrack_solutions[i] = list(self.backtrack_solve(goal))
 
-            for state in backtrack_solutions[i]:
+            goal_ids.append([
+                NON_S if s == empty_state else c
+                for c, s in enumerate(backtrack_solutions[i])
+            ])
 
-                actions_valid = True
-                for action in state.actions:
-                    res = constraints_satisfied(action, state, Proposed())
+        # debug_display('ALT_SOLVER', backtrack_solutions)
+
+        for comb in generate_combinations(goal_ids):
+            self.cycle_proposed.reset()
+            for p, s in enumerate(comb):
+                self.add_cycle_proposed(backtrack_solutions[p][s])
+
+            actions_valid = True
+            for p, s in enumerate(comb):
+                if not actions_valid:
+                    continue
+
+                cur_state = backtrack_solutions[p][s]
+                for action in cur_state.actions:
+                    if not actions_valid:
+                        continue
+
+                    res = constraints_satisfied(
+                        action, cur_state, Proposed())
 
                     if not res:
                         actions_valid = False
 
-                if actions_valid and state.result is G_SOLVED:
-                    self.add_cycle_proposed(state)
-                    solutions.append(Solution(
-                        proposed=copy.deepcopy(self.cycle_proposed),
-                        states=[state]
-                    ))
-
-        # debug_display('ALT_SOLVER', backtrack_solutions)
+            if actions_valid:
+                solutions.append(Solution(
+                    proposed=copy.deepcopy(self.cycle_proposed),
+                    states=[
+                        backtrack_solutions[p][s] for p, s in enumerate(comb)
+                    ]
+                ))
 
         return solutions
 
