@@ -46,6 +46,16 @@ class _Solver(object):
         self.cycle_proposed = Proposed()
         self.iterations = 0
 
+        alternate_solver = CONFIG.alternate_solver
+
+        if alternate_solver:
+            solutions = self.alternate_solver()
+        else:
+            solutions = self.main_solver()
+
+        return solutions
+
+    def main_solver(self):
         proposed_stack = []
         states_stack = []
         reactive_soln = {}
@@ -62,8 +72,6 @@ class _Solver(object):
         solver_loop_iterations_limit = 500  # VERY IMPORTANT FOR PERFORMANCE
 
         n_solutions = CONFIG.n_solutions
-
-        # debug_display('KB_GOALS', KB.goals)
 
         while not end:
 
@@ -100,8 +108,7 @@ class _Solver(object):
 
                 new_state = next(reactive_soln[cur_goal_pos])
 
-                self.add_cycle_proposed(
-                    new_state, reactive_soln[cur_goal_pos])
+                self.add_cycle_proposed(new_state)
                 proposed_stack.append(copy.deepcopy(self.cycle_proposed))
                 states_stack.append(copy.deepcopy(new_state))
 
@@ -142,8 +149,7 @@ class _Solver(object):
                     # Do we have another solution?
                     new_state = next(reactive_soln[cur_goal_pos])
                     back = False
-                    self.add_cycle_proposed(
-                        new_state, reactive_soln[cur_goal_pos])
+                    self.add_cycle_proposed(new_state)
                     proposed_stack.append(copy.deepcopy(self.cycle_proposed))
                     states_stack.append(copy.deepcopy(new_state))
                     cur_goal_pos += 1
@@ -152,7 +158,39 @@ class _Solver(object):
 
         return solutions
 
-    def add_cycle_proposed(self, state, future_solutions):
+    def alternate_solver(self):
+        solutions = []
+        backtrack_solutions = {}
+
+        if len(KB.goals) == 0:
+            solutions.append(Solution(
+                proposed=[], states=[])
+            )
+
+        for i, goal in enumerate(KB.goals):
+            backtrack_solutions[i] = list(self.backtrack_solve(goal))
+
+            for state in backtrack_solutions[i]:
+
+                actions_valid = True
+                for action in state.actions:
+                    res = constraints_satisfied(action, state, Proposed())
+
+                    if not res:
+                        actions_valid = False
+
+                if actions_valid and state.result is G_SOLVED:
+                    self.add_cycle_proposed(state)
+                    solutions.append(Solution(
+                        proposed=copy.deepcopy(self.cycle_proposed),
+                        states=[state]
+                    ))
+
+        # debug_display('ALT_SOLVER', backtrack_solutions)
+
+        return solutions
+
+    def add_cycle_proposed(self, state):
         # Add current state
         self.cycle_proposed.add_actions(
             s_utils.reify_actions(state, reify=True))
@@ -314,8 +352,10 @@ class _Solver(object):
                 return
 
         # If we execute the action, is it valid here?
-        valid = constraints_satisfied(
-            goal, new_state, self.cycle_proposed)
+        valid = None
+        if not CONFIG.alternate_solver:
+            valid = constraints_satisfied(
+                goal, new_state, self.cycle_proposed)
 
         # if not valid and CONFIG.debug:
         #     debug_display('C_CHECK_F', goal)
@@ -326,7 +366,7 @@ class _Solver(object):
         #     print('\n\n')
 
         # Done
-        if valid:
+        if valid or CONFIG.alternate_solver:
             new_state.add_action(copy.deepcopy(goal))
 
             if CONFIG.cycle_fluents:

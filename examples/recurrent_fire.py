@@ -35,7 +35,7 @@ refill.initiates(water)
 
 false_if(eliminate, fire, ~water)
 
-execute(single_clause=False, debug=False)
+execute(single_clause=False, debug=False, alternate_solver=True)
 
 show_kb_log()
 

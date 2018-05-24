@@ -80,12 +80,13 @@ def initialise(max_time=5, create_vars=True):
 
 
 def execute(
-    cycle_fluents=False,
     n_solutions=CONFIG_DEFAULT_N_SOLUTIONS,
     single_clause=False,
     solution_preference=SOLN_PREF_FIRST,
     debug=False,
     experimental=False,
+    cycle_fluents=False,
+    alternate_solver=False,
     stepwise=False
 ):
     '''Execute pyLPS program
@@ -108,13 +109,15 @@ def execute(
         n_solutions = 10000000
 
     options_dict = {
-        'cycle_fluents': cycle_fluents,
         'n_solutions': n_solutions,
         'single_clause': single_clause,
         'solution_preference': solution_preference,
+
         # Development
         'debug': debug,
-        'experimental': experimental
+        'experimental': experimental,
+        'alternate_solver': alternate_solver,
+        'cycle_fluents': cycle_fluents,
     }
 
     # Resets

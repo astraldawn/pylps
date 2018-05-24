@@ -4,6 +4,7 @@ from pylps.exceptions import *
 VALID_OPTIONS = {
     'debug': set([False, True]),
 
+    'alternate_solver': set([False, True]),
     'cycle_fluents': set([False, True]),
     'experimental': set([False, True]),
     'single_clause': set([False, True]),
@@ -44,6 +45,10 @@ class _CONFIG(object):
     @property
     def debug(self):
         return self._options['debug']
+
+    @property
+    def alternate_solver(self):
+        return self._options['alternate_solver']
 
     @property
     def cycle_fluents(self):
