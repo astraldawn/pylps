@@ -46,7 +46,7 @@ false_if(valid([A, B, B, C]), A != B)
 false_if(valid([A, C, B, B]), A != B)
 # false_if(valid(X), valid(Y), X != Y)
 
-execute(debug=False, solution_preference=SOLN_PREF_MAX)
+execute(debug=False, strategy=STRATEGY_GREEDY)
 
 show_kb_log()
 

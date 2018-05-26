@@ -86,7 +86,7 @@ def execute(
     debug=False,
     experimental=False,
     cycle_fluents=False,
-    strategy=STRATEGY_DEFAULT,
+    strategy=STRATEGY_GREEDY,
     stepwise=False
 ):
     '''Execute pyLPS program

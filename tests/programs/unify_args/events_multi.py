@@ -1,6 +1,6 @@
 from pylps.core import *
 
-initialise(max_time=10)
+initialise(max_time=5)
 
 create_actions('say(_, _)', 'say2(_, _)')
 create_events('respond(_, _)')
@@ -28,7 +28,7 @@ goal(respond(X, Y).frm(T1, T3)).requires(
     respond(Z, Y).frm(T1, T2),
     say(X, Z).frm(T2, T3))
 
-execute(solution_preference=SOLN_PREF_MAX, debug=False)
+execute(debug=False, strategy=STRATEGY_GREEDY)
 
 show_kb_log()
 

@@ -2,7 +2,7 @@
 Revised solver that will recursively yield solutions
 '''
 import copy
-from collections import deque
+from collections import deque, defaultdict
 
 from more_itertools import peekable
 from ordered_set import OrderedSet
@@ -214,7 +214,69 @@ class _Solver(object):
         return solutions
 
     def greedy_solver(self):
-        pass
+        '''
+        Find first instance of either solve / defer / discard
+        '''
+        solutions = []
+
+        if len(KB.goals) == 0:
+            solutions.append(Solution(
+                proposed=[], states=[])
+            )
+            return solutions
+
+        solution_states = []
+        valid_results = set([G_SOLVED, G_DEFER])
+
+        for i, goal in enumerate(KB.goals):
+
+            seen_actions = set()
+            backtrack_solve = self.backtrack_solve(goal)
+
+            while True:
+                try:
+                    cur_state = next(backtrack_solve)
+                except StopIteration:
+                    break
+
+                if cur_state.result is G_DISCARD:
+                    break
+
+                actions_valid = True
+                for action in cur_state.actions:
+                    if not actions_valid:
+                        continue
+
+                    res = constraints_satisfied(
+                        action, cur_state, self.cycle_proposed)
+
+                    if not res:
+                        actions_valid = False
+
+                if not actions_valid:
+                    continue
+
+                if cur_state.result in valid_results:
+                    self.add_cycle_proposed(cur_state)
+
+                    prev_seen_len = len(seen_actions)
+
+                    for action in cur_state.actions:
+                        seen_actions.add(action)
+
+                    if prev_seen_len != len(seen_actions) or \
+                            cur_state.result is G_SOLVED:
+                        solution_states.append(copy.deepcopy(cur_state))
+
+                    if cur_state.result is G_SOLVED:
+                        break
+
+        solutions.append(Solution(
+            proposed=copy.deepcopy(self.cycle_proposed),
+            states=solution_states
+        ))
+
+        return solutions
 
     def add_cycle_proposed(self, state):
         # Add current state
@@ -254,7 +316,8 @@ class _Solver(object):
         Additional empty state to cover the case where
         the reactive rule is not chosen for solving
         '''
-        if CONFIG.solution_preference is SOLN_PREF_MAX:
+        if CONFIG.solution_preference is SOLN_PREF_MAX and \
+                CONFIG.strategy is STRATEGY_DEFAULT:
             yield State([], {})
 
         start_state = copy.deepcopy(start)

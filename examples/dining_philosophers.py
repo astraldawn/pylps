@@ -43,7 +43,7 @@ putdown(P, F).initiates(available(F))
 false_if(pickup(P, F), ~available(F), )
 false_if(pickup(P1, F), pickup(P2, F), P1 != P2,)
 
-execute(debug=False)
+execute(debug=False, strategy=STRATEGY_GREEDY)
 
 show_kb_log()
 
