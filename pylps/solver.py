@@ -46,12 +46,15 @@ class _Solver(object):
         self.cycle_proposed = Proposed()
         self.iterations = 0
 
-        alternate_solver = CONFIG.alternate_solver
+        strategy = CONFIG.strategy
 
-        if alternate_solver:
-            solutions = self.alternate_solver()
-        else:
-            solutions = self.main_solver()
+        solvers = {
+            STRATEGY_DEFAULT: self.main_solver,
+            STRATEGY_COMB: self.alternate_solver,
+            STRATEGY_GREEDY: self.greedy_solver
+        }
+
+        solutions = solvers[strategy]()
 
         return solutions
 
@@ -209,6 +212,9 @@ class _Solver(object):
                 ))
 
         return solutions
+
+    def greedy_solver(self):
+        pass
 
     def add_cycle_proposed(self, state):
         # Add current state
@@ -373,7 +379,7 @@ class _Solver(object):
 
         # If we execute the action, is it valid here?
         valid = None
-        if not CONFIG.alternate_solver:
+        if CONFIG.strategy is STRATEGY_DEFAULT:
             valid = constraints_satisfied(
                 goal, new_state, self.cycle_proposed)
 
@@ -386,7 +392,7 @@ class _Solver(object):
         #     print('\n\n')
 
         # Done
-        if valid or CONFIG.alternate_solver:
+        if valid or CONFIG.strategy is not STRATEGY_DEFAULT:
             new_state.add_action(copy.deepcopy(goal))
 
             if CONFIG.cycle_fluents:

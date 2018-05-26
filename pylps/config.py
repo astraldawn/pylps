@@ -4,11 +4,12 @@ from pylps.exceptions import *
 VALID_OPTIONS = {
     'debug': set([False, True]),
 
-    'alternate_solver': set([False, True]),
     'cycle_fluents': set([False, True]),
     'experimental': set([False, True]),
     'single_clause': set([False, True]),
+
     'solution_preference': set([SOLN_PREF_FIRST, SOLN_PREF_MAX]),
+    'strategy': set([STRATEGY_DEFAULT, STRATEGY_COMB, STRATEGY_GREEDY]),
 }
 
 VALID_OPTIONS_TYPE = {
@@ -47,8 +48,8 @@ class _CONFIG(object):
         return self._options['debug']
 
     @property
-    def alternate_solver(self):
-        return self._options['alternate_solver']
+    def strategy(self):
+        return self._options['strategy']
 
     @property
     def cycle_fluents(self):
