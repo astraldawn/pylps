@@ -329,3 +329,7 @@ def create_clause_variables(
     # debug_display('SUBS', new_subs)
     # debug_display('REQS', clause.reqs)
     # debug_display('NEW_REQS', new_reqs)
+
+
+def add_to_cycle_proposed(cycle_proposed, state):
+    cycle_proposed.add_actions(reify_actions(state, reify=True))

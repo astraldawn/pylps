@@ -91,6 +91,11 @@ class Solution(object):
     def solved(self):
         return self._solved
 
+    def add_state(self, state):
+        self._states.append(state)
+        if state.result is G_SOLVED:
+            self._solved += 1
+
     def _process(self):
         for state in self.states:
             if state.result is G_SOLVED:

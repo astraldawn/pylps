@@ -214,9 +214,7 @@ class _Solver(object):
         return solutions
 
     def greedy_solver(self):
-        '''
-        Find first instance of either solve / defer / discard
-        '''
+
         solutions = []
 
         if len(KB.goals) == 0:
@@ -225,13 +223,18 @@ class _Solver(object):
             )
             return solutions
 
-        solution_states = []
         valid_results = set([G_SOLVED, G_DEFER])
+        solutions = [
+            Solution(proposed=Proposed(), states=[])
+        ]
 
         for i, goal in enumerate(KB.goals):
 
-            seen_actions = set()
             backtrack_solve = self.backtrack_solve(goal)
+
+            seen_actions = {
+                sol_id: set() for sol_id, _ in enumerate(solutions)}
+            goal_states = {sol_id: [] for sol_id, _ in enumerate(solutions)}
 
             while True:
                 try:
@@ -242,39 +245,54 @@ class _Solver(object):
                 if cur_state.result is G_DISCARD:
                     break
 
-                actions_valid = True
-                for action in cur_state.actions:
+                s_utils.reify_actions(cur_state, reify=True)
+
+                for sol_id, solution in enumerate(solutions):
+                    actions_valid = True
+                    for action in cur_state.actions:
+                        if not actions_valid:
+                            continue
+
+                        res = constraints_satisfied(
+                            action, cur_state, solution._proposed)
+
+                        if not res:
+                            actions_valid = False
+
                     if not actions_valid:
                         continue
 
-                    res = constraints_satisfied(
-                        action, cur_state, self.cycle_proposed)
+                    if cur_state.result in valid_results:
+                        prev_seen_len = len(seen_actions[sol_id])
 
-                    if not res:
-                        actions_valid = False
+                        for action in cur_state.actions:
+                            seen_actions[sol_id].add(action)
 
-                if not actions_valid:
-                    continue
+                        if prev_seen_len != len(seen_actions[sol_id]) \
+                                or cur_state.result is G_SOLVED:
+                            goal_states[sol_id].append(
+                                copy.deepcopy(cur_state))
 
-                if cur_state.result in valid_results:
-                    self.add_cycle_proposed(cur_state)
+            new_solutions = []
+            for sol_id, g_states in goal_states.items():
+                if g_states == []:
+                    new_solutions.append(solutions[sol_id])
 
-                    prev_seen_len = len(seen_actions)
+                for g_state in g_states:
 
-                    for action in cur_state.actions:
-                        seen_actions.add(action)
+                    t_soln = copy.deepcopy(solutions[sol_id])
+                    s_utils.add_to_cycle_proposed(
+                        t_soln._proposed, g_state)
+                    t_soln.add_state(g_state)
 
-                    if prev_seen_len != len(seen_actions) or \
-                            cur_state.result is G_SOLVED:
-                        solution_states.append(copy.deepcopy(cur_state))
+                    new_solutions.append(t_soln)
 
-                    if cur_state.result is G_SOLVED:
-                        break
+            solutions = new_solutions
 
-        solutions.append(Solution(
-            proposed=copy.deepcopy(self.cycle_proposed),
-            states=solution_states
-        ))
+        solutions = sorted(
+            solutions,
+            key=lambda x: (x.solved, len(x.states)), reverse=True
+        )
 
         return solutions
 
