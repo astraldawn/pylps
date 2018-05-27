@@ -4,6 +4,7 @@ Revised solver that will recursively yield solutions
 import copy
 from collections import deque, defaultdict
 
+from functools import partial
 from more_itertools import peekable
 from ordered_set import OrderedSet
 from unification import *
@@ -51,7 +52,8 @@ class _Solver(object):
         solvers = {
             STRATEGY_DEFAULT: self.main_solver,
             STRATEGY_COMB: self.alternate_solver,
-            STRATEGY_GREEDY: self.greedy_solver
+            STRATEGY_GREEDY: self.greedy_solver,
+            STRATEGY_GREEDY_FAST: partial(self.greedy_solver, fast_solve=True)
         }
 
         solutions = solvers[strategy]()
@@ -213,9 +215,10 @@ class _Solver(object):
 
         return solutions
 
-    def greedy_solver(self):
+    def greedy_solver(self, fast_solve=False):
 
         solutions = []
+        fast_solve = fast_solve
 
         if len(KB.goals) == 0:
             solutions.append(Solution(
@@ -235,8 +238,9 @@ class _Solver(object):
             seen_actions = {
                 sol_id: set() for sol_id, _ in enumerate(solutions)}
             goal_states = {sol_id: [] for sol_id, _ in enumerate(solutions)}
+            goal_solved = False
 
-            while True:
+            while True and not goal_solved:
                 try:
                     cur_state = next(backtrack_solve)
                 except StopIteration:
@@ -273,6 +277,11 @@ class _Solver(object):
                             goal_states[sol_id].append(
                                 copy.deepcopy(cur_state))
 
+                        # Only want the first solution for a goal
+                        if cur_state.result is G_SOLVED and fast_solve:
+                            goal_solved = True
+                            break
+
             new_solutions = []
             for sol_id, g_states in goal_states.items():
                 if g_states == []:
@@ -288,6 +297,7 @@ class _Solver(object):
                     new_solutions.append(t_soln)
 
             solutions = new_solutions
+            # print(len(solutions))
 
         solutions = sorted(
             solutions,

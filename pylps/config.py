@@ -9,7 +9,10 @@ VALID_OPTIONS = {
     'single_clause': set([False, True]),
 
     'solution_preference': set([SOLN_PREF_FIRST, SOLN_PREF_MAX]),
-    'strategy': set([STRATEGY_DEFAULT, STRATEGY_COMB, STRATEGY_GREEDY]),
+    'strategy': set([
+        STRATEGY_DEFAULT, STRATEGY_COMB, STRATEGY_GREEDY,
+        STRATEGY_GREEDY_FAST,
+    ]),
 }
 
 VALID_OPTIONS_TYPE = {

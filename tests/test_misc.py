@@ -66,6 +66,22 @@ def test_action_defer_4():
     assert actual == expected
 
 
+def test_action_defer_5():
+    # GIVEN
+    expected = [
+        fluent_initiate('a', [], 0),
+        action('p1a', [1], (1, 2)),
+        action('p2a', [1], (2, 3)),
+        action('p1a', [2], (2, 3)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('misc', 'action_defer_5')
+
+    # THEN
+    assert actual == expected
+
+
 def test_action_trigger():
     # GIVEN
     expected = [
