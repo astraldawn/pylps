@@ -3,8 +3,6 @@ from pylps.exceptions import *
 
 VALID_OPTIONS = {
     'debug': set([False, True]),
-
-    'cycle_fluents': set([False, True]),
     'experimental': set([False, True]),
     'single_clause': set([False, True]),
 
@@ -53,10 +51,6 @@ class _CONFIG(object):
     @property
     def strategy(self):
         return self._options['strategy']
-
-    @property
-    def cycle_fluents(self):
-        return self._options['cycle_fluents']
 
     @property
     def experimental(self):

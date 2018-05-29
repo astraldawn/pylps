@@ -85,7 +85,6 @@ def execute(
     solution_preference=SOLN_PREF_FIRST,
     debug=False,
     experimental=False,
-    cycle_fluents=False,
     strategy=STRATEGY_GREEDY,
     stepwise=False
 ):
@@ -117,7 +116,6 @@ def execute(
         'debug': debug,
         'experimental': experimental,
         'strategy': strategy,
-        'cycle_fluents': cycle_fluents,
     }
 
     # Resets

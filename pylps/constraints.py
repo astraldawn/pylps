@@ -35,11 +35,6 @@ def constraints_satisfied(o_goal, state, cycle_proposed: Proposed,
     # debug_display('SUBS', state.subs)
 
     constraints = KB.get_constraints(goal)
-
-    # Handle any causaulties from action
-    if CONFIG.cycle_fluents:
-        all_proposed._fluents.update(state.fluents)
-
     causalities = KB.exists_causality(goal)
 
     if causalities:

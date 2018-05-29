@@ -62,6 +62,8 @@ class _ENGINE(object):
             for cond in rule.conds:
                 cond_object = copy.deepcopy(cond)
 
+                # TODO: What if its hidden inside an EXPR?
+
                 # Flag setting for fact triggers
                 if cond_object.BaseClass != FACT:
                     only_facts = False
@@ -75,6 +77,10 @@ class _ENGINE(object):
                 true_trigger = True
                 rule._constant_trigger = True
                 substitutions = [{}]
+
+            # fact only
+            if only_facts:
+                rule._constant_trigger = True
 
             if not true_trigger:
 
@@ -95,6 +101,7 @@ class _ENGINE(object):
                 continue
 
             for substitution in substitutions:
+                # TODO: Not exactly, there may just be facts with constant
                 if substitution == {} and not true_trigger:
                     continue
 

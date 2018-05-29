@@ -27,11 +27,12 @@ def process_solutions(solutions, cycle_time):
     new_kb_goals = []
 
     # Ensure that actions executed per cycle are unique
-    unique_actions = set()
     processed = set()
     solved_goals = set()
     solved = False
     soln_max_solved = False
+
+    cycle_actions = OrderedSet()
 
     for solution in solutions:
 
@@ -44,7 +45,8 @@ def process_solutions(solutions, cycle_time):
                 soln_max_solved = True
                 solved_goals.add(state.reactive_id)
                 processed.add(state.reactive_id)
-                _process_state(state, unique_actions)
+
+                cycle_actions |= state.actions
 
             elif state.result is G_DEFER:
                 # soln_max_solved = True
@@ -53,7 +55,7 @@ def process_solutions(solutions, cycle_time):
                     continue
 
                 processed.add(state.reactive_id)
-                _process_state(state, unique_actions)
+                cycle_actions |= state.actions
 
                 new_state = copy.deepcopy(state)
 
@@ -75,6 +77,8 @@ def process_solutions(solutions, cycle_time):
         if (preference is SOLN_PREF_MAX and soln_max_solved) or solved:
             break
 
+    process_cycle(cycle_actions)
+
     unsolved_existing_goals = OrderedSet()
 
     for start_state in KB.goals:
@@ -94,47 +98,24 @@ def process_solutions(solutions, cycle_time):
     KB.set_goals(unsolved_existing_goals)
 
 
-def _process_state(state, unique_actions):
+def process_cycle(cycle_actions):
 
     # debug_display('STATE', state)
 
-    for action in state.actions:
-        if action in unique_actions:
-            continue
-
-        r_action = action
+    for action in cycle_actions:
 
         # Convert args for action
-        converted_args = convert_args_to_python(r_action)
+        converted_args = convert_args_to_python(action)
 
         # Add into observations
         KB.add_cycle_obs(Observation(
-            r_action, action.start_time, action.end_time))
+            action, action.start_time, action.end_time))
 
         # Log action
-        KB.log_action_new(r_action, converted_args=converted_args)
-        unique_actions.add(r_action)
+        KB.log_action_new(action, converted_args=converted_args)
 
-        if CONFIG.cycle_fluents:
-            continue
-
-        initiates, terminates = process_causalities(r_action)
+        initiates, terminates = process_causalities(action)
         commit_outcomes(initiates, terminates)
-
-    for fluent_outcome in state.fluents:
-        if not CONFIG.cycle_fluents:
-            continue
-
-        outcome, fluent = fluent_outcome.outcome, fluent_outcome.fluent
-
-        if outcome == A_TERMINATE:
-            if KB.remove_fluent(fluent):
-                KB.log_fluent(fluent, cycle_time + 1, F_TERMINATE)
-        elif outcome == A_INITIATE:
-            if KB.add_fluent(fluent):
-                KB.log_fluent(fluent, cycle_time + 1, F_INITIATE)
-        else:
-            raise UnknownOutcomeError(outcome)
 
 
 def reify_actions(state, reify=True):

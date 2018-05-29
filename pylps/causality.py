@@ -111,7 +111,6 @@ def process_causalities(action, deconflict=True):
 
 
 def generate_outcome_fluents(fluent):
-    # debug_display('FLUENT', fluent.args, is_grounded(fluent))
     ret = []
     if is_grounded(fluent):
         return [fluent]

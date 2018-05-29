@@ -311,16 +311,6 @@ class _Solver(object):
         self.cycle_proposed.add_actions(
             s_utils.reify_actions(state, reify=True))
 
-        if not CONFIG.cycle_fluents:
-            return
-
-        for fluent_outcome in state.fluents:
-            # May not need this actually
-            fluent = fluent_outcome.fluent
-            fluent.args = reify_args(fluent.args, state.subs)
-
-            self.cycle_proposed.add_fluent(fluent_outcome)
-
     def display_cycle_proposed(self):
         for action in self.cycle_proposed.actions:
             display(action)
@@ -485,14 +475,6 @@ class _Solver(object):
         # Done
         if valid or CONFIG.strategy is not STRATEGY_DEFAULT:
             new_state.add_action(copy.deepcopy(goal))
-
-            if CONFIG.cycle_fluents:
-                causalities = KB.exists_causality(goal)
-
-                if causalities:
-                    for outcome in causalities.outcomes:
-                        new_state.add_fluent(copy.deepcopy(outcome))
-
             states.append(new_state)
 
     def expand_action_reactive(self, goal, cur_state, states):
