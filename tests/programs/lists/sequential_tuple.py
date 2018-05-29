@@ -21,9 +21,9 @@ goal(handle_list([LPSTuple((X, Y))]).frm(T1, T2)).requires(
     show(Y).frm(T1, T2)
 )
 
-goal(handle_list([LPSTuple((X, Y)) | XS]).frm(T1, T2)).requires(
+goal(handle_list([LPSTuple((X, Y)) | XS]).frm(T1, T3)).requires(
     show_tuple(X, Y).frm(T1, T2),
-    handle_list(XS).frm(T1, T2)
+    handle_list(XS).frm(T2, T3)
 )
 
 execute(single_clause=False)

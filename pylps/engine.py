@@ -1,9 +1,10 @@
 import copy
 
+from ordered_set import OrderedSet
 from pylps.utils import *
 
 from pylps.kb import KB
-from pylps.causality import unify_obs
+from pylps.causality import unify_obs, commit_outcomes
 from pylps.unifier import reify_goals
 from pylps.solver import SOLVER
 from pylps.solver_utils import process_solutions
@@ -33,19 +34,27 @@ class _ENGINE(object):
         self._next_iteration()
 
     def _next_iteration(self):
+
+        self._check_observations()
         self._check_rules()
         self._check_goals()
-        self._check_observations()
 
         self.current_time += 1
-
         KB.clear_cycle_obs(current_time=self.current_time)
 
+        commit_outcomes(self.obs_initiated, self.obs_terminated)
+
     def _check_observations(self):
+        self.obs_initiated = OrderedSet()
+        self.obs_terminated = OrderedSet()
+
         for observation in KB.observations:
             if observation.start_time == self.current_time:
-                # Unify with the KB?
-                unify_obs(observation)
+                ret = unify_obs(observation)
+                if ret:
+                    i, t = ret
+                    self.obs_initiated |= i
+                    self.obs_terminated |= t
 
     def _check_rules(self):
         # Check rules

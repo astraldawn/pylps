@@ -307,7 +307,7 @@ class _Solver(object):
 
         solutions = sorted(
             solutions,
-            key=lambda x: (x.solved, len(x.states)), reverse=True
+            key=lambda x: (x.solved, ), reverse=True
         )
 
         return solutions
@@ -418,8 +418,23 @@ class _Solver(object):
         start_time = var(goal.start_time.name)
         end_time = var(goal.end_time.name)
 
-        if not cur_subs.get(start_time)  \
-                or not isinstance(cur_subs[start_time], int):
+        # debug_display('ACTION', goal, start_time, end_time)
+        # debug_display('ACTION_SUBS', cur_subs)
+
+        r_start_time = reify(start_time, cur_subs)
+
+        '''
+        TODO
+
+        NEED TO FIX FOR RIVER CROSSING
+        '''
+        # print(goal)
+        # print(cur_subs[start_time])
+        # print()
+
+        # if not cur_subs.get(start_time)  \
+        #         or not isinstance(cur_subs[start_time], int):
+        if not isinstance(r_start_time, int):
             # Start time has not been substituted
             if cur_state.temporal_used:
                 new_state._goal_pos -= 1
@@ -441,9 +456,11 @@ class _Solver(object):
             # debug_display('START HAS ALREADY BEEN UNIFIED')
             # debug_display(cur_state)
 
-            unify_end = unify(end_time, cur_state.subs[start_time] + 1)
+            unify_end = unify(end_time, r_start_time + 1)
             new_state.update_subs(unify_end)
+
             temporal_valid = new_state.subs[end_time] <= self.current_time + 1
+            temporal_exceed = new_state.subs[end_time] - self.current_time < 1
 
             if not temporal_valid:
                 new_state._goal_pos -= 1
@@ -455,9 +472,6 @@ class _Solver(object):
                 # debug_display('DEFER_ELSE', goal)
                 states.append(new_state)
                 return
-
-            # TODO: This might be changed to < 0
-            temporal_exceed = new_state.subs[end_time] - self.current_time < 1
 
             if temporal_exceed:
                 new_state.set_result(G_DISCARD)
@@ -547,7 +561,7 @@ class _Solver(object):
         new_state._counter += 1
         new_reqs = []
         new_subs = {}
-        counter = new_state.counter
+        counter = new_state.counter + new_state.reactive_id
 
         for clause_arg, goal_arg in zip(clause.goal[0].args, goal_args):
             match_res = s_utils.match_clause_goal(

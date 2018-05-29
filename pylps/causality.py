@@ -20,13 +20,16 @@ from pylps.constraints import check_constraint, constraints_satisfied
 
 
 def unify_obs(observation):
+    '''
+    TODO: accumulate and apply them all at once
+    '''
     action = copy.deepcopy(observation.action)
     action.update_start_time(observation.start_time)
     action.update_end_time(observation.end_time)
 
     # Constraint check
     action_cons, return_state = constraints_satisfied(
-        action, State(), Proposed(), return_failure=True)
+        action, State(), Proposed(), is_observation=True)
 
     if not action_cons:
         return_state.update_subs({
@@ -40,7 +43,8 @@ def unify_obs(observation):
     KB.add_cycle_obs(observation)
 
     initiates, terminates = process_causalities(action)
-    commit_outcomes(initiates, terminates)
+
+    return initiates, terminates
 
 
 def process_return_state(observation, return_state):
@@ -127,6 +131,7 @@ def generate_outcome_fluents(fluent):
 
 
 def commit_outcomes(initiates, terminates):
+
     for (fluent, time) in initiates:
         if KB.add_fluent(fluent):
             KB.log_fluent(fluent, time, F_INITIATE)

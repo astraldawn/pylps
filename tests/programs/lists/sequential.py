@@ -14,9 +14,9 @@ goal(handle_list([X]).frm(T1, T2)).requires(
     show(X).frm(T1, T2)
 )
 
-goal(handle_list([X | XS]).frm(T1, T2)).requires(
+goal(handle_list([X | XS]).frm(T1, T3)).requires(
     show(X).frm(T1, T2),
-    handle_list(XS).frm(T1, T2)
+    handle_list(XS).frm(T2, T3)
 )
 
 execute(single_clause=False, debug=False)

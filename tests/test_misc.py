@@ -124,3 +124,19 @@ def test_constraint_validity():
 
     # THEN
     assert actual == expected
+
+
+def test_observation_pref():
+    # GIVEN
+    expected = [
+        fluent_initiate('f', [], 0),
+        action('say', ['a'], (1, 2)),
+        fluent_terminate('f', [], 2),
+        action('say', ['b'], (2, 3)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('misc', 'observation_pref')
+
+    # THEN
+    assert actual == expected
