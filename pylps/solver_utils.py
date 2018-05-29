@@ -12,49 +12,31 @@ from pylps.config import CONFIG
 
 
 def process_solutions(solutions, cycle_time):
-
-    preference = CONFIG.solution_preference
-
-    maximum_solved = max([sol.solved for sol in solutions])
-
-    if preference is SOLN_PREF_MAX:
-        solutions = sorted(
-            solutions,
-            # Go for maximum solved + maximum number of actions
-            key=lambda sol: (sol.solved, len(sol.proposed.actions)),
-            reverse=True)
-
+    maximum_solved = solutions[0].solved
     new_kb_goals = []
 
     # Ensure that actions executed per cycle are unique
     processed = set()
     solved_goals = set()
-    solved = False
-    soln_max_solved = False
 
     cycle_actions = OrderedSet()
 
     for solution in solutions:
 
-        if maximum_solved != 0 and solution.solved == maximum_solved:
-            solved = True
-
         for state in solution.states:
 
             if state.result is G_SOLVED:
-                soln_max_solved = True
                 solved_goals.add(state.reactive_id)
                 processed.add(state.reactive_id)
-
                 cycle_actions |= state.actions
 
             elif state.result is G_DEFER:
-                # soln_max_solved = True
-
                 if state.reactive_id in solved_goals:
                     continue
 
                 processed.add(state.reactive_id)
+
+                # Kept because of the reactive_id possibly being solved
                 cycle_actions |= state.actions
 
                 new_state = copy.deepcopy(state)
@@ -74,7 +56,7 @@ def process_solutions(solutions, cycle_time):
             elif state.result is G_NPROCESSED:
                 continue
 
-        if (preference is SOLN_PREF_MAX and soln_max_solved) or solved:
+        if maximum_solved > 0:
             break
 
     process_cycle(cycle_actions)

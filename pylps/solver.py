@@ -161,6 +161,12 @@ class _Solver(object):
                 except StopIteration:
                     continue
 
+        solutions = sorted(
+            solutions,
+            # Go for maximum solved + maximum number of actions
+            key=lambda sol: (sol.solved, len(sol.proposed.actions)),
+            reverse=True)
+
         return solutions
 
     def alternate_solver(self):
@@ -222,7 +228,7 @@ class _Solver(object):
 
         if len(KB.goals) == 0:
             solutions.append(Solution(
-                proposed=[], states=[])
+                proposed=Proposed(), states=[])
             )
             return solutions
 
