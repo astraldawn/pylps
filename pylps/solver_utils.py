@@ -99,8 +99,9 @@ def process_solutions(solutions, cycle_time):
 
 
 def process_cycle(cycle_actions):
-
-    # debug_display('STATE', state)
+    '''
+    TODO - Delay all commitment into KB until all are processed
+    '''
 
     for action in cycle_actions:
 

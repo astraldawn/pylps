@@ -32,7 +32,7 @@ def test_unify_args_events_chain():
     assert actual == expected
 
 
-def test_unify_args_events_multi():
+def test_unify_args_events_multi_sd():
     # GIVEN
     expected = [
         action('say', ['b', 'c'], (1, 2)),
@@ -40,13 +40,29 @@ def test_unify_args_events_multi():
         action('say', ['a', 'b'], (2, 3)),
         action('say', ['d', 'e'], (2, 3)),
         action('say2', ['a', 'c'], (3, 4)),
-        # action('say', ['a', 'd'], (3, 4)),
-        # action('say2', ['a', 'c'], (4, 5)),
     ]
 
     # WHEN
     actual = run_pylps_test_program(
-        'unify_args', 'events_multi')
+        'unify_args', 'events_multi_sd')
+
+    # THEN
+    assert actual == expected
+
+
+def test_unify_args_events_multi_sg():
+    # GIVEN
+    expected = [
+        action('say', ['b', 'c'], (1, 2)),
+        action('say', ['e', 'c'], (1, 2)),
+        action('say', ['a', 'b'], (2, 3)),
+        action('say', ['d', 'e'], (2, 3)),
+        action('say2', ['a', 'c'], (3, 4)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program(
+        'unify_args', 'events_multi_sg')
 
     # THEN
     assert actual == expected

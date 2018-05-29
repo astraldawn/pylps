@@ -52,11 +52,25 @@ class Parser(object):
             'create_variables(' +
             ','.join(self.variables) + ')'
         )
+
+        has_exec = False
+        has_show_kb = False
+
         for line in program:
             self.output.append(line)
 
+            if 'execute' in line:
+                has_exec = True
+
+            if 'show_kb_log' in line:
+                has_show_kb = True
+
         # Ending
-        self.output.extend(ENDING_LINES)
+        if not has_exec:
+            self.output.append(ENDING_LINES['exec'])
+
+        if not has_show_kb:
+            self.output.append(ENDING_LINES['show_kb'])
 
         return self.output
 
