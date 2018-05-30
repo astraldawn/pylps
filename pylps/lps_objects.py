@@ -207,10 +207,11 @@ class GoalClause(object):
 class Observation(object):
     BaseClass = OBS
 
-    def __init__(self, action, start, end):
+    def __init__(self, action, start, end, from_cycle=False):
         self._action = action
         self._start_time = start
         self._end_time = end
+        self.from_cycle = from_cycle
 
     def __repr__(self):
         ret = "Observation\n"

@@ -85,6 +85,9 @@ def expand_expr(expr, cur_state, states, constraint=False):
 
 
 def _evaluate_pylps_expr(expr):
+    if is_constant(expr):
+        return expr
+
     if expr.BaseClass is CONSTANT:
         return expr.const
 

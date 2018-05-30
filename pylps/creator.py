@@ -3,7 +3,7 @@ import sys
 from pylps.constants import *
 from pylps.exceptions import *
 from pylps.lps_objects import Action, Event, Fact, Fluent
-from pylps.lps_data_structures import convert_arg, Variable, TemporalVar
+from pylps.lps_data_structures import convert_arg, Variable
 from pylps.kb import KB
 
 types_dict = {
@@ -30,8 +30,8 @@ def ClassFactory(name, arity, base_type):
                 raise TypeError('Please supply %s arguments' % arity)
             self.args = [convert_arg(arg) for arg in args]
             self.created = True
-            self._start_time = TemporalVar('T1')
-            self._end_time = TemporalVar('T2')
+            self._start_time = Variable('T1')
+            self._end_time = Variable('T2')
 
     elif base_type == FLUENT:
 
@@ -40,7 +40,7 @@ def ClassFactory(name, arity, base_type):
                 raise TypeError('Please supply %s arguments' % arity)
             self.args = [convert_arg(arg) for arg in args]
             self.created = True
-            self._time = TemporalVar('T1')
+            self._time = Variable('T1')
 
     elif base_type == FACT:
 
@@ -76,9 +76,6 @@ def create_objects(args, object_type):
         if object_type == VARIABLE:
             # globals()[arg] = Variable(arg)
             locals_[arg] = Variable(arg)
-        elif object_type == TEMPORAL_VARIABLE:
-            # globals()[arg] = TemporalVar(arg)
-            locals_[arg] = TemporalVar(arg)
         elif object_type in valid_dynamic_types:
             name, arity = (arg, 0)
             if '(' in arg:

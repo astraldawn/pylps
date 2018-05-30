@@ -92,7 +92,7 @@ def process_cycle(cycle_actions):
 
         # Add into observations
         KB.add_cycle_obs(Observation(
-            action, action.start_time, action.end_time))
+            action, action.start_time, action.end_time, from_cycle=True))
 
         # Log action
         KB.log_action_new(action, converted_args=converted_args)

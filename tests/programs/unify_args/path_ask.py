@@ -25,17 +25,17 @@ reactive_rule(ask2(X, Y).frm(T1, T2)).then(
 )
 
 goal(respond(X, Y).frm(T1, T2)).requires(
-    path(X, Y).frm(T1, T2),
+    path(X, Y).frm(T1, T1),
     say(X, Y).frm(T1, T2)
 )
 
-goal(path(X, Y).frm(T1, T2)).requires(
+goal(path(X, Y).frm(T, T)).requires(
     arc(X, Y),
 )
 
-goal(path(X, Y).frm(T1, T2)).requires(
+goal(path(X, Y).frm(T, T)).requires(
     arc(X, Z),
-    path(Z, Y).frm(T1, T2),
+    path(Z, Y).frm(T, T),
 )
 
 execute(debug=False)

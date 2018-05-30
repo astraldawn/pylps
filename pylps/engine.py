@@ -45,7 +45,7 @@ class _ENGINE(object):
         commit_outcomes(self.initiated, self.terminated)
 
         self.current_time += 1
-        KB.clear_cycle_obs(current_time=self.current_time)
+        KB.clear_cycle_obs(self.current_time)
 
     def _check_observations(self):
 

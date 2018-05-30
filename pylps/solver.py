@@ -428,10 +428,6 @@ class _Solver(object):
 
         NEED TO FIX FOR RIVER CROSSING
         '''
-        # print(goal)
-        # print(cur_subs[start_time])
-        # print()
-
         # if not cur_subs.get(start_time)  \
         #         or not isinstance(cur_subs[start_time], int):
         if not isinstance(r_start_time, int):
@@ -455,7 +451,8 @@ class _Solver(object):
         else:
             # debug_display('START HAS ALREADY BEEN UNIFIED')
             # debug_display(cur_state)
-
+            unify_start = unify(start_time, r_start_time)
+            new_state.update_subs(unify_start)
             unify_end = unify(end_time, r_start_time + 1)
             new_state.update_subs(unify_end)
 
@@ -672,7 +669,15 @@ class _Solver(object):
                 if cur_subs.get(k):
                     res = reify(k, cur_subs)
                     # debug_display('F_MATCH_SUBS', v, res)
-                    if not isinstance(res, Var) and v != res:
+                    v_c = v
+                    r_c = res
+                    if is_constant(v_c):
+                        v_c = LPSConstant(v_c)
+
+                    if is_constant(r_c):
+                        r_c = LPSConstant(r_c)
+
+                    if not isinstance(res, Var) and v_c != r_c:
                         valid_sub = False
 
             if valid_sub:

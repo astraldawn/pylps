@@ -238,7 +238,7 @@ def reify_arg_helper(arg, substitutions):
             for item in arg
         ]
 
-    if arg.BaseClass is VARIABLE or arg.BaseClass is TEMPORAL_VARIABLE:
+    if arg.BaseClass is VARIABLE:
         # arg = reify(var(arg.name), substitutions)
         # debug_display('REIFY_VAR', reify(var(arg.name), substitutions))
         return reify_single(arg, substitutions)

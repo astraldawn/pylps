@@ -1,6 +1,6 @@
 from pylps.core import *
 
-initialise(max_time=5)
+initialise(max_time=10)
 
 create_fluents('balance(_, _)')
 create_actions('transfer(_, _, _)')
@@ -14,16 +14,18 @@ initially(balance('bob', 0), balance('fariba', 100),)
 observe(transfer('fariba', 'bob', 10).frm(1, 2))
 
 reactive_rule(
-    transfer('fariba', 'bob', X).frm(T1, T2),
-    balance('bob', A).at(T2),
+    transfer('fariba', 'bob', X),
+    T3.is_(T2 + 5),
+    balance('bob', A).at(T3),
     A >= 10,
-).then(transfer('bob', 'fariba', 10).frm(T2, T3))
+).then(transfer('bob', 'fariba', 10).frm(T3, T4))
 
 reactive_rule(
-    transfer('bob', 'fariba', X).frm(T1, T2),
-    balance('fariba', A).at(T2),
+    transfer('bob', 'fariba', X),
+    T3.is_(T2 + 5),
+    balance('fariba', A).at(T3),
     A >= 20,
-).then(transfer('fariba', 'bob', 20).frm(T2, T3))
+).then(transfer('fariba', 'bob', 20).frm(T3, T4))
 
 transfer(F, T, A).initiates(balance(T, New)).iff(
     balance(T, Old), New.is_(Old + A))
@@ -51,18 +53,19 @@ initially   balance(bob, 0), balance(fariba, 100).
 observe     transfer(fariba, bob, 10)   from 1 to 2.
 
 if      transfer(fariba, bob, X)    from  T1 to T2,
-        balance(bob, A) at T2, A >= 10
-then    transfer(bob, fariba, 10)   from T2 to T3.
+        T3 is T2+5,
+        balance(bob, A) at T3, A >= 10
+then    transfer(bob, fariba, 10)   from T3 to T4.
 
 if      transfer(bob, fariba, X)    from  T1 to T2,
-        balance(fariba, A) at T2, A >= 20
-then    transfer(fariba, bob, 20)   from  T2 to T3.
+        T3 is T2+5,
+        balance(fariba, A) at T3, A >= 20
+then    transfer(fariba, bob, 20)   from  T3 to T4.
 
 transfer(F,T,A) updates Old to New in balance(T, Old) if New is Old + A.
 transfer(F,T,A) updates Old to New in balance(F, Old) if New is Old - A.
 
 false   transfer(From, To, Amount), balance(From, Old),  Old < Amount.
 false   transfer(From, To1, Amount1), transfer(From, To2, Amount2),  To1 \=To2.
-false   transfer(From1, To, Amount1), transfer(From2, To, Amount2),
-From1 \= From2.
+false   transfer(From1, To, Amount1), transfer(From2, To, Amount2),  From1 \= From2.
 '''

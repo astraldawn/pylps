@@ -300,9 +300,12 @@ class _KB(object):
         self._cycle_obs.add(observation)
 
     def clear_cycle_obs(self, current_time):
+        '''
+        TODO: should be able to defer when checking the reactive rules
+        '''
         new_cycle_obs = []
         for obs in self.cycle_obs:
-            if obs.end_time != current_time:
+            if obs.end_time < current_time:
                 continue
             new_cycle_obs.append(obs)
 
