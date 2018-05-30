@@ -4,7 +4,6 @@ from unification import *
 
 from pylps.constants import *
 from pylps.exceptions import *
-from pylps.utils import *
 
 from pylps.config import CONFIG
 from pylps.lps_data_structures import LPSList, LPSTuple

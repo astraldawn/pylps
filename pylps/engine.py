@@ -35,26 +35,27 @@ class _ENGINE(object):
 
     def _next_iteration(self):
 
+        self.initiated = OrderedSet()
+        self.terminated = OrderedSet()
+
         self._check_observations()
         self._check_rules()
         self._check_goals()
 
+        commit_outcomes(self.initiated, self.terminated)
+
         self.current_time += 1
         KB.clear_cycle_obs(current_time=self.current_time)
 
-        commit_outcomes(self.obs_initiated, self.obs_terminated)
-
     def _check_observations(self):
-        self.obs_initiated = OrderedSet()
-        self.obs_terminated = OrderedSet()
 
         for observation in KB.observations:
             if observation.start_time == self.current_time:
                 ret = unify_obs(observation)
                 if ret:
                     i, t = ret
-                    self.obs_initiated |= i
-                    self.obs_terminated |= t
+                    self.initiated |= i
+                    self.terminated |= t
 
     def _check_rules(self):
         # Check rules

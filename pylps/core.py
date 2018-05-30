@@ -1,32 +1,34 @@
 from pylps.constants import *
+
 from pylps.config import CONFIG
-from pylps.creator import *
-from pylps.lps_objects import GoalClause, Observation, ReactiveRule
 from pylps.kb import KB
 from pylps.engine import ENGINE
+from pylps.lps_objects import GoalClause, Observation, ReactiveRule
+
+import pylps.creator as creator
 
 
 ''' Declarations '''
 
 
 def create_actions(*args):
-    create_objects(args, ACTION)
+    creator.create_objects(args, ACTION)
 
 
 def create_events(*args):
-    create_objects(args, EVENT)
+    creator.create_objects(args, EVENT)
 
 
 def create_facts(*args):
-    create_objects(args, FACT)
+    creator.create_objects(args, FACT)
 
 
 def create_fluents(*args):
-    create_objects(args, FLUENT)
+    creator.create_objects(args, FLUENT)
 
 
 def create_variables(*args):
-    create_objects(args, VARIABLE)
+    creator.create_objects(args, VARIABLE)
 
 
 def initially(*args):
@@ -73,8 +75,9 @@ def false_if(*args):
 def initialise(max_time=5, create_vars=True):
     # Must call create object directly due to stack issues
     if create_vars:
-        create_objects(['T', 'T1', 'T2', 'T3', 'T4', 'T5'], TEMPORAL_VARIABLE)
-        create_objects(['_'], VARIABLE)
+        creator.create_objects(
+            ['T', 'T1', 'T2', 'T3', 'T4', 'T5'], TEMPORAL_VARIABLE)
+        creator.create_objects(['_'], VARIABLE)
 
     ENGINE.set_params(max_time=max_time)
 
