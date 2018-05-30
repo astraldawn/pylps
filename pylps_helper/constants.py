@@ -1,5 +1,5 @@
 HEAD_STRING = 'from pylps.core import *'
-ENDING_LINES = [
-    'execute()',
-    'show_kb_log()'
-]
+ENDING_LINES = {
+    'exec': 'execute()',
+    'show_kb': 'show_kb_log()'
+}

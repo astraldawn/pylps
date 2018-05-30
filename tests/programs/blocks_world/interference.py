@@ -72,11 +72,11 @@ goal(make_clear(Block).frm(T1, T2)).requires(
 move(Block, Place).initiates(location(Block, Place))
 move(Block, _).terminates(location(Block, Place))
 
-execute(debug=True, solution_preference=SOLN_PREF_MAX)
+execute()
 
 show_kb_log()
 
-show_kb_fluents()
+# show_kb_fluents()
 
 '''
 maxTime(10).

@@ -54,6 +54,10 @@ class Proposed(object):
     def clear_fluents(self):
         self._fluents = OrderedSet()
 
+    def reset(self):
+        self.clear_actions()
+        self.clear_fluents()
+
 
 class Solution(object):
     def __init__(self, proposed: Proposed, states):
@@ -86,6 +90,11 @@ class Solution(object):
     @property
     def solved(self):
         return self._solved
+
+    def add_state(self, state):
+        self._states.append(state)
+        if state.result is G_SOLVED:
+            self._solved += 1
 
     def _process(self):
         for state in self.states:

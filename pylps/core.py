@@ -1,32 +1,34 @@
 from pylps.constants import *
+
 from pylps.config import CONFIG
-from pylps.creator import *
-from pylps.lps_objects import GoalClause, Observation, ReactiveRule
 from pylps.kb import KB
 from pylps.engine import ENGINE
+from pylps.lps_objects import GoalClause, Observation, ReactiveRule
+
+import pylps.creator as creator
 
 
 ''' Declarations '''
 
 
 def create_actions(*args):
-    create_objects(args, ACTION)
+    creator.create_objects(args, ACTION)
 
 
 def create_events(*args):
-    create_objects(args, EVENT)
+    creator.create_objects(args, EVENT)
 
 
 def create_facts(*args):
-    create_objects(args, FACT)
+    creator.create_objects(args, FACT)
 
 
 def create_fluents(*args):
-    create_objects(args, FLUENT)
+    creator.create_objects(args, FLUENT)
 
 
 def create_variables(*args):
-    create_objects(args, VARIABLE)
+    creator.create_objects(args, VARIABLE)
 
 
 def initially(*args):
@@ -73,19 +75,20 @@ def false_if(*args):
 def initialise(max_time=5, create_vars=True):
     # Must call create object directly due to stack issues
     if create_vars:
-        create_objects(['T', 'T1', 'T2', 'T3', 'T4', 'T5'], TEMPORAL_VARIABLE)
-        create_objects(['_'], VARIABLE)
+        creator.create_objects(
+            ['T', 'T1', 'T2', 'T3', 'T4', 'T5'], TEMPORAL_VARIABLE)
+        creator.create_objects(['_'], VARIABLE)
 
     ENGINE.set_params(max_time=max_time)
 
 
 def execute(
-    cycle_fluents=False,
     n_solutions=CONFIG_DEFAULT_N_SOLUTIONS,
     single_clause=False,
     solution_preference=SOLN_PREF_FIRST,
     debug=False,
     experimental=False,
+    strategy=STRATEGY_GREEDY,
     stepwise=False
 ):
     '''Execute pyLPS program
@@ -108,18 +111,18 @@ def execute(
         n_solutions = 10000000
 
     options_dict = {
-        'cycle_fluents': cycle_fluents,
         'n_solutions': n_solutions,
         'single_clause': single_clause,
         'solution_preference': solution_preference,
+
         # Development
         'debug': debug,
-        'experimental': experimental
+        'experimental': experimental,
+        'strategy': strategy,
     }
 
     # Resets
-    KB.clear_logs()
-    KB.clear_fluents()
+    KB.reset_kb()
 
     # Initially
     for fluent in KB.initial_fluents:
@@ -132,6 +135,7 @@ def execute(
 
 def execute_next_step():
     ENGINE.next_step()
+
 
 ''' Utility '''
 

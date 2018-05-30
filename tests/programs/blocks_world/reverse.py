@@ -15,7 +15,7 @@ create_events(
     'clear(_)', 'make_tower(_)',
     'make_on(_, _)', 'make_clear(_)',
 )
-create_variables('Block', 'Block1', 'Place', 'Places')
+create_variables('Block', 'Block1', 'Place', 'Places', 'A', 'B', 'C')
 
 initially(
     location('a', 'floor'), location('b', 'a'), location('c', 'b'),

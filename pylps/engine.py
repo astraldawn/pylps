@@ -1,9 +1,10 @@
 import copy
 
+from ordered_set import OrderedSet
 from pylps.utils import *
 
 from pylps.kb import KB
-from pylps.causality import unify_obs
+from pylps.causality import unify_obs, commit_outcomes
 from pylps.unifier import reify_goals
 from pylps.solver import SOLVER
 from pylps.solver_utils import process_solutions
@@ -33,19 +34,28 @@ class _ENGINE(object):
         self._next_iteration()
 
     def _next_iteration(self):
+
+        self.initiated = OrderedSet()
+        self.terminated = OrderedSet()
+
+        self._check_observations()
         self._check_rules()
         self._check_goals()
-        self._check_observations()
+
+        commit_outcomes(self.initiated, self.terminated)
 
         self.current_time += 1
-
         KB.clear_cycle_obs(current_time=self.current_time)
 
     def _check_observations(self):
+
         for observation in KB.observations:
             if observation.start_time == self.current_time:
-                # Unify with the KB?
-                unify_obs(observation)
+                ret = unify_obs(observation)
+                if ret:
+                    i, t = ret
+                    self.initiated |= i
+                    self.terminated |= t
 
     def _check_rules(self):
         # Check rules
@@ -62,6 +72,8 @@ class _ENGINE(object):
             for cond in rule.conds:
                 cond_object = copy.deepcopy(cond)
 
+                # TODO: What if its hidden inside an EXPR?
+
                 # Flag setting for fact triggers
                 if cond_object.BaseClass != FACT:
                     only_facts = False
@@ -75,6 +87,10 @@ class _ENGINE(object):
                 true_trigger = True
                 rule._constant_trigger = True
                 substitutions = [{}]
+
+            # fact only
+            if only_facts:
+                rule._constant_trigger = True
 
             if not true_trigger:
 
@@ -95,6 +111,7 @@ class _ENGINE(object):
                 continue
 
             for substitution in substitutions:
+                # TODO: Not exactly, there may just be facts with constant
                 if substitution == {} and not true_trigger:
                     continue
 

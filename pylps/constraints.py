@@ -17,7 +17,7 @@ from pylps.unifier import unify_fact
 
 
 def constraints_satisfied(o_goal, state, cycle_proposed: Proposed,
-                          return_failure=False):
+                          is_observation=False):
     # Handle goal
     goal = reify_obj_args(o_goal, state.subs)
     all_proposed = copy.deepcopy(cycle_proposed)
@@ -31,15 +31,18 @@ def constraints_satisfied(o_goal, state, cycle_proposed: Proposed,
          for c_action in all_proposed._actions]
     )
 
+    for obs in KB.cycle_obs:
+        end_time = o_goal.end_time
+        if not isinstance(end_time, int):
+            end_time = reify(var(end_time.name), state.subs)
+
+        if obs.action.end_time == end_time:
+            all_proposed._actions.add(obs.action)
+
     # debug_display('ALL_PROPOSED', all_proposed)
     # debug_display('SUBS', state.subs)
 
     constraints = KB.get_constraints(goal)
-
-    # Handle any causaulties from action
-    if CONFIG.cycle_fluents:
-        all_proposed._fluents.update(state.fluents)
-
     causalities = KB.exists_causality(goal)
 
     if causalities:
@@ -66,22 +69,20 @@ def constraints_satisfied(o_goal, state, cycle_proposed: Proposed,
         try:
             res = next(check_constraint(constraint, all_proposed))
 
-            if return_failure:
+            if is_observation:
                 return (False, res)
 
             return False
         except StopIteration:
             continue
 
-    if return_failure:
+    if is_observation:
         return (True, True)
 
     return True
 
 
 def check_constraint(constraint, all_proposed, custom_start_subs=None):
-
-    # debug_display('CHECK_CONS', constraint)
 
     states = deque()
 

@@ -12,48 +12,32 @@ from pylps.config import CONFIG
 
 
 def process_solutions(solutions, cycle_time):
-
-    preference = CONFIG.solution_preference
-
     maximum_solved = max([sol.solved for sol in solutions])
-
-    if preference is SOLN_PREF_MAX:
-        solutions = sorted(
-            solutions,
-            # Go for maximum solved + maximum number of actions
-            key=lambda sol: (sol.solved, len(sol.proposed.actions)),
-            reverse=True)
-
     new_kb_goals = []
 
     # Ensure that actions executed per cycle are unique
-    unique_actions = set()
     processed = set()
     solved_goals = set()
-    solved = False
-    soln_max_solved = False
+
+    cycle_actions = OrderedSet()
 
     for solution in solutions:
-
-        if maximum_solved != 0 and solution.solved == maximum_solved:
-            solved = True
 
         for state in solution.states:
 
             if state.result is G_SOLVED:
-                soln_max_solved = True
                 solved_goals.add(state.reactive_id)
                 processed.add(state.reactive_id)
-                _process_state(state, unique_actions)
+                cycle_actions |= state.actions
 
             elif state.result is G_DEFER:
-                # soln_max_solved = True
-
                 if state.reactive_id in solved_goals:
                     continue
 
                 processed.add(state.reactive_id)
-                _process_state(state, unique_actions)
+
+                # Kept because of the reactive_id possibly being solved
+                cycle_actions |= state.actions
 
                 new_state = copy.deepcopy(state)
 
@@ -64,16 +48,18 @@ def process_solutions(solutions, cycle_time):
 
                 # Allow another temporal sub
                 new_state.set_temporal_used(False)
-
                 new_kb_goals.append(new_state)
+
             elif state.result is G_DISCARD:
                 processed.add(state.reactive_id)
                 continue
             elif state.result is G_NPROCESSED:
                 continue
 
-        if (preference is SOLN_PREF_MAX and soln_max_solved) or solved:
+        if maximum_solved > 0 and solution.solved == maximum_solved:
             break
+
+    process_cycle(cycle_actions)
 
     unsolved_existing_goals = OrderedSet()
 
@@ -94,47 +80,25 @@ def process_solutions(solutions, cycle_time):
     KB.set_goals(unsolved_existing_goals)
 
 
-def _process_state(state, unique_actions):
+def process_cycle(cycle_actions):
+    '''
+    TODO - Delay all commitment into KB until all are processed
+    '''
 
-    # debug_display('STATE', state)
-
-    for action in state.actions:
-        if action in unique_actions:
-            continue
-
-        r_action = action
+    for action in cycle_actions:
 
         # Convert args for action
-        converted_args = convert_args_to_python(r_action)
+        converted_args = convert_args_to_python(action)
 
         # Add into observations
         KB.add_cycle_obs(Observation(
-            r_action, action.start_time, action.end_time))
+            action, action.start_time, action.end_time))
 
         # Log action
-        KB.log_action_new(r_action, converted_args=converted_args)
-        unique_actions.add(r_action)
+        KB.log_action_new(action, converted_args=converted_args)
 
-        if CONFIG.cycle_fluents:
-            continue
-
-        initiates, terminates = process_causalities(r_action)
+        initiates, terminates = process_causalities(action)
         commit_outcomes(initiates, terminates)
-
-    for fluent_outcome in state.fluents:
-        if not CONFIG.cycle_fluents:
-            continue
-
-        outcome, fluent = fluent_outcome.outcome, fluent_outcome.fluent
-
-        if outcome == A_TERMINATE:
-            if KB.remove_fluent(fluent):
-                KB.log_fluent(fluent, cycle_time + 1, F_TERMINATE)
-        elif outcome == A_INITIATE:
-            if KB.add_fluent(fluent):
-                KB.log_fluent(fluent, cycle_time + 1, F_INITIATE)
-        else:
-            raise UnknownOutcomeError(outcome)
 
 
 def reify_actions(state, reify=True):
@@ -172,24 +136,21 @@ def match_clause_goal(clause, goal, new_subs, counter):
                 return clause.const == goal.head.const
 
     if clause.BaseClass is VARIABLE:
+        new_var = var(clause.name + SUFFIX)
+
         try:
             if goal.BaseClass is VARIABLE:
                 new_subs.update({
-                    var(goal.name): var(clause.name + SUFFIX),
+                    var(goal.name): new_var,
                 })
                 return True
         except AttributeError:
             pass
 
-        new_var = var(clause.name + SUFFIX)
+        res = unify(new_var, goal, new_subs)
 
-        if new_var not in new_subs:
-            new_subs.update({
-                new_var: goal
-            })
-            return True
-
-        if new_subs[new_var] == goal:
+        if res:
+            new_subs.update(res)
             return True
 
         return False
@@ -332,3 +293,7 @@ def create_clause_variables(
     # debug_display('SUBS', new_subs)
     # debug_display('REQS', clause.reqs)
     # debug_display('NEW_REQS', new_reqs)
+
+
+def add_to_cycle_proposed(cycle_proposed, state):
+    cycle_proposed.add_actions(reify_actions(state, reify=True))

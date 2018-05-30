@@ -104,5 +104,9 @@ ENV/
 *.sublime-project
 *.sublime-workspace
 
+# IDE
+.idea/
+
 # Test files
 output*.*
+test.py

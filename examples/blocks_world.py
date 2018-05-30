@@ -15,7 +15,7 @@ create_events(
     'clear(_)', 'make_tower(_)',
     'make_on(_, _)', 'make_clear(_)',
 )
-create_variables('Block', 'Block1', 'Place', 'Places')
+create_variables('Block', 'Block1', 'Place', 'Places', 'A', 'B', 'C')
 
 initially(
     location('f', 'floor'), location('b', 'f'), location('e', 'b'),
@@ -75,7 +75,7 @@ goal(make_clear(Block).frm(T1, T2)).requires(
 move(Block, Place).initiates(location(Block, Place))
 move(Block, _).terminates(location(Block, Place))
 
-execute(solution_preference=SOLN_PREF_MAX, experimental=True)
+execute(strategy=STRATEGY_GREEDY)
 
 show_kb_log()
 

@@ -1,12 +1,11 @@
 import copy
+import itertools
 from unification import *
 
 from pylps.constants import *
 from pylps.exceptions import *
-from pylps.utils import *
 
 from pylps.config import CONFIG
-
 from pylps.lps_data_structures import LPSList, LPSTuple
 
 
@@ -25,6 +24,21 @@ def append_extend(python_list, possible_iterable):
         python_list.extend(possible_iterable)
     except TypeError:
         python_list.append(possible_iterable)
+
+
+def generate_combinations(goal_ids, select=0):
+    if select == 0 or select > len(goal_ids):
+        select = len(goal_ids)
+
+    combs = []
+
+    for comb in itertools.product(*goal_ids):
+        non_sel_count = comb.count(NON_S)
+
+        if len(goal_ids) - non_sel_count == select:
+            combs.append(comb)
+
+    return combs
 
 
 def strictly_increasing(iterable):
@@ -185,7 +199,7 @@ def convert_args_to_python(obj):
 
         converted_args.append(arg)
 
-    debug_display('CONVERT_ARGS', obj.args, converted_args)
+    # debug_display('CONVERT_ARGS', obj.args, converted_args)
 
     return converted_args
 
