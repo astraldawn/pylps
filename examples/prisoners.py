@@ -1,6 +1,6 @@
 from pylps.core import *
 
-initialise(max_time=5)
+initialise(max_time=6)
 
 create_fluents('total_years_in_jail(_, _)')
 create_actions('refuses(_)', 'bears_witness(_)', 'gets(_, _)')

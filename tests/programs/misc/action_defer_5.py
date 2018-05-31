@@ -1,7 +1,7 @@
 # Example to show actions are deferred to end of cycle
 from pylps.core import *
 
-initialise(max_time=2)
+initialise(max_time=3)
 
 create_fluents('a')
 create_facts('f(_)', 'g(_)')

@@ -104,13 +104,14 @@ class Solution(object):
 
 class State(object):
     def __init__(self, goals=[], subs={},
-                 proposed=Proposed(), from_reactive=False):
+                 proposed=Proposed(), from_reactive=False,
+                 result=G_NPROCESSED):
         self._goals = deque(goals)
         self._subs = subs
         self._proposed = proposed
         self._temporal_used = False
         self._goal_pos = 0
-        self._result = G_NPROCESSED
+        self._result = result
         self._counter = 0
         self._reactive_id = None
 

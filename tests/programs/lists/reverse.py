@@ -1,6 +1,6 @@
 from pylps.core import *
 
-initialise(max_time=1)
+initialise(max_time=5)
 
 create_actions('say(_, _)', 'say_single(_)')
 create_events('reverse(_, _)', 'reverse_aux(_, _, _)')

@@ -125,30 +125,30 @@ def test_recurrent_fire_delay_success():
     assert actual == expected
 
 
-# def test_recurrent_fire_delay_success_initiated():
-#     # GIVEN
-#     expected = [
-#         fluent_initiate('water', [], 0),
-#         action('ignite', ['sofa'], (1, 2)),
-#         fluent_initiate('fire', [], 2),
-#         action('eliminate', [], (2, 3)),
-#         fluent_terminate('fire', [], 3),
-#         fluent_terminate('water', [], 3),
-#         fluent_initiate('p', [], 3),
-#         action('delay', [], (2, 3)),
-#         action('delay_more', [], (2, 3)),
-#         action('ignite', ['bed'], (4, 5)),
-#         fluent_initiate('fire', [], 5),
-#         action('refill', [], (7, 8)),
-#         fluent_initiate('water', [], 8),
-#     ]
+def test_recurrent_fire_delay_success_initiated():
+    # GIVEN
+    expected = [
+        fluent_initiate('water', [], 0),
+        action('ignite', ['sofa'], (1, 2)),
+        fluent_initiate('fire', [], 2),
+        action('eliminate', [], (2, 3)),
+        fluent_initiate('p', [], 3),
+        fluent_terminate('fire', [], 3),
+        fluent_terminate('water', [], 3),
+        action('delay', [], (2, 3)),
+        action('delay_more', [], (2, 3)),
+        action('ignite', ['bed'], (4, 5)),
+        fluent_initiate('fire', [], 5),
+        action('refill', [], (7, 8)),
+        fluent_initiate('water', [], 8),
+    ]
 
-#     # WHEN
-#     actual = run_pylps_test_program('recurrent_fire',
-#                                     'delay_success_initiated')
+    # WHEN
+    actual = run_pylps_test_program('recurrent_fire',
+                                    'delay_success_initiated')
 
-#     # THEN
-#     assert actual == expected
+    # THEN
+    assert actual == expected
 
 
 def test_recurrent_fire_delay_fail():

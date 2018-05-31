@@ -1,6 +1,6 @@
 from pylps.core import *
 
-initialise(max_time=2)
+initialise(max_time=5)
 
 create_actions('say(_, _)', 'ask(_, _)')
 create_events('respond(_, _)', 'path(_, _)', 'ask2(_, _)')

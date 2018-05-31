@@ -30,10 +30,10 @@ reactive_rule(country(X)).then(
 paint(X, C).initiates(painted(X, C))
 
 false_if(paint(X, C), adjacent(X, Y), paint(Y, C))
-false_if(paint(X, _), paint(Y, _), X != Y)
 false_if(painted(X, C), adjacent(X, Y), painted(Y, C))
+false_if(paint(X, _), paint(Y, _), X != Y)
 
-execute()
+execute(debug=False)
 
 show_kb_log()
 

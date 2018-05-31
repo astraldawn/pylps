@@ -1,12 +1,10 @@
 import copy
-import operator
 from collections import deque
 
 from unification import *
 from ordered_set import OrderedSet
 
 from pylps.kb import KB
-from pylps.config import CONFIG
 from pylps.constants import *
 from pylps.expand import *
 from pylps.exceptions import *
@@ -21,9 +19,9 @@ def constraints_satisfied(o_goal, state, cycle_proposed: Proposed,
     # Handle goal
     goal = reify_obj_args(o_goal, state.subs)
     all_proposed = copy.deepcopy(cycle_proposed)
+    # debug_display('GOAL', goal)
 
-    # Action for current rule + the new action
-    all_proposed._actions.update(state.actions)
+    # The new action
     all_proposed._actions.add(goal)
 
     all_proposed._actions = OrderedSet(
@@ -108,7 +106,7 @@ def check_constraint(constraint, all_proposed, custom_start_subs=None):
 
 def expand_constraint(constraint, cur_state, states, all_proposed):
 
-    # debug_display('EXPAND_CONS', constraint)
+    # debug_display('EXPAND_CONS', constraint, cur_state.subs)
 
     goal = constraint.goal
 
@@ -176,7 +174,7 @@ def expand_fact(constraint, cur_state, states):
 
     all_subs = list(unify_fact(fact))
 
-    debug_display('FACT_CONS', all_subs)
+    # debug_display('FACT_CONS', all_subs)
 
     subs = []
 
@@ -212,9 +210,10 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
         except AttributeError:
             continue
 
-    # debug_display('CONS_FLUENT', cons_fluent, outcome)
+    # debug_display('CONS_FLUENT', cons_fluent, outcome, cur_subs)
     # debug_display('CUR_SUBS', cur_subs)
-    # debug_display('FROM KB', fluents, all_proposed)
+    # debug_display('FROM KB', fluents)
+    # debug_display('ALL_PROP', all_proposed)
 
     for causality_outcome in all_proposed.fluents:
         if causality_outcome.outcome == A_INITIATE:
@@ -235,6 +234,7 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
         #     fluents.remove(causality_outcome.fluent)
 
     # debug_display('FROM KB AFTER ADD', fluents)
+    # debug_display()
 
     # No fluents found
     if not fluents:

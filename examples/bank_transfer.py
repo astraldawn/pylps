@@ -1,6 +1,6 @@
 from pylps.core import *
 
-initialise(max_time=5)
+initialise(max_time=6)
 
 create_fluents('balance(_, _)')
 create_actions('transfer(_, _, _)')

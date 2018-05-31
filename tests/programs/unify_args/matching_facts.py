@@ -1,6 +1,6 @@
 from pylps.core import *
 
-initialise(max_time=1)
+initialise(max_time=5)
 
 create_actions('show(_)', 'valid(_)', 'say(_, _)')
 create_events('river(_, _, _, _)', 'member(_, _)')

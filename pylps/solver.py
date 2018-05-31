@@ -268,9 +268,11 @@ class _Solver(object):
                             actions_valid = False
 
                     if not actions_valid:
+                        debug_display('INVALID', self.current_time, cur_state)
                         continue
 
                     if cur_state.result in valid_results:
+                        # debug_display('VALID', self.current_time, cur_state)
                         prev_seen_len = len(seen_actions[sol_id])
 
                         for action in cur_state.actions:
@@ -385,7 +387,7 @@ class _Solver(object):
         if isinstance(goal, tuple):
             outcome, goal = goal[1], goal[0]
 
-        debug_display('EXPAND', goal, outcome)
+        # debug_display('EXPAND', goal, outcome)
         # debug_display('EXPAND_R', reify_obj_args(goal, cur_state.subs))
 
         if self.reactive and \
@@ -406,7 +408,7 @@ class _Solver(object):
         else:
             raise UnimplementedOutcomeError(goal.BaseClass)
 
-        debug_display()
+        # debug_display()
 
     def expand_action(self, goal, cur_state, states):
         new_state = pylps_deepcopy(cur_state)
@@ -609,7 +611,7 @@ class _Solver(object):
         else:
             all_subs = list(unify_fact(r_fact))
 
-        debug_display('EXPAND_F', all_subs)
+        # debug_display('EXPAND_F', all_subs)
 
         # Handle the case where fact is grounded (existence check)
         if grounded:
@@ -638,7 +640,7 @@ class _Solver(object):
 
         subs.reverse()
 
-        debug_display('EXPAND_FACT_VALID_SUBS', subs)
+        # debug_display('EXPAND_FACT_VALID_SUBS', subs)
 
         for sub in subs:
             new_state = copy.deepcopy(cur_state)
@@ -649,7 +651,7 @@ class _Solver(object):
         cur_subs = cur_state.subs
         f_time = reify(var(fluent.time.name), cur_subs)
 
-        debug_display('FLUENT', fluent, outcome, cur_subs)
+        # debug_display('FLUENT', fluent, outcome, cur_subs)
         # debug_display('FTIME / CTIME', f_time, self.current_time)
 
         try:
@@ -720,7 +722,7 @@ class _Solver(object):
             # it such that no sub can be matched?
             new_state = copy.deepcopy(cur_state)
             if subs:
-                debug_display('FLUENT_CHECK_F_DEFER')
+                # debug_display('FLUENT_CHECK_F_DEFER')
                 new_state._goal_pos -= 1
 
                 if CONFIG.experimental:

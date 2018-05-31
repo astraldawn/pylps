@@ -1,7 +1,7 @@
 from pylps.core import *
 
 
-initialise(max_time=10)  # Assume all time variables created here
+initialise(max_time=11)  # Assume all time variables created here
 
 create_fluents('fire', 'water', 'p')
 create_actions('eliminate', 'escape', 'refill', 'ignite(_)',
