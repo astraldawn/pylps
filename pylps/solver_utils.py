@@ -259,12 +259,16 @@ def match_clause_goal(clause, goal, new_subs, counter):
 def create_clause_variables(
         clause, counter, goal, new_subs, new_reqs):
     # Temporal variable updating
-    new_subs.update({
+    temporal_bind = {
         var(clause.goal[0].start_time.name + VAR_SEPARATOR + str(counter)):
         var(goal.start_time.name),
         var(clause.goal[0].end_time.name + VAR_SEPARATOR + str(counter)):
         var(goal.end_time.name)
-    })
+    }
+    new_subs.update(temporal_bind)
+
+    # debug_display('CG', goal)
+    # debug_display('CG_TB', temporal_bind)
 
     if not clause.reqs:
         return

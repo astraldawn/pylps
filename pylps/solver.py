@@ -268,11 +268,9 @@ class _Solver(object):
                             actions_valid = False
 
                     if not actions_valid:
-                        debug_display('INVALID', self.current_time, cur_state)
                         continue
 
                     if cur_state.result in valid_results:
-                        # debug_display('VALID', self.current_time, cur_state)
                         prev_seen_len = len(seen_actions[sol_id])
 
                         for action in cur_state.actions:
@@ -303,7 +301,6 @@ class _Solver(object):
                     new_solutions.append(t_soln)
 
             solutions = new_solutions
-            # print(len(solutions))
 
         solutions = sorted(
             solutions,
@@ -387,13 +384,13 @@ class _Solver(object):
         if isinstance(goal, tuple):
             outcome, goal = goal[1], goal[0]
 
-        # debug_display('EXPAND', goal, outcome)
+        # debug_display('EXPAND', self.current_time, goal, outcome)
         # debug_display('EXPAND_R', reify_obj_args(goal, cur_state.subs))
 
-        if self.reactive and \
-                (goal.BaseClass is ACTION or goal.BaseClass is EVENT):
-            self.expand_action_reactive(goal, cur_state, states)
-            return
+        # if self.reactive and \
+        #         (goal.BaseClass is ACTION):
+        #     self.expand_action_reactive(goal, cur_state, states)
+        #     return
 
         if goal.BaseClass is ACTION:
             self.expand_action(goal, cur_state, states)
@@ -413,6 +410,22 @@ class _Solver(object):
     def expand_action(self, goal, cur_state, states):
         new_state = pylps_deepcopy(cur_state)
         cur_subs = cur_state.subs
+
+        if self.reactive:
+            from_kb = list(unify_action(goal, self.current_time))
+
+            for sub in from_kb:
+                new_state = copy.deepcopy(cur_state)
+                new_state.update_subs(sub)
+                states.append(new_state)
+
+            if from_kb:
+                return
+
+            new_state._goal_pos -= 1
+            new_state.set_result(G_DEFER)
+            states.append(new_state)
+            return
 
         # Handle temporal variables (atomic action)
         start_time = var(goal.start_time.name)
@@ -451,6 +464,9 @@ class _Solver(object):
         else:
             # debug_display('START HAS ALREADY BEEN UNIFIED')
             # debug_display(cur_state)
+            if not isinstance(cur_subs[start_time], int):
+                new_state.temporal_used_true()
+
             unify_start = unify(start_time, r_start_time)
             new_state.update_subs(unify_start)
             unify_end = unify(end_time, r_start_time + 1)
@@ -495,12 +511,26 @@ class _Solver(object):
             states.append(new_state)
 
     def expand_action_reactive(self, goal, cur_state, states):
+        debug_display('EXPAND_A_R', goal)
+
         for sub in list(unify_action(goal, self.current_time)):
             new_state = copy.deepcopy(cur_state)
             new_state.update_subs(sub)
             states.append(new_state)
 
     def expand_event(self, goal, cur_state, states, outcome=True):
+        # debug_display('EXPAND_EVENT', goal)
+
+        if self.reactive:
+            from_kb = list(unify_action(goal, self.current_time))
+            for sub in from_kb:
+                new_state = copy.deepcopy(cur_state)
+                new_state.update_subs(sub)
+                states.append(new_state)
+
+            if from_kb:
+                return
+
         all_false = True
         all_true = True
         res_success = 0
@@ -558,7 +588,7 @@ class _Solver(object):
         new_state._counter += 1
         new_reqs = []
         new_subs = {}
-        counter = new_state.counter + new_state.reactive_id
+        counter = new_state.counter
 
         for clause_arg, goal_arg in zip(clause.goal[0].args, goal_args):
             match_res = s_utils.match_clause_goal(

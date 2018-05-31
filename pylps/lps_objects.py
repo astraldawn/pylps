@@ -60,7 +60,7 @@ class Action(LPSObject):
     def frm(self, start_time, end_time):
         self._start_time = start_time
         self._end_time = end_time
-        return self
+        return copy.deepcopy(self)
 
     def initiates(self, fluent):
         self.fluent = fluent
@@ -113,7 +113,7 @@ class Event(LPSObject):
     def frm(self, start_time, end_time):
         self._start_time = copy.deepcopy(start_time)
         self._end_time = copy.deepcopy(end_time)
-        return self
+        return copy.deepcopy(self)
 
 
 class Fact(LPSObject):

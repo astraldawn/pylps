@@ -60,17 +60,12 @@ def unify_args(args_with_var, args_grounded, cur_subs=None):
     assert len(args_with_var) == len(args_grounded), \
         ERROR_UNIFY_ARGS_ARITY_MISMATCH
 
-    # debug_display('UNIFY_ARGS', args_with_var, args_grounded)
-
     subs = {}
     for v_arg, g_arg in zip(args_with_var, args_grounded):
         res = unify_args_single(v_arg, g_arg, subs, cur_subs)
 
         if not res:
             return {}
-
-    # debug_display('UNIFY_ARGS_SUBS', subs)
-    # debug_display()
 
     return subs
 
@@ -206,15 +201,12 @@ def convert_args_to_python(obj):
 
         converted_args.append(arg)
 
-    # debug_display('CONVERT_ARGS', obj.args, converted_args)
-
     return converted_args
 
 
 def reify_single(arg, substitutions):
     try:
         r_arg = reify(Var(arg.name), substitutions)
-        # debug_display('R_SINGLE', arg, r_arg, type(arg), type(r_arg))
         if isinstance(r_arg, Var):
             return arg
 
@@ -246,8 +238,6 @@ def reify_arg_helper(arg, substitutions):
         ]
 
     if arg.BaseClass is VARIABLE:
-        # arg = reify(var(arg.name), substitutions)
-        # debug_display('REIFY_VAR', reify(var(arg.name), substitutions))
         return reify_single(arg, substitutions)
 
     if arg.BaseClass is EXPR:

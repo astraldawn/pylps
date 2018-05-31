@@ -19,7 +19,6 @@ def constraints_satisfied(o_goal, state, cycle_proposed: Proposed,
     # Handle goal
     goal = reify_obj_args(o_goal, state.subs)
     all_proposed = copy.deepcopy(cycle_proposed)
-    # debug_display('GOAL', goal)
 
     # The new action
     all_proposed._actions.add(goal)
@@ -34,11 +33,9 @@ def constraints_satisfied(o_goal, state, cycle_proposed: Proposed,
         if not isinstance(end_time, int):
             end_time = reify(var(end_time.name), state.subs)
 
-        if obs.action.end_time == end_time:
+        # print(obs.action.end_time, end_time)
+        if obs.end_time == end_time:
             all_proposed._actions.add(obs.action)
-
-    # debug_display('ALL_PROPOSED', all_proposed)
-    # debug_display('SUBS', state.subs)
 
     constraints = KB.get_constraints(goal)
     causalities = KB.exists_causality(goal)
@@ -134,7 +131,6 @@ def expand_action(constraint, cur_state, states, all_proposed):
 
     r_action = reify_obj_args(cons_action, cur_subs)
     grounded = is_grounded(r_action)
-    # debug_display(grounded, cons_action, cur_subs)
 
     for action in all_proposed.actions:
         if action.name != cons_action.name:
@@ -173,8 +169,6 @@ def expand_fact(constraint, cur_state, states):
     cur_subs = cur_state.subs
 
     all_subs = list(unify_fact(fact))
-
-    # debug_display('FACT_CONS', all_subs)
 
     subs = []
 
@@ -261,19 +255,13 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
 
         new_state = copy.deepcopy(cur_state)
         cons_fluent_res = reify_args(cons_fluent.args, cur_subs)
-        # res = unify_args(cons_fluent.args, fluent.args)
         res = unify_args(cons_fluent_res, fluent.args)
-
-        # debug_display(
-        # 'MATCHING', cons_fluent_res, res, cur_subs, fluent.args)
 
         if res == {}:
             continue
 
         new_state.update_subs(res)
         states.append(new_state)
-
-    # debug_display('CONSTRAINT_FLUENT', fluent, outcome, matched)
 
     if not outcome and not matched:
         new_state = copy.deepcopy(cur_state)

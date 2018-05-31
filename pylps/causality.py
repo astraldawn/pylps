@@ -13,7 +13,6 @@ from pylps.exceptions import *
 from pylps.utils import *
 
 from pylps.kb import KB
-from pylps.config import CONFIG
 
 from pylps.state import State, Proposed
 from pylps.constraints import check_constraint, constraints_satisfied
@@ -59,8 +58,6 @@ def process_return_state(observation, return_state):
 def process_causalities(action, deconflict=True):
     causalities = KB.exists_causality(action)
 
-    # debug_display('CAUSALITIES', causalities, action)
-
     initiates = OrderedSet()
     terminates = OrderedSet()
 
@@ -76,8 +73,6 @@ def process_causalities(action, deconflict=True):
         '''
         constraint_subs = _check_reqs(causality.reqs, action_subs)
 
-        # debug_display('CONS_SUBS', action_subs, constraint_subs)
-
         if not constraint_subs:
             continue
 
@@ -90,9 +85,6 @@ def process_causalities(action, deconflict=True):
                 outcome = causality_outcome.outcome
                 fluent = copy.deepcopy(causality_outcome.fluent)
 
-                # debug_display('C_OUTCOME', fluent, outcome, c_sub)
-                # debug_display('C_R_ACTION', action)
-
                 fluent.args = reify_args(fluent.args, c_sub)
                 fluents = generate_outcome_fluents(fluent)
 
@@ -104,9 +96,6 @@ def process_causalities(action, deconflict=True):
                         terminates.add((f, action.end_time))
                 else:
                     raise UnknownOutcomeError(outcome)
-
-    # debug_display('INITIATES', initiates)
-    # debug_display('TERMINATES', terminates)
 
     if deconflict:
         terminates = terminates - initiates

@@ -102,10 +102,6 @@ class _ENGINE(object):
                     current_time=self.current_time
                 ))
 
-            # debug_display(
-            #     'ENGINE_C_R_',
-            #     true_trigger, conds, substitutions, self.current_time)
-
             if not state_list:
                 continue
 
@@ -127,17 +123,14 @@ class _ENGINE(object):
                     KB.add_goals(new_goals, subs)
 
     def _check_goals(self):
-        #     debug_display('CG_B_TIME / N_GOALS', self.current_time, len(KB.goals))
+        debug_display('CG_B_TIME / N_GOALS', self.current_time, len(KB.goals))
         # debug_display('CG_KB_BEF', KB.goals)
         solutions = SOLVER.solve_goals(self.current_time)
 
-        # debug_display('CG_S_TIME / N_SOLN', self.current_time, len(solutions))
+        debug_display('CG_S_TIME / N_SOLN', self.current_time, len(solutions))
         # debug_display('CG_SOLN', solutions)
 
         process_solutions(solutions, self.current_time)
-
-        # debug_display('CG_A_TIME / N_GOALS', self.current_time, len(KB.goals))
-        # debug_display('CG_KB_AFT', KB.goals)
 
         # debug_display('KB_FLUENTS_ENGINE', self.current_time, KB.fluents)
 

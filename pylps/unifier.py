@@ -76,7 +76,7 @@ def unify_action(cond, cycle_time):
 
         unify_res = unify_args(cond.args, obs.action.args)
 
-        if unify_res == {}:
+        if unify_res == {} and len(cond.args) > 0:
             continue
 
         unify_res.update({

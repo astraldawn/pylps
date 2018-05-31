@@ -20,7 +20,6 @@ def expand_expr(expr, cur_state, states, constraint=False):
 
     cur_subs = cur_state.subs
     res = reify_args(expr.args, cur_subs)
-    # debug_display('EXPAND_EXPR_SUBS', res, cur_subs)
 
     valid_ops = [
         operator.ne, operator.lt,
@@ -29,7 +28,6 @@ def expand_expr(expr, cur_state, states, constraint=False):
     ]
 
     if expr.op is OP_ASSIGN:
-        # debug_display('OP_ASSIGN', res[0], res[1])
         new_state = copy.deepcopy(cur_state)
 
         if res[0].BaseClass is not VARIABLE:
