@@ -1,5 +1,6 @@
 import copy
 import itertools
+import pickle
 from unification import *
 
 from pylps.constants import *
@@ -7,6 +8,12 @@ from pylps.exceptions import *
 
 from pylps.config import CONFIG
 from pylps.lps_data_structures import LPSList, LPSTuple
+
+
+def pylps_deepcopy(x):
+    return copy.deepcopy(x)
+    # return pickle.loads(pickle.dumps(x, -1))
+    # return dill.loads(dill.dumps(x, -1))
 
 
 def pylps_equality(self, other):

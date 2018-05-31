@@ -85,7 +85,7 @@ def create_objects(args, object_type):
             new_object = ClassFactory(
                 name, arity, base_type=object_type
             )
-            # globals()[name] = new_object if arity else new_object()
+            # globals()[name] = new_object
             locals_[name] = new_object if arity else new_object()
         else:
             raise TypeError('Invalid object')

@@ -2,11 +2,10 @@
 Revised solver that will recursively yield solutions
 '''
 import copy
-from collections import deque, defaultdict
+
+from collections import deque
 
 from functools import partial
-from more_itertools import peekable
-from ordered_set import OrderedSet
 from unification import *
 
 from pylps.constants import *
@@ -108,8 +107,7 @@ class _Solver(object):
 
                 multigoal = KB.goals[cur_goal_pos]
 
-                reactive_soln[cur_goal_pos] = peekable(
-                    self.backtrack_solve(multigoal))
+                reactive_soln[cur_goal_pos] = self.backtrack_solve(multigoal)
 
                 new_state = next(reactive_soln[cur_goal_pos])
 
@@ -411,7 +409,7 @@ class _Solver(object):
         debug_display()
 
     def expand_action(self, goal, cur_state, states):
-        new_state = copy.deepcopy(cur_state)
+        new_state = pylps_deepcopy(cur_state)
         cur_subs = cur_state.subs
 
         # Handle temporal variables (atomic action)
