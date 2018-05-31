@@ -1,6 +1,6 @@
 from pylps.core import *
 
-initialise(max_time=10)
+initialise(max_time=2)
 
 create_fluents('balance(_, _)')
 create_actions('transfer(_, _, _)')
@@ -40,7 +40,7 @@ false_if(transfer(From, To1, Amount1), transfer(From, To2, Amount2),
 false_if(transfer(From1, To, Amount1), transfer(From2, To, Amount2),
          From1 != From2)
 
-execute(debug=False)
+execute(debug=True)
 
 show_kb_log()
 

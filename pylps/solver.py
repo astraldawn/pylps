@@ -367,7 +367,7 @@ class _Solver(object):
                 break
 
             # debug_display(self.iterations, goal)
-            # debug_display(cur_state)
+            # debug_display('STATE_BT', cur_state)
 
             if not goal:
                 cur_state.set_result(G_SOLVED)
@@ -647,8 +647,23 @@ class _Solver(object):
 
     def expand_fluent(self, fluent, cur_state, states, outcome=True):
         cur_subs = cur_state.subs
+        f_time = reify(var(fluent.time.name), cur_subs)
 
-        # debug_display('FLUENT', fluent, outcome, cur_subs)
+        debug_display('FLUENT', fluent, outcome, cur_subs)
+        # debug_display('FTIME / CTIME', f_time, self.current_time)
+
+        try:
+            if f_time.BaseClass is CONSTANT:
+                f_time = f_time.const
+
+            if f_time > self.current_time:
+                new_state = copy.deepcopy(cur_state)
+                new_state._goal_pos -= 1
+                new_state.set_result(G_DEFER)
+                states.append(new_state)
+                return
+        except AttributeError:
+            pass
 
         # TODO: There might be a need for better temporal handling here
         all_subs = list(unify_fluent(

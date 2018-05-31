@@ -108,7 +108,7 @@ def check_constraint(constraint, all_proposed, custom_start_subs=None):
 
 def expand_constraint(constraint, cur_state, states, all_proposed):
 
-    debug_display('EXPAND_CONS', constraint)
+    # debug_display('EXPAND_CONS', constraint)
 
     goal = constraint.goal
 
@@ -123,7 +123,7 @@ def expand_constraint(constraint, cur_state, states, all_proposed):
     else:
         raise PylpsUnimplementedOutcomeError(goal.BaseClass)
 
-    debug_display()
+    # debug_display()
 
 
 def expand_action(constraint, cur_state, states, all_proposed):

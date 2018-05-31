@@ -369,6 +369,9 @@ def rename_args(counter, obj):
         obj._start_time.name += sub_constant
         obj._end_time.name += sub_constant
 
+    if obj.BaseClass is FLUENT:
+        obj._time.name += sub_constant
+
 
 def rename_arg(counter, arg):
     '''
