@@ -1,5 +1,6 @@
 import copy
 import itertools
+import random
 import pickle
 from unification import *
 
@@ -46,6 +47,12 @@ def generate_combinations(goal_ids, select=0):
             combs.append(comb)
 
     return combs
+
+
+def get_random_var():
+    random_int = random.randint(0, 1e10)
+    random_str = 'V_' + str(random_int)
+    return var(random_str)
 
 
 def strictly_increasing(iterable):

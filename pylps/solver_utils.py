@@ -1,3 +1,5 @@
+import random
+
 from ordered_set import OrderedSet
 from unification import *
 
@@ -257,17 +259,29 @@ def match_clause_goal(clause, goal, new_subs, counter):
 
 
 def create_clause_variables(
-        clause, counter, goal, new_subs, new_reqs):
-    # Temporal variable updating
+        clause, counter, goal, cur_subs, new_subs, new_reqs, reactive=False):
+
+    # r_var = get_random_var()
+    # Two way binding
+    cg_st_name = clause.goal[0].start_time.name
+    cg_et_name = clause.goal[0].end_time.name
+    g_st_name = goal.start_time.name
+    g_et_name = goal.end_time.name
+
     temporal_bind = {
-        var(clause.goal[0].start_time.name + VAR_SEPARATOR + str(counter)):
-        var(goal.start_time.name),
-        var(clause.goal[0].end_time.name + VAR_SEPARATOR + str(counter)):
-        var(goal.end_time.name)
+        var(cg_st_name + VAR_SEPARATOR + str(counter)): var(g_st_name),
+        var(g_et_name): var(cg_et_name + VAR_SEPARATOR + str(counter)),
     }
+
+    if cg_st_name == cg_et_name and g_st_name == g_et_name:
+        temporal_bind = {
+            var(cg_st_name + VAR_SEPARATOR + str(counter)): var(g_st_name),
+        }
+
     new_subs.update(temporal_bind)
 
-    # debug_display('CG', goal)
+    # debug_display('CG', clause.goal[0])
+    # debug_display('CG', clause.goal[0].start_time, clause.goal[0].end_time)
     # debug_display('CG_TB', temporal_bind)
 
     if not clause.reqs:
@@ -284,6 +298,7 @@ def create_clause_variables(
             if req[0].BaseClass is ACTION or req[0].BaseClass is EVENT:
                 new_req[0].start_time.name += VAR_SEPARATOR + str(counter)
                 new_req[0].end_time.name += VAR_SEPARATOR + str(counter)
+                new_req[0].from_reactive = reactive
         else:
             for arg in new_req.args:
                 rename_arg(counter, arg)
@@ -291,6 +306,7 @@ def create_clause_variables(
             if req.BaseClass is ACTION or req.BaseClass is EVENT:
                 new_req.start_time.name += VAR_SEPARATOR + str(counter)
                 new_req.end_time.name += VAR_SEPARATOR + str(counter)
+                new_req.from_reactive = reactive
 
         new_reqs.append(new_req)
 

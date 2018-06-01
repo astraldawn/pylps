@@ -89,7 +89,8 @@ class Event(LPSObject):
 
     def __repr__(self):
         ret = LPSObject.__repr__(self)
-        ret += "| Temporal %s %s |" % (self.start_time, self.end_time)
+        ret += "| Temporal %s %s | Completed %s |" % (
+            self.start_time, self.end_time, self.completed)
         return ret
 
     @property
@@ -152,7 +153,7 @@ class ReactiveRule(object):
 
     def __repr__(self):
         ret = "Reactive rule\n"
-        ret += "Conds: %s\n" % (self.conds)
+        ret += "Conds: %s\n" % (str(self.conds))
         ret += "Goals: %s\n" % (', '.join(str(g) for g in self.goals))
         return ret
 

@@ -114,6 +114,7 @@ class State(object):
         self._result = result
         self._counter = 0
         self._reactive_id = None
+        self.reactive_only = True
 
         if from_reactive:
             self._reactive_id = CONFIG.reactive_id
@@ -122,8 +123,8 @@ class State(object):
     def __repr__(self):
         ret = "STATE\n"
         ret += "Reactive ID %s\n" % self.reactive_id
-        ret += "Goal pos %s     Result %s\n" % (
-            str(self.goal_pos), self.result)
+        ret += "Goal pos: %s    Result: %s    Reactive only: %s\n" % (
+            str(self.goal_pos), self.result, self.reactive_only)
 
         for item, goal in enumerate(self.goals):
             t_goal = goal
@@ -204,11 +205,6 @@ class State(object):
             else:
                 n_reqs.append((req, outcome))
 
-        if CONFIG.experimental:
-            self._goals.extendleft(reversed(copy.deepcopy(n_reqs)))
-            self._goal_pos -= 1
-            return
-
         new_goals = deque()
 
         for goal in self.goals:
@@ -218,11 +214,18 @@ class State(object):
             if isinstance(goal, tuple):
                 goal_obj = goal[0]
 
-            if goal_obj != event:
-                new_goals.append(goal)
+            if goal_obj == event:
+                new_goals.extend(copy.deepcopy(n_reqs))
+
+                if CONFIG.experimental:
+                    goal_obj.completed = True
+                    new_goals.append(goal)  # handle the event
+
                 continue
 
-            new_goals.extend(copy.deepcopy(n_reqs))
+            new_goals.append(goal)
+
+            # new_goals.extend(copy.deepcopy(n_reqs))
 
         self._goals = new_goals
 
@@ -238,15 +241,7 @@ class State(object):
 
     def get_next_goal(self, reactive=False):
         try:
-            if not CONFIG.experimental:
-                reactive = True
-
-            if reactive:
-                cur_goal = self.goals[self.goal_pos]
-            else:
-                cur_goal = self.goals[0]
-                self._goals.popleft()
-
+            cur_goal = self.goals[self.goal_pos]
             self._goal_pos += 1
             return cur_goal
         except IndexError:

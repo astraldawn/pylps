@@ -7,6 +7,8 @@ create_events('e1')
 create_actions('a1', 'a2', 'a3', 'r1')
 
 observe(a1.frm(1, 2))
+observe(a2.frm(2, 3))
+observe(a3.frm(3, 4))
 
 reactive_rule(a1.frm(T1, T2), e1.frm(T2, T3)).then(
     r1.frm(T3, T4)
@@ -17,7 +19,7 @@ goal(e1.frm(T1, T3)).requires(
     a3.frm(T2, T3),
 )
 
-execute(debug=False)
+execute(debug=True, experimental=True)
 
 show_kb_log()
 

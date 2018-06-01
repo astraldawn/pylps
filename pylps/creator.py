@@ -23,7 +23,7 @@ def ClassFactory(name, arity, base_type):
     BaseClass = types_dict[base_type]
     attrs = {}
 
-    if base_type == ACTION or base_type == EVENT:
+    if base_type == ACTION:
 
         def __init__(self, *args):
             if len(args) != arity:
@@ -33,6 +33,18 @@ def ClassFactory(name, arity, base_type):
             self._start_time = Variable('T1')
             self._end_time = Variable('T2')
             self.from_reactive = False
+
+    elif base_type == EVENT:
+
+        def __init__(self, *args):
+            if len(args) != arity:
+                raise TypeError('Please supply %s arguments' % arity)
+            self.args = [convert_arg(arg) for arg in args]
+            self.created = True
+            self._start_time = Variable('T1')
+            self._end_time = Variable('T2')
+            self.from_reactive = False
+            self.completed = False
 
     elif base_type == FLUENT:
 

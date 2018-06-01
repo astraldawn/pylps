@@ -45,6 +45,8 @@ class _ENGINE(object):
         # Flag cycle observations for removal, remove prev cycle actions
         KB.clear_cycle_obs(self.current_time)
 
+        debug_display('CYCLE_OBS', self.current_time, KB.cycle_obs)
+
         self._check_goals()
 
         commit_outcomes(self.initiated, self.terminated)
@@ -108,7 +110,7 @@ class _ENGINE(object):
                     current_time=self.current_time
                 ))
 
-                debug_display('STATE_LIST', self.current_time, state_list)
+                # debug_display('STATE_LIST', self.current_time, state_list)
 
             if not state_list:
                 continue
