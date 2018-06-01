@@ -41,6 +41,7 @@ class Action(LPSObject):
     def __repr__(self):
         ret = LPSObject.__repr__(self)
         ret += "| Temporal %s %s |" % (self.start_time, self.end_time)
+        ret += "| Reactive %s |" % (self.from_reactive)
         return ret
 
     @property

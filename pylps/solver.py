@@ -254,6 +254,7 @@ class _Solver(object):
                     break
 
                 s_utils.reify_actions(cur_state, reify=True)
+                debug_display('STATE', self.current_time, cur_state)
 
                 for sol_id, solution in enumerate(solutions):
                     actions_valid = True
@@ -411,7 +412,7 @@ class _Solver(object):
         new_state = pylps_deepcopy(cur_state)
         cur_subs = cur_state.subs
 
-        if self.reactive:
+        if self.reactive or goal.from_reactive:
             from_kb = list(unify_action(goal, self.current_time))
 
             for sub in from_kb:
@@ -423,6 +424,7 @@ class _Solver(object):
                 return
 
             new_state._goal_pos -= 1
+            new_state._goals[new_state.goal_pos].from_reactive = True
             new_state.set_result(G_DEFER)
             states.append(new_state)
             return
@@ -466,6 +468,7 @@ class _Solver(object):
             # debug_display(cur_state)
             if not isinstance(cur_subs[start_time], int):
                 new_state.temporal_used_true()
+                # pass
 
             unify_start = unify(start_time, r_start_time)
             new_state.update_subs(unify_start)
@@ -685,7 +688,7 @@ class _Solver(object):
         # debug_display('FTIME / CTIME', f_time, self.current_time)
 
         try:
-            if f_time.BaseClass is CONSTANT:
+            if not isinstance(f_time, int) and f_time.BaseClass is CONSTANT:
                 f_time = f_time.const
 
             if f_time > self.current_time:

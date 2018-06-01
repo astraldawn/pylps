@@ -32,6 +32,7 @@ def ClassFactory(name, arity, base_type):
             self.created = True
             self._start_time = Variable('T1')
             self._end_time = Variable('T2')
+            self.from_reactive = False
 
     elif base_type == FLUENT:
 

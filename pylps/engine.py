@@ -40,13 +40,14 @@ class _ENGINE(object):
         self.terminated = OrderedSet()
 
         self._check_observations()
+        debug_display('KB_OBS', self.current_time, KB.cycle_obs)
         self._check_rules()
         self._check_goals()
 
         commit_outcomes(self.initiated, self.terminated)
 
-        self.current_time += 1
         KB.clear_cycle_obs(self.current_time)
+        self.current_time += 1
 
     def _check_observations(self):
 
@@ -102,6 +103,8 @@ class _ENGINE(object):
                     current_time=self.current_time
                 ))
 
+                debug_display('STATE_LIST', self.current_time, state_list)
+
             if not state_list:
                 continue
 
@@ -124,11 +127,11 @@ class _ENGINE(object):
 
     def _check_goals(self):
         debug_display('CG_B_TIME / N_GOALS', self.current_time, len(KB.goals))
-        # debug_display('CG_KB_BEF', KB.goals)
+        debug_display('CG_KB_BEF', KB.goals)
         solutions = SOLVER.solve_goals(self.current_time)
 
         debug_display('CG_S_TIME / N_SOLN', self.current_time, len(solutions))
-        # debug_display('CG_SOLN', solutions)
+        debug_display('CG_SOLN', solutions)
 
         process_solutions(solutions, self.current_time)
 

@@ -306,7 +306,7 @@ class _KB(object):
         '''
         new_cycle_obs = []
         for obs in self.cycle_obs:
-            if obs.end_time < current_time:
+            if obs.end_time <= current_time:
                 continue
             new_cycle_obs.append(obs)
 

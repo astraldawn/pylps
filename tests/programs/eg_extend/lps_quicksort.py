@@ -11,9 +11,10 @@ create_events('quicksort(_, _)', 'split(_, _, _, _)', 'append(_, _, _)')
 
 observe(sort([6, 1, 5, 2, 4, 3]).frm(1, 2))
 
-reactive_rule(sort(X)).then(
-    quicksort(X, Y).frm(T1, T2),
-    say(Y).frm(T2, T3),
+reactive_rule(sort(X).frm(T1, T2)).then(
+    quicksort(X, Y).frm(T2, T3),
+    say(Y).frm(T3, T4),
+    T2 <= T3,
 )
 
 goal(append([], X, X)).requires()
