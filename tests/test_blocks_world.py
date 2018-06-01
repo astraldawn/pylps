@@ -108,3 +108,46 @@ def test_blocks_world_concurrent_reverse():
 
     # THEN
     assert actual == expected
+
+
+def test_blocks_world():
+    # GIVEN
+    expected = [
+        fluent_initiate('location', ['f', 'floor'], 0),
+        fluent_initiate('location', ['b', 'f'], 0),
+        fluent_initiate('location', ['e', 'b'], 0),
+        fluent_initiate('location', ['a', 'floor'], 0),
+        fluent_initiate('location', ['d', 'a'], 0),
+        fluent_initiate('location', ['c', 'd'], 0),
+
+        action('move', ['c', 'floor'], (1, 2)),
+        fluent_initiate('location', ['c', 'floor'], 2),
+        fluent_terminate('location', ['c', 'd'], 2),
+
+        action('move', ['e', 'floor'], (2, 3)),
+        fluent_initiate('location', ['e', 'floor'], 3),
+        fluent_terminate('location', ['e', 'b'], 3),
+        action('move', ['d', 'floor'], (2, 3)),
+        fluent_initiate('location', ['d', 'floor'], 3),
+        fluent_terminate('location', ['d', 'a'], 3),
+
+        action('move', ['b', 'c'], (3, 4)),
+        fluent_initiate('location', ['b', 'c'], 4),
+        fluent_terminate('location', ['b', 'f'], 4),
+        action('move', ['e', 'd'], (3, 4)),
+        fluent_initiate('location', ['e', 'd'], 4),
+        fluent_terminate('location', ['e', 'floor'], 4),
+
+        action('move', ['a', 'b'], (4, 5)),
+        fluent_initiate('location', ['a', 'b'], 5),
+        fluent_terminate('location', ['a', 'floor'], 5),
+        action('move', ['f', 'e'], (4, 5)),
+        fluent_initiate('location', ['f', 'e'], 5),
+        fluent_terminate('location', ['f', 'floor'], 5),
+    ]
+
+    # WHEN
+    actual = run_pylps_example('blocks_world')
+
+    # THEN
+    assert actual == expected

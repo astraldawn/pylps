@@ -37,7 +37,6 @@ goal(river(A, B, V, P).frm(T1, T3)).requires(
     crossing(A, C, Action),
     C.not_in(V),
     valid(C, Action).frm(T1, T2),
-    say(C, Action).frm(T1, T2),
     river(C, B, [C | V], Plan).frm(T2, T3),
     P.is_([Action | Plan]),
 )
