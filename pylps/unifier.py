@@ -107,7 +107,8 @@ def unify_fluent(cond, cycle_time, counter=0):
 
         # Unify with temporal vars, return the substitution
         substitutions.update(unify(
-            var(temporal_var.name + VAR_SEPARATOR + str(counter)),
+            var(temporal_var.name.split(VAR_SEPARATOR)[0] +
+                VAR_SEPARATOR + str(counter)),
             cycle_time))
 
         yield substitutions
@@ -123,7 +124,8 @@ def unify_fluent(cond, cycle_time, counter=0):
         # debug_display('FLUENT_UNIFY_RES', unify_res)
 
         unify_res.update(unify(
-            var(temporal_var.name + VAR_SEPARATOR + str(counter)),
+            var(temporal_var.name.split(VAR_SEPARATOR)[0] +
+                VAR_SEPARATOR + str(counter)),
             cycle_time
         ))
 

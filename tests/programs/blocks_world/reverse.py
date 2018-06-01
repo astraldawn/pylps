@@ -69,7 +69,7 @@ goal(make_clear(Block).frm(T1, T2)).requires(
 move(Block, Place).initiates(location(Block, Place))
 move(Block, _).terminates(location(Block, Place))
 
-execute()
+execute(debug=False)
 
 show_kb_log()
 

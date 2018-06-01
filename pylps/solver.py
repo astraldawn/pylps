@@ -273,12 +273,17 @@ class _Solver(object):
                         continue
 
                     if cur_state.result in valid_results:
-                        # debug_display(
-                        #     'VALID_STATE', self.current_time, cur_state)
+                        debug_display(
+                            'VALID_STATE', self.current_time, cur_state)
                         prev_seen_len = len(seen_actions[sol_id])
 
-                        for action in cur_state.actions:
-                            seen_actions[sol_id].add(action)
+                        if CONFIG.experimental:
+                            for action in cur_state.actions:
+                                if action.BaseClass is ACTION:
+                                    seen_actions[sol_id].add(action)
+                        else:
+                            for action in cur_state.actions:
+                                seen_actions[sol_id].add(action)
 
                         if prev_seen_len != len(seen_actions[sol_id]) \
                                 or cur_state.result is G_SOLVED \
@@ -445,8 +450,6 @@ class _Solver(object):
             states.append(new_state)
             return
 
-        new_state.reactive_only = False
-
         # Handle temporal variables (atomic action)
         start_time = var(goal.start_time.name)
         end_time = var(goal.end_time.name)
@@ -456,13 +459,14 @@ class _Solver(object):
 
         r_start_time = reify(start_time, cur_subs)
 
-        if completed_event:
-            debug_display('COMPLETED_EVENT')
-            r_start_time = reify(start_time, cur_subs)
-            r_end_time = reify(end_time, cur_subs)
+        # if completed_event:
+        #     debug_display('COMPLETED_EVENT', goal)
+        #     r_start_time = reify(start_time, cur_subs)
+        #     r_end_time = reify(end_time, cur_subs)
 
-            debug_display('S / E', r_start_time, r_end_time)
-            debug_display('CUR_SUBS', cur_subs)
+        #     debug_display('S / E', start_time, end_time,
+        #                   self.current_time, r_start_time, r_end_time)
+        #     debug_display('CUR_SUBS', cur_subs)
 
         '''
         TODO
@@ -472,12 +476,15 @@ class _Solver(object):
         # if not cur_subs.get(start_time)  \
         #         or not isinstance(cur_subs[start_time], int):
         if not isinstance(r_start_time, int):
+            # If it is a completed event and we don't have subs, it is fine
+            if completed_event:
+                pass
+
             # Start time has not been substituted
-            if cur_state.temporal_used:
+            elif cur_state.temporal_used:
                 new_state._goal_pos -= 1
 
                 new_state.set_result(G_DEFER)
-                # debug_display('DEFER_IF', goal)
                 states.append(new_state)
                 return
             else:
@@ -495,7 +502,12 @@ class _Solver(object):
 
             unify_start = unify(start_time, r_start_time)
             new_state.update_subs(unify_start)
-            unify_end = unify(end_time, r_start_time + 1)
+
+            r_end_time = r_start_time + 1
+            if completed_event:
+                r_end_time = reify(end_time, cur_subs)
+
+            unify_end = unify(end_time, r_end_time)
             new_state.update_subs(unify_end)
 
             temporal_valid = new_state.subs[end_time] <= self.current_time + 1
@@ -509,7 +521,8 @@ class _Solver(object):
                 states.append(new_state)
                 return
 
-            if temporal_exceed:
+            # Only apply temporal exceed for actions
+            if temporal_exceed and not completed_event:
                 new_state.set_result(G_DISCARD)
                 states.append(new_state)
                 return
@@ -530,6 +543,8 @@ class _Solver(object):
 
         # Done
         if valid or CONFIG.strategy is not STRATEGY_DEFAULT:
+            # if not goal.from_reactive:
+            #     new_state.reactive_only = False
             new_state.add_action(copy.deepcopy(goal))
             states.append(new_state)
 
@@ -726,7 +741,7 @@ class _Solver(object):
         all_subs = list(unify_fluent(
             fluent, self.current_time, counter=cur_state.counter))
 
-        # debug_display('FLUENT_ALL_SUBS', all_subs, cur_state.counter)
+        debug_display('FLUENT_ALL_SUBS', all_subs, cur_state.counter)
 
         subs = []
 

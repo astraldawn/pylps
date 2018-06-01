@@ -110,7 +110,7 @@ class _ENGINE(object):
                     current_time=self.current_time
                 ))
 
-                # debug_display('STATE_LIST', self.current_time, state_list)
+                debug_display('STATE_LIST', self.current_time, state_list)
 
             if not state_list:
                 continue

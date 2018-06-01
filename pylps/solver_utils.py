@@ -1,5 +1,3 @@
-import random
-
 from ordered_set import OrderedSet
 from unification import *
 
@@ -10,7 +8,6 @@ from pylps.utils import *
 
 from pylps.lps_objects import Observation
 from pylps.kb import KB
-from pylps.config import CONFIG
 
 
 def process_solutions(solutions, cycle_time):
@@ -299,6 +296,9 @@ def create_clause_variables(
                 new_req[0].start_time.name += VAR_SEPARATOR + str(counter)
                 new_req[0].end_time.name += VAR_SEPARATOR + str(counter)
                 new_req[0].from_reactive = reactive
+
+            if req[0].BaseClass is FLUENT:
+                new_req[0].time.name += VAR_SEPARATOR + str(counter)
         else:
             for arg in new_req.args:
                 rename_arg(counter, arg)
@@ -307,6 +307,9 @@ def create_clause_variables(
                 new_req.start_time.name += VAR_SEPARATOR + str(counter)
                 new_req.end_time.name += VAR_SEPARATOR + str(counter)
                 new_req.from_reactive = reactive
+
+            if req.BaseClass is FLUENT:
+                new_req.time.name += VAR_SEPARATOR + str(counter)
 
         new_reqs.append(new_req)
 

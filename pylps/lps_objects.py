@@ -117,6 +117,26 @@ class Event(LPSObject):
         self._end_time = copy.deepcopy(end_time)
         return copy.deepcopy(self)
 
+    def initiates(self, fluent):
+        self.fluent = fluent
+        KB.add_causality_outcome(self, A_INITIATE)
+        return self
+
+    def terminates(self, fluent):
+        self.fluent = fluent
+        KB.add_causality_outcome(self, A_TERMINATE)
+        return self
+
+    def iff(self, *args):
+        converted = [(arg, True) for arg in args
+                     if not isinstance(arg, tuple)]
+        converted += [arg for arg in args
+                      if isinstance(arg, tuple)]
+
+        KB.set_causality_reqs(self, converted)
+
+        return self
+
 
 class Fact(LPSObject):
     BaseClass = FACT

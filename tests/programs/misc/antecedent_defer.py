@@ -19,7 +19,9 @@ goal(e1.frm(T1, T3)).requires(
     a3.frm(T2, T3),
 )
 
-execute(debug=True, experimental=True)
+e1.initiates(f1)
+
+execute(debug=False, experimental=True)
 
 show_kb_log()
 
