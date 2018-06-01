@@ -2,23 +2,16 @@ from pylps.core import *
 
 initialise(max_time=3)
 
-create_actions('say(_)')
-create_fluents('f')
-create_variables('A', 'B')
+create_actions('say(_)', 'respond(_)')
+create_variables('X')
 
 observe(say('a').frm(1, 2))
 
-initially(f)
-
-reactive_rule(f.at(T1)).then(
-    say('b').frm(T2, T3)
+reactive_rule(say(X).frm(T1, T2)).then(
+    respond(X).frm(T2, T3)
 )
 
-say(A).terminates(f)
-
-false_if(say(A), say(B), A != B)
-
-execute(debug=False)
+execute(debug=True)
 
 show_kb_log()
 

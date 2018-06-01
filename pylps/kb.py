@@ -306,8 +306,10 @@ class _KB(object):
         '''
         new_cycle_obs = []
         for obs in self.cycle_obs:
-            if obs.end_time <= current_time:
+            # if obs.start_time != current_time:
+            if obs.used:
                 continue
+            obs.used = True
             new_cycle_obs.append(obs)
 
         self._cycle_obs = OrderedSet(new_cycle_obs)

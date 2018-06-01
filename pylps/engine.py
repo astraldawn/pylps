@@ -40,13 +40,18 @@ class _ENGINE(object):
         self.terminated = OrderedSet()
 
         self._check_observations()
-        debug_display('KB_OBS', self.current_time, KB.cycle_obs)
         self._check_rules()
+
+        # Flag cycle observations for removal, remove prev cycle actions
+        KB.clear_cycle_obs(self.current_time)
+
         self._check_goals()
 
         commit_outcomes(self.initiated, self.terminated)
 
+        # Flag prev cycle actions for removal, remove cycle observations
         KB.clear_cycle_obs(self.current_time)
+
         self.current_time += 1
 
     def _check_observations(self):
@@ -112,7 +117,7 @@ class _ENGINE(object):
                 subs = state.subs
                 result = state.result
                 # TODO: Not exactly, there may just be facts with constant
-                if subs == {} and not true_trigger:
+                if subs == {} and not (true_trigger or result is G_DEFER):
                     continue
 
                 new_goals = reify_goals(rule.goals, subs)

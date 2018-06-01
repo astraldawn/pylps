@@ -208,17 +208,17 @@ class GoalClause(object):
 class Observation(object):
     BaseClass = OBS
 
-    def __init__(self, action, start, end, from_cycle=False):
+    def __init__(self, action, start, end):
         self._action = action
         self._start_time = start
         self._end_time = end
-        self.from_cycle = from_cycle
+        self.used = False
 
     def __repr__(self):
         ret = "Observation\n"
         ret += "Action: %s\n" % (self.action)
-        ret += "Start: %s\n" % (self.start_time)
-        ret += "End: %s\n" % (self.end_time)
+        ret += "Start / End: %s / %s   | Used: %s\n" % (
+            self.start_time, self.end_time, self.used)
         return ret
 
     @property

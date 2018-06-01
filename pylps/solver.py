@@ -254,7 +254,7 @@ class _Solver(object):
                     break
 
                 s_utils.reify_actions(cur_state, reify=True)
-                debug_display('STATE', self.current_time, cur_state)
+                # debug_display('STATE', self.current_time, cur_state)
 
                 for sol_id, solution in enumerate(solutions):
                     actions_valid = True
