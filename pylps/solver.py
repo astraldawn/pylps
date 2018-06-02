@@ -391,6 +391,7 @@ class _Solver(object):
 
         outcome = True
         states = self.states
+        cur_state.compress(cpos=1)
 
         if isinstance(goal, tuple):
             outcome, goal = goal[1], goal[0]
