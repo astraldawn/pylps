@@ -215,7 +215,7 @@ class State(object):
                 goal_obj = goal[0]
 
             if goal_obj == event:
-                new_goals.extend(copy.deepcopy(n_reqs))
+                new_goals.extend(n_reqs)  # REMOVED_DEEPCOPY
 
                 if CONFIG.experimental:
                     goal_obj.completed = True
@@ -225,15 +225,13 @@ class State(object):
 
             new_goals.append(goal)
 
-            # new_goals.extend(copy.deepcopy(n_reqs))
-
         self._goals = new_goals
 
         # Reduce due to the replacement
         self._goal_pos -= 1
 
     def add_to_goals(self, goal):
-        self._goals.appendleft(copy.deepcopy(goal))
+        self._goals.appendleft(goal)  # REMOVED_DEEPCOPY
 
     def compress(self, cpos=0):
         # cpos = self._goal_pos

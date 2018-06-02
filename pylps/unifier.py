@@ -195,4 +195,4 @@ def reify_goals(goals, subs):
 
         new_goals.append(new_goal)
 
-    return copy.deepcopy(new_goals)
+    return new_goals  # REMOVED_DEEPCOPY

@@ -224,7 +224,8 @@ def reify_single(arg, substitutions):
 
 def reify_args(o_args_with_var, substitutions):
     r_args = []
-    args_with_var = copy.deepcopy(o_args_with_var)
+    # args_with_var = copy.deepcopy(o_args_with_var)
+    args_with_var = o_args_with_var  # REMOVED_DEEPCOPY
     r_args = [
         reify_arg_helper(arg, substitutions)
         for arg in args_with_var
@@ -248,14 +249,14 @@ def reify_arg_helper(arg, substitutions):
         return reify_single(arg, substitutions)
 
     if arg.BaseClass is EXPR:
-        ret = copy.deepcopy(arg)
+        ret = arg  # REMOVED_DEEPCOPY
         ret.left = reify_arg_helper(ret.left, substitutions)
         ret.right = reify_arg_helper(ret.right, substitutions)
         ret.args = [ret.left, ret.right]
         return ret
 
     if arg.BaseClass is FUNCTION:
-        r_arg = copy.deepcopy(arg)
+        r_arg = arg  # REMOVED_DEEPCOPY
 
         r_arg.args = [
             reify_arg_helper(item, substitutions) for item in arg.args
@@ -274,13 +275,13 @@ def reify_arg_helper(arg, substitutions):
             if prev_list == r_list or is_grounded_list(r_list):
                 break
 
-            prev_list = copy.deepcopy(r_list)
+            prev_list = r_list  # REMOVED_DEEPCOPY
             r_list = [
                 reify_arg_helper(item, substitutions)
                 for item in r_list
             ]
 
-        return LPSList(copy.deepcopy(r_list))
+        return LPSList(r_list)  # REMOVED_DEEPCOPY
 
     if arg.BaseClass == TUPLE:
         r_list = [
@@ -294,13 +295,13 @@ def reify_arg_helper(arg, substitutions):
             if prev_list == r_list or is_grounded_list(r_list):
                 break
 
-            prev_list = copy.deepcopy(r_list)
+            prev_list = r_list  # REMOVED_DEEPCOPY
             r_list = [
                 reify_arg_helper(item, substitutions)
                 for item in r_list
             ]
 
-        return LPSTuple(copy.deepcopy(r_list))
+        return LPSTuple(r_list)  # REMOVED_DEEPCOPY
 
     raise PylpsUnimplementedOutcomeError((arg.BaseClass, type(arg), arg))
 

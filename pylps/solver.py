@@ -425,7 +425,8 @@ class _Solver(object):
 
     def expand_action(self, goal, cur_state, states, outcome=None,
                       completed_event=False):
-        new_state = pylps_deepcopy(cur_state)
+        # new_state = pylps_deepcopy(cur_state)
+        new_state = cur_state  # REMOVED_DEEPCOPY
         cur_subs = cur_state.subs
 
         if self.reactive or goal.from_reactive and not completed_event:
@@ -511,6 +512,10 @@ class _Solver(object):
             unify_end = unify(end_time, r_end_time)
             new_state.update_subs(unify_end)
 
+            if completed_event and CONFIG.experimental:
+                if not isinstance(r_end_time, int):
+                    new_state._subs[end_time] = r_start_time
+
             temporal_valid = new_state.subs[end_time] <= self.current_time + 1
             temporal_exceed = new_state.subs[end_time] - self.current_time < 1
 
@@ -583,9 +588,11 @@ class _Solver(object):
             if CONFIG.single_clause:
                 KB_clauses = [KB_clauses[-1]]
 
+            is_single = len(KB_clauses) == 1
             for clause in KB_clauses:
                 res = self.match_event(
-                    goal, clause, cur_state, states, outcome)
+                    goal, clause, cur_state, states, outcome,
+                    is_single=is_single)
 
                 # debug_display('ME', goal, clause, res)
 
@@ -601,7 +608,7 @@ class _Solver(object):
         # Negation of goals
         if not outcome:
             if all_false:
-                new_state = copy.deepcopy(cur_state)
+                new_state = cur_state  # REMOVED_DEEPCOPY
                 states.append(new_state)
 
             if all_true:
@@ -609,11 +616,12 @@ class _Solver(object):
                 for i in range(res_success):
                     states.pop()
 
-                new_state = copy.deepcopy(cur_state)
+                new_state = cur_state  # REMOVED_DEEPCOPY
                 new_state.set_result(G_DISCARD)
                 states.append(new_state)
 
-    def match_event(self, goal, clause, cur_state, states, outcome):
+    def match_event(self, goal, clause, cur_state, states, outcome,
+                    is_single):
         cur_subs = cur_state.subs
 
         # Reify if possible
@@ -623,12 +631,9 @@ class _Solver(object):
         # debug_display('ME_REIFY_ARGS', goal_args)
         # debug_display('ME_REIFY_SUBS', cur_subs)
 
-        new_state = copy.deepcopy(cur_state)
-        new_state.reactive_only = self.reactive
-        new_state._counter += 1
         new_reqs = []
         new_subs = {}
-        counter = new_state.counter
+        counter = cur_state.counter + 1
 
         for clause_arg, goal_arg in zip(clause.goal[0].args, goal_args):
             match_res = s_utils.match_clause_goal(
@@ -642,6 +647,14 @@ class _Solver(object):
             # If the matching fails, cannot proceed, return
             if not match_res:
                 return False
+
+        if is_single:
+            new_state = cur_state
+        else:
+            new_state = copy.deepcopy(cur_state)
+
+        new_state.reactive_only = self.reactive
+        new_state._counter += 1
 
         s_utils.create_clause_variables(
             clause, counter, goal, cur_subs, new_subs, new_reqs,
@@ -687,7 +700,8 @@ class _Solver(object):
         # Handle the case where fact is grounded (existence check)
         if grounded:
             if all_subs[0]:
-                new_state = copy.deepcopy(cur_state)
+                # new_state = copy.deepcopy(cur_state)
+                new_state = cur_state  # REMOVED_DEEPCOPY
                 states.append(new_state)
 
             return
@@ -713,6 +727,11 @@ class _Solver(object):
 
         # debug_display('EXPAND_FACT_VALID_SUBS', subs)
 
+        if len(subs) == 1:
+            cur_state.update_subs(subs[0])
+            states.append(cur_state)
+            return
+
         for sub in subs:
             new_state = copy.deepcopy(cur_state)
             new_state.update_subs(sub)
@@ -730,7 +749,7 @@ class _Solver(object):
                 f_time = f_time.const
 
             if f_time > self.current_time:
-                new_state = copy.deepcopy(cur_state)
+                new_state = cur_state  # REMOVED_DEEPCOPY
                 new_state._goal_pos -= 1
                 new_state.set_result(G_DEFER)
                 states.append(new_state)
@@ -783,6 +802,11 @@ class _Solver(object):
             #     states.append(new_state)
             #     return
 
+            if len(subs) == 1:
+                cur_state.update_subs(subs[0])
+                states.append(cur_state)
+                return
+
             for sub in subs:
                 new_state = copy.deepcopy(cur_state)
                 new_state.update_subs(sub)
@@ -791,7 +815,8 @@ class _Solver(object):
         elif not outcome:
             # TODO: Is it possible to have a sub but not match it? Or is
             # it such that no sub can be matched?
-            new_state = copy.deepcopy(cur_state)
+            # new_state = copy.deepcopy(cur_state)
+            new_state = cur_state  # REMOVED_DEEPCOPY
             if subs:
                 # debug_display('FLUENT_CHECK_F_DEFER')
                 new_state._goal_pos -= 1

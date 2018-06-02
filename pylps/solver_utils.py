@@ -38,7 +38,7 @@ def process_solutions(solutions, cycle_time):
                 # Kept because of the reactive_id possibly being solved
                 cycle_actions |= state.actions
 
-                new_state = copy.deepcopy(state)
+                new_state = state  # REMOVED DEEPCOPY
 
                 # Clear actions / fluents and set to unprocessed
                 new_state.clear_actions()
@@ -285,31 +285,30 @@ def create_clause_variables(
     if not clause.reqs:
         return
 
-    for req in clause.reqs:
-        new_req = copy.deepcopy(req)
+    for new_req in copy.deepcopy(clause.reqs):
 
         # Handling negated clauses
         if isinstance(new_req, tuple) and len(new_req) == 2:
             for arg in new_req[0].args:
                 rename_arg(counter, arg)
 
-            if req[0].BaseClass is ACTION or req[0].BaseClass is EVENT:
+            if new_req[0].BaseClass is ACTION or new_req[0].BaseClass is EVENT:
                 new_req[0].start_time.name += VAR_SEPARATOR + str(counter)
                 new_req[0].end_time.name += VAR_SEPARATOR + str(counter)
                 new_req[0].from_reactive = reactive
 
-            if req[0].BaseClass is FLUENT:
+            if new_req[0].BaseClass is FLUENT:
                 new_req[0].time.name += VAR_SEPARATOR + str(counter)
         else:
             for arg in new_req.args:
                 rename_arg(counter, arg)
 
-            if req.BaseClass is ACTION or req.BaseClass is EVENT:
+            if new_req.BaseClass is ACTION or new_req.BaseClass is EVENT:
                 new_req.start_time.name += VAR_SEPARATOR + str(counter)
                 new_req.end_time.name += VAR_SEPARATOR + str(counter)
                 new_req.from_reactive = reactive
 
-            if req.BaseClass is FLUENT:
+            if new_req.BaseClass is FLUENT:
                 new_req.time.name += VAR_SEPARATOR + str(counter)
 
         new_reqs.append(new_req)

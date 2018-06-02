@@ -28,7 +28,7 @@ def expand_expr(expr, cur_state, states, constraint=False):
     ]
 
     if expr.op is OP_ASSIGN:
-        new_state = copy.deepcopy(cur_state)
+        new_state = cur_state  # REMOVED_DEEPCOPY
 
         if res[0].BaseClass is not VARIABLE:
             raise PylpsTypeError(res[0].BaseClass)
@@ -58,7 +58,7 @@ def expand_expr(expr, cur_state, states, constraint=False):
         in_unfolded = item in unfolded_list
 
         if in_unfolded == operator_in:
-            new_state = copy.deepcopy(cur_state)
+            new_state = cur_state  # REMOVED_DEEPCOPY
             states.append(new_state)
 
         return
@@ -74,7 +74,7 @@ def expand_expr(expr, cur_state, states, constraint=False):
         )
 
         if valid:
-            new_state = copy.deepcopy(cur_state)
+            new_state = cur_state  # REMOVED_DEEPCOPY
             states.append(new_state)
 
         return
