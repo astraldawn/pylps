@@ -6,6 +6,7 @@ VALID_OPTIONS = {
     'experimental': set([False, True]),
     'single_clause': set([False, True]),
 
+    'obs': set([OBS_AFTER, OBS_BEFORE]),
     'solution_preference': set([SOLN_PREF_FIRST, SOLN_PREF_MAX]),
     'strategy': set([
         STRATEGY_DEFAULT, STRATEGY_COMB, STRATEGY_GREEDY,
@@ -59,6 +60,10 @@ class _CONFIG(object):
     @property
     def n_solutions(self):
         return self._options['n_solutions']
+
+    @property
+    def obs(self):
+        return self._options['obs']
 
     @property
     def single_clause(self):

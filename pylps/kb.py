@@ -300,19 +300,18 @@ class _KB(object):
     def add_cycle_obs(self, observation):
         self._cycle_obs.add(observation)
 
-    def clear_cycle_obs(self, current_time):
-        '''
-        TODO: should be able to defer when checking the reactive rules
-        '''
+    def clear_before_cycle_obs(self):
         new_cycle_obs = []
         for obs in self.cycle_obs:
-            # if obs.start_time != current_time:
             if obs.used:
                 continue
             obs.used = True
             new_cycle_obs.append(obs)
 
         self._cycle_obs = OrderedSet(new_cycle_obs)
+
+    def clear_cycle_obs(self):
+        self._cycle_obs = OrderedSet()
 
     # @property
     # def cycle_actions(self):

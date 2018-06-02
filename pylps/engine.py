@@ -12,8 +12,8 @@ from pylps.state import State
 
 
 class _ENGINE(object):
-    start_time = 1
-    current_time = 1
+    start_time = 0
+    current_time = 0
     max_time = 5
 
     def set_params(self, max_time):
@@ -27,6 +27,7 @@ class _ENGINE(object):
         if not stepwise:
             while self.current_time <= self.max_time:
                 self._next_iteration()
+                self.current_time += 1
 
     def next_step(self):
         if self.current_time > self.max_time:
@@ -39,22 +40,32 @@ class _ENGINE(object):
         self.initiated = OrderedSet()
         self.terminated = OrderedSet()
 
-        self._check_observations()
+        if self.current_time == 0:
+            self._add_initially()
+            commit_outcomes(self.initiated, self.terminated)
+            return
+
+        obs_strategy = {
+            OBS_AFTER: self._obs_after,
+            OBS_BEFORE: self._obs_before
+        }
+
+        obs_strategy[CONFIG.obs]()
+
+    def _obs_after(self):
         self._check_rules()
-
-        # Flag cycle observations for removal, remove prev cycle actions
-        KB.clear_cycle_obs(self.current_time)
-
-        debug_display('CYCLE_OBS', self.current_time, KB.cycle_obs)
-
+        KB.clear_cycle_obs()
         self._check_goals()
-
+        self._check_observations()
         commit_outcomes(self.initiated, self.terminated)
 
-        # Flag prev cycle actions for removal, remove cycle observations
-        KB.clear_cycle_obs(self.current_time)
-
-        self.current_time += 1
+    def _obs_before(self):
+        self._check_observations()
+        self._check_rules()
+        KB.clear_before_cycle_obs()
+        self._check_goals()
+        commit_outcomes(self.initiated, self.terminated)
+        KB.clear_before_cycle_obs()
 
     def _check_observations(self):
 
@@ -65,6 +76,11 @@ class _ENGINE(object):
                     i, t = ret
                     self.initiated |= i
                     self.terminated |= t
+
+    def _add_initially(self):
+        for fluent in KB.initial_fluents:
+            KB.add_fluent(fluent)
+            KB.log_fluent(fluent, 0, F_INITIATE)
 
     def _check_rules(self):
         # Check rules

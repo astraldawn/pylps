@@ -89,7 +89,8 @@ def execute(
     debug=False,
     experimental=False,
     strategy=STRATEGY_GREEDY,
-    stepwise=False
+    stepwise=False,
+    obs=OBS_BEFORE
 ):
     '''Execute pyLPS program
 
@@ -112,6 +113,7 @@ def execute(
 
     options_dict = {
         'n_solutions': n_solutions,
+        'obs': obs,
         'single_clause': single_clause,
         'solution_preference': solution_preference,
 
@@ -125,9 +127,9 @@ def execute(
     KB.reset_kb()
 
     # Initially
-    for fluent in KB.initial_fluents:
-        KB.add_fluent(fluent)
-        KB.log_fluent(fluent, 0, F_INITIATE)
+    # for fluent in KB.initial_fluents:
+    #     KB.add_fluent(fluent)
+    #     KB.log_fluent(fluent, 0, F_INITIATE)
 
     CONFIG.set_options(options_dict)
     ENGINE.run(stepwise=stepwise)

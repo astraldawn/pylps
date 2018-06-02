@@ -140,3 +140,19 @@ def test_observation_pref():
 
     # THEN
     assert actual == expected
+
+
+def test_observation_npref():
+    # GIVEN
+    expected = [
+        fluent_initiate('f', [], 0),
+        action('say', ['b'], (1, 2)),
+        fluent_terminate('f', [], 2),
+        rejected_observation('say', ['a'], (1, 2)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('misc', 'observation_npref')
+
+    # THEN
+    assert actual == expected

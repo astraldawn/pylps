@@ -78,6 +78,18 @@ def unify_action(cond, cycle_time):
         if unify_res == {} and len(cond.args) > 0:
             continue
 
+        recursive_var = False
+        for k, v in unify_res.items():
+            try:
+                if v.BaseClass is VARIABLE:
+                    if v.name == k.token:
+                        recursive_var = True
+            except AttributeError:
+                continue
+
+        if recursive_var:
+            continue
+
         unify_res.update({
             var(rename_str(cond.start_time.name, SUFFIX)): obs.start_time,
             var(rename_str(cond.end_time.name, SUFFIX)): obs.end_time
