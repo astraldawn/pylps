@@ -37,7 +37,12 @@ class _ENGINE(object):
         if self.current_time > self.max_time:
             return
 
-        self._next_iteration()
+        if self.current_time == 0:
+            self._handle_initial()
+        else:
+            self._next_iteration()
+
+        self.current_time += 1
 
     def _next_iteration(self):
 
