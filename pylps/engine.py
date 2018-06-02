@@ -26,7 +26,11 @@ class _ENGINE(object):
 
         if not stepwise:
             while self.current_time <= self.max_time:
-                self._next_iteration()
+                if self.current_time == 0:
+                    self._handle_initial()
+                else:
+                    self._next_iteration()
+
                 self.current_time += 1
 
     def next_step(self):
@@ -39,11 +43,6 @@ class _ENGINE(object):
 
         self.initiated = OrderedSet()
         self.terminated = OrderedSet()
-
-        if self.current_time == 0:
-            self._add_initially()
-            commit_outcomes(self.initiated, self.terminated)
-            return
 
         obs_strategy = {
             OBS_AFTER: self._obs_after,
@@ -77,7 +76,7 @@ class _ENGINE(object):
                     self.initiated |= i
                     self.terminated |= t
 
-    def _add_initially(self):
+    def _handle_initial(self):
         for fluent in KB.initial_fluents:
             KB.add_fluent(fluent)
             KB.log_fluent(fluent, 0, F_INITIATE)
