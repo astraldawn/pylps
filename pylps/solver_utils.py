@@ -47,6 +47,7 @@ def process_solutions(solutions, cycle_time):
 
                 # Allow another temporal sub
                 new_state.set_temporal_used(False)
+                new_state.compress()
                 new_kb_goals.append(new_state)
 
             elif state.result is G_DISCARD:

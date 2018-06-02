@@ -235,6 +235,12 @@ class State(object):
     def add_to_goals(self, goal):
         self._goals.appendleft(copy.deepcopy(goal))
 
+    def compress(self):
+        for i in range(self._goal_pos):
+            self._goals.popleft()
+
+        self._goal_pos = 0
+
     @property
     def goal_pos(self):
         return self._goal_pos
