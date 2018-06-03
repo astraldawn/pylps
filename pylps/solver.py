@@ -289,7 +289,7 @@ class _Solver(object):
                                 or cur_state.result is G_SOLVED \
                                 or cur_state.reactive_only:
                             goal_states[sol_id].append(
-                                copy.deepcopy(cur_state))
+                                cur_state)
 
                         # Only want the first solution for a goal
                         if cur_state.result is G_SOLVED and fast_solve:
@@ -301,9 +301,12 @@ class _Solver(object):
                 if g_states == []:
                     new_solutions.append(solutions[sol_id])
 
-                for g_state in g_states:
+                for i, g_state in enumerate(g_states):
+                    if i == len(g_states) - 1:
+                        t_soln = solutions[sol_id]
+                    else:
+                        t_soln = copy.deepcopy(solutions[sol_id])
 
-                    t_soln = copy.deepcopy(solutions[sol_id])
                     s_utils.add_to_cycle_proposed(
                         t_soln._proposed, g_state)
                     t_soln.add_state(g_state)
@@ -425,15 +428,18 @@ class _Solver(object):
 
     def expand_action(self, goal, cur_state, states, outcome=None,
                       completed_event=False):
-        # new_state = pylps_deepcopy(cur_state)
         new_state = cur_state  # REMOVED_DEEPCOPY
         cur_subs = cur_state.subs
 
         if self.reactive or goal.from_reactive and not completed_event:
             from_kb = list(unify_action(goal, self.current_time))
 
-            for sub in from_kb:
-                new_state = copy.deepcopy(cur_state)
+            for i, sub in enumerate(from_kb):
+                if i == len(from_kb) - 1:
+                    new_state = cur_state
+                else:
+                    new_state = copy.deepcopy(cur_state)
+
                 new_state.update_subs(sub)
                 states.append(new_state)
 
@@ -441,8 +447,8 @@ class _Solver(object):
                 return
 
             new_state._goal_pos -= 1
-
             mod_g = new_state._goals[new_state.goal_pos]
+
             if isinstance(mod_g, tuple):
                 mod_g[0].from_reactive = True
             else:
@@ -549,9 +555,7 @@ class _Solver(object):
 
         # Done
         if valid or CONFIG.strategy is not STRATEGY_DEFAULT:
-            # if not goal.from_reactive:
-            #     new_state.reactive_only = False
-            new_state.add_action(copy.deepcopy(goal))
+            new_state.add_action(goal)  # REMOVED_DEEPCOPY
             states.append(new_state)
 
     def expand_action_reactive(self, goal, cur_state, states):
@@ -567,8 +571,13 @@ class _Solver(object):
 
         if self.reactive:
             from_kb = list(unify_action(goal, self.current_time))
-            for sub in from_kb:
-                new_state = copy.deepcopy(cur_state)
+
+            for i, sub in enumerate(from_kb):
+                if i == len(from_kb) - 1:
+                    new_state = cur_state
+                else:
+                    new_state = copy.deepcopy(cur_state)
+
                 new_state.update_subs(sub)
                 states.append(new_state)
 
@@ -588,8 +597,8 @@ class _Solver(object):
             if CONFIG.single_clause:
                 KB_clauses = [KB_clauses[-1]]
 
-            is_single = len(KB_clauses) == 1
-            for clause in KB_clauses:
+            for i, clause in enumerate(KB_clauses):
+                is_single = (i == len(KB_clauses) - 1)
                 res = self.match_event(
                     goal, clause, cur_state, states, outcome,
                     is_single=is_single)
@@ -676,7 +685,7 @@ class _Solver(object):
                         and new_state.temporal_used:
                     new_state.set_result(G_DEFER)
 
-        new_state.replace_event(goal, outcome, copy.deepcopy(new_reqs))
+        new_state.replace_event(goal, outcome, new_reqs)  # REMOVED_DEEPCOPY
         states.append(new_state)
 
         return True
@@ -700,7 +709,6 @@ class _Solver(object):
         # Handle the case where fact is grounded (existence check)
         if grounded:
             if all_subs[0]:
-                # new_state = copy.deepcopy(cur_state)
                 new_state = cur_state  # REMOVED_DEEPCOPY
                 states.append(new_state)
 
@@ -727,13 +735,12 @@ class _Solver(object):
 
         # debug_display('EXPAND_FACT_VALID_SUBS', subs)
 
-        if len(subs) == 1:
-            cur_state.update_subs(subs[0])
-            states.append(cur_state)
-            return
+        for i, sub in enumerate(subs):
+            if i == len(subs) - 1:
+                new_state = cur_state
+            else:
+                new_state = copy.deepcopy(cur_state)
 
-        for sub in subs:
-            new_state = copy.deepcopy(cur_state)
             new_state.update_subs(sub)
             states.append(new_state)
 
@@ -802,13 +809,12 @@ class _Solver(object):
             #     states.append(new_state)
             #     return
 
-            if len(subs) == 1:
-                cur_state.update_subs(subs[0])
-                states.append(cur_state)
-                return
+            for i, sub in enumerate(subs):
+                if i == len(subs) - 1:
+                    new_state = cur_state
+                else:
+                    new_state = copy.deepcopy(cur_state)
 
-            for sub in subs:
-                new_state = copy.deepcopy(cur_state)
                 new_state.update_subs(sub)
                 states.append(new_state)
 

@@ -52,7 +52,7 @@ def constraints_satisfied(o_goal, state, cycle_proposed: Proposed,
                 if reify_outcome in all_proposed.fluents:
                     continue
 
-                all_proposed.add_fluent(copy.deepcopy(reify_outcome))
+                all_proposed.add_fluent(reify_outcome)  # REMOVED_DEEPCOPY
 
                 # TODO: Check this addition for duplicates
                 co_cons = KB.get_constraints(causality_outcome.fluent)
@@ -236,7 +236,7 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
         if outcome:
             return
 
-        new_state = copy.deepcopy(cur_state)
+        new_state = cur_state  # REMOVED_DEEPCOPY
         states.append(new_state)
         return
 
@@ -264,5 +264,5 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
         states.append(new_state)
 
     if not outcome and not matched:
-        new_state = copy.deepcopy(cur_state)
+        new_state = cur_state  # REMOVED_DEEPCOPY
         states.append(new_state)

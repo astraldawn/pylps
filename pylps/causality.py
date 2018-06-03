@@ -108,7 +108,7 @@ def generate_outcome_fluents(fluent):
     if is_grounded(fluent):
         return [fluent]
 
-    for kb_fluent in copy.deepcopy(KB.get_fluents(fluent)):
+    for kb_fluent in KB.get_fluents(fluent):
         unify_subs = unify_args(fluent.args, kb_fluent.args)
         kb_fluent.args = reify_args(kb_fluent.args, unify_subs)
         fluent_args = reify_args(fluent.args, unify_subs)

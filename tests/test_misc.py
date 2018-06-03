@@ -156,3 +156,20 @@ def test_observation_npref():
 
     # THEN
     assert actual == expected
+
+
+def test_antecedent_defer():
+    # GIVEN
+    expected = [
+        action('a1', [], (1, 2)),
+        action('a2', [], (2, 3)),
+        action('a3', [], (3, 4)),
+        fluent_initiate('f1', [], 4),
+        action('r1', [], (4, 5)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('misc', 'antecedent_defer')
+
+    # THEN
+    assert actual == expected
