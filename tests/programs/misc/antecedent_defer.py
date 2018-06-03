@@ -21,7 +21,7 @@ goal(e1.frm(T1, T3)).requires(
 
 e1.initiates(f1)
 
-execute(debug=False, experimental=True)
+execute(debug=False, experimental=True, obs=OBS_AFTER)
 
 show_kb_log()
 

@@ -662,12 +662,12 @@ class _Solver(object):
         else:
             new_state = copy.deepcopy(cur_state)
 
-        new_state.reactive_only = self.reactive
+        new_state.reactive_only = goal.from_reactive
         new_state._counter += 1
 
         s_utils.create_clause_variables(
             clause, counter, goal, cur_subs, new_subs, new_reqs,
-            reactive=self.reactive
+            reactive=goal.from_reactive
         )
 
         new_state.update_subs(new_subs)

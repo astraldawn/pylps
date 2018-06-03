@@ -89,8 +89,8 @@ class Event(LPSObject):
 
     def __repr__(self):
         ret = LPSObject.__repr__(self)
-        ret += "| Temporal %s %s | Completed %s |" % (
-            self.start_time, self.end_time, self.completed)
+        ret += "| Temporal %s %s | Reactive %s | Completed %s |" % (
+            self.start_time, self.end_time, self.from_reactive, self.completed)
         return ret
 
     @property

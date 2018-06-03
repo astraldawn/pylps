@@ -58,9 +58,10 @@ class _ENGINE(object):
 
     def _obs_after(self):
         self._check_rules()
-        KB.clear_cycle_obs()
         self._check_goals()
+        KB.clear_before_cycle_obs()
         self._check_observations()
+        KB.clear_before_cycle_obs()
         commit_outcomes(self.initiated, self.terminated)
 
     def _obs_before(self):
@@ -107,6 +108,8 @@ class _ENGINE(object):
                 if cond_object.BaseClass != FACT:
                     only_facts = False
 
+                cond_object.from_reactive = True
+
                 rename_args(0, cond_object)
                 conds.append(cond_object)
 
@@ -124,7 +127,7 @@ class _ENGINE(object):
             if not true_trigger:
 
                 state_list = list(SOLVER.backtrack_solve(
-                    start=State(copy.deepcopy(conds), {}),
+                    start=State(conds, {}),  # REMOVED_DEEPCOPY
                     reactive=True,
                     only_facts=only_facts,
                     current_time=self.current_time
