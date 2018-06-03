@@ -22,14 +22,14 @@ reactive_rule(compute(X)).then(
     say(Res)
 )
 
-goal(compute_fib(X, Res, Res1)).requires(
+goal(compute_fib(X, Res, Res1).frm(T1, T2)).requires(
     X > 2,
     Y.is_(X - 1),
-    compute_fib(Y, Res1, YRes1),
+    compute_fib(Y, Res1, YRes1).frm(T1, T2),
     Res.is_(Res1 + YRes1),
 )
 
-goal(compute_fib(X, Res, Res1).frm(T, T)).requires(
+goal(compute_fib(X, Res, Res1).frm(T1, T2)).requires(
     fib(X, Res, Res1),
 )
 

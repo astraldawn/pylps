@@ -12,7 +12,7 @@ Fail:
 
 from pylps.core import *
 
-initialise(max_time=1)
+initialise(max_time=5)
 
 create_actions('say(_, _, _)', 'say_single(_)')
 create_events('append(_, _, _)')

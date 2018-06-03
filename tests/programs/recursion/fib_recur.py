@@ -29,7 +29,7 @@ goal(compute_fib(X, Res).frm(T1, T3)).requires(
     Res.is_(YRes + ZRes),
 )
 
-goal(compute_fib(X, Res).frm(T, T)).requires(
+goal(compute_fib(X, Res).frm(T1, T2)).requires(
     fib(X, Res),
 )
 

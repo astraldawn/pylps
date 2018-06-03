@@ -8,7 +8,6 @@ from pylps.utils import *
 
 from pylps.lps_objects import Observation
 from pylps.kb import KB
-from pylps.config import CONFIG
 
 
 def process_solutions(solutions, cycle_time):
@@ -39,7 +38,7 @@ def process_solutions(solutions, cycle_time):
                 # Kept because of the reactive_id possibly being solved
                 cycle_actions |= state.actions
 
-                new_state = copy.deepcopy(state)
+                new_state = state  # REMOVED DEEPCOPY
 
                 # Clear actions / fluents and set to unprocessed
                 new_state.clear_actions()
@@ -48,6 +47,7 @@ def process_solutions(solutions, cycle_time):
 
                 # Allow another temporal sub
                 new_state.set_temporal_used(False)
+                new_state.compress()
                 new_kb_goals.append(new_state)
 
             elif state.result is G_DISCARD:
@@ -257,36 +257,82 @@ def match_clause_goal(clause, goal, new_subs, counter):
 
 
 def create_clause_variables(
-        clause, counter, goal, new_subs, new_reqs):
-    # Temporal variable updating
-    new_subs.update({
-        var(clause.goal[0].start_time.name + VAR_SEPARATOR + str(counter)):
-        var(goal.start_time.name),
-        var(clause.goal[0].end_time.name + VAR_SEPARATOR + str(counter)):
-        var(goal.end_time.name)
-    })
+        clause, counter, goal, cur_subs, new_subs, new_reqs, reactive=False):
+
+    # r_var = get_random_var()
+    # Two way binding
+    cg_st_name = clause.goal[0].start_time.name
+    cg_et_name = clause.goal[0].end_time.name
+    g_st_name = goal.start_time.name
+    g_et_name = goal.end_time.name
+    bind_suffix = VAR_SEPARATOR + str(counter)
+
+    r_g_st = reify(var(g_st_name), cur_subs)
+    r_g_et = reify(var(g_et_name), cur_subs)
+
+    # print(g_st_name, r_g_st, g_et_name, cg_st_name, cg_et_name)
+
+    temporal_bind = {}
+
+    if isinstance(r_g_st, int):
+        temporal_bind[var(cg_st_name + bind_suffix)] = \
+            var(g_st_name)
+    else:
+        temporal_bind[var(g_st_name)] = \
+            var(cg_st_name + bind_suffix)
+
+    # temporal_bind = {
+    #     # var(cg_st_name + bind_suffix): var(g_st_name),
+    #     # var(g_st_name): var(cg_st_name + bind_suffix),
+    #     var(g_et_name): var(cg_et_name + bind_suffix),
+    # }
+    if isinstance(r_g_et, int):
+        temporal_bind[var(cg_et_name + bind_suffix)] = \
+            var(g_et_name)
+    else:
+        temporal_bind[var(g_et_name)] = var(cg_et_name + bind_suffix)
+
+    if cg_st_name == cg_et_name and g_st_name == g_et_name:
+        temporal_bind = {
+            var(cg_st_name + bind_suffix): var(g_st_name),
+        }
+
+    # print(temporal_bind)
+    # print()
+    new_subs.update(temporal_bind)
+
+    # debug_display('CG', clause.goal[0])
+    # debug_display('CG', clause.goal[0].start_time, clause.goal[0].end_time)
+    # debug_display('CG_TB', temporal_bind)
 
     if not clause.reqs:
         return
 
-    for req in clause.reqs:
-        new_req = copy.deepcopy(req)
+    for new_req in copy.deepcopy(clause.reqs):
 
         # Handling negated clauses
         if isinstance(new_req, tuple) and len(new_req) == 2:
             for arg in new_req[0].args:
                 rename_arg(counter, arg)
 
-            if req[0].BaseClass is ACTION or req[0].BaseClass is EVENT:
-                new_req[0].start_time.name += VAR_SEPARATOR + str(counter)
-                new_req[0].end_time.name += VAR_SEPARATOR + str(counter)
+            if new_req[0].BaseClass is ACTION or new_req[0].BaseClass is EVENT:
+                new_req[0].start_time.name += bind_suffix
+                new_req[0].end_time.name += bind_suffix
+                new_req[0].from_reactive = reactive
+
+            if new_req[0].BaseClass is FLUENT:
+                new_req[0].time.name += bind_suffix
         else:
             for arg in new_req.args:
                 rename_arg(counter, arg)
 
-            if req.BaseClass is ACTION or req.BaseClass is EVENT:
-                new_req.start_time.name += VAR_SEPARATOR + str(counter)
-                new_req.end_time.name += VAR_SEPARATOR + str(counter)
+            if new_req.BaseClass is ACTION or new_req.BaseClass is EVENT:
+                new_req.start_time.name += bind_suffix
+                new_req.end_time.name += bind_suffix
+                new_req.from_reactive = reactive
+
+            if new_req.BaseClass is FLUENT:
+                new_req.time.name += bind_suffix
 
         new_reqs.append(new_req)
 

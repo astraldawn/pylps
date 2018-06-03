@@ -75,8 +75,19 @@ def unify_action(cond, cycle_time):
             continue
 
         unify_res = unify_args(cond.args, obs.action.args)
+        if unify_res == {} and len(cond.args) > 0:
+            continue
 
-        if unify_res == {}:
+        recursive_var = False
+        for k, v in unify_res.items():
+            try:
+                if v.BaseClass is VARIABLE:
+                    if v.name == k.token:
+                        recursive_var = True
+            except AttributeError:
+                continue
+
+        if recursive_var:
             continue
 
         unify_res.update({
@@ -108,7 +119,8 @@ def unify_fluent(cond, cycle_time, counter=0):
 
         # Unify with temporal vars, return the substitution
         substitutions.update(unify(
-            var(temporal_var.name + VAR_SEPARATOR + str(counter)),
+            var(temporal_var.name.split(VAR_SEPARATOR)[0] +
+                VAR_SEPARATOR + str(counter)),
             cycle_time))
 
         yield substitutions
@@ -124,7 +136,8 @@ def unify_fluent(cond, cycle_time, counter=0):
         # debug_display('FLUENT_UNIFY_RES', unify_res)
 
         unify_res.update(unify(
-            var(temporal_var.name + VAR_SEPARATOR + str(counter)),
+            var(temporal_var.name.split(VAR_SEPARATOR)[0] +
+                VAR_SEPARATOR + str(counter)),
             cycle_time
         ))
 
@@ -182,4 +195,4 @@ def reify_goals(goals, subs):
 
         new_goals.append(new_goal)
 
-    return copy.deepcopy(new_goals)
+    return new_goals  # REMOVED_DEEPCOPY

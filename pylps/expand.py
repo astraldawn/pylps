@@ -20,7 +20,6 @@ def expand_expr(expr, cur_state, states, constraint=False):
 
     cur_subs = cur_state.subs
     res = reify_args(expr.args, cur_subs)
-    # debug_display('EXPAND_EXPR_SUBS', res, cur_subs)
 
     valid_ops = [
         operator.ne, operator.lt,
@@ -29,8 +28,7 @@ def expand_expr(expr, cur_state, states, constraint=False):
     ]
 
     if expr.op is OP_ASSIGN:
-        # debug_display('OP_ASSIGN', res[0], res[1])
-        new_state = copy.deepcopy(cur_state)
+        new_state = cur_state  # REMOVED_DEEPCOPY
 
         if res[0].BaseClass is not VARIABLE:
             raise PylpsTypeError(res[0].BaseClass)
@@ -60,7 +58,7 @@ def expand_expr(expr, cur_state, states, constraint=False):
         in_unfolded = item in unfolded_list
 
         if in_unfolded == operator_in:
-            new_state = copy.deepcopy(cur_state)
+            new_state = cur_state  # REMOVED_DEEPCOPY
             states.append(new_state)
 
         return
@@ -76,7 +74,7 @@ def expand_expr(expr, cur_state, states, constraint=False):
         )
 
         if valid:
-            new_state = copy.deepcopy(cur_state)
+            new_state = cur_state  # REMOVED_DEEPCOPY
             states.append(new_state)
 
         return
@@ -85,6 +83,9 @@ def expand_expr(expr, cur_state, states, constraint=False):
 
 
 def _evaluate_pylps_expr(expr):
+    if is_constant(expr):
+        return expr
+
     if expr.BaseClass is CONSTANT:
         return expr.const
 

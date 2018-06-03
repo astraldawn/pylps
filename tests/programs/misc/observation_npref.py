@@ -18,7 +18,7 @@ say(A).terminates(f)
 
 false_if(say(A), say(B), A != B)
 
-execute(debug=False)
+execute(debug=False, obs=OBS_AFTER)
 
 show_kb_log()
 

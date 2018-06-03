@@ -1,7 +1,7 @@
 # Example to show actions are deferred to end of cycle
 from pylps.core import *
 
-initialise(max_time=2)
+initialise(max_time=3)
 
 create_fluents('a')
 create_facts('f(_)', 'g(_)')
@@ -35,7 +35,7 @@ goal(p2(X).frm(T1, T2)).requires(
 
 false_if(p1(X), p2(Y), X != Y)
 
-execute(solution_preference='maximum')
+execute()
 
 show_kb_log()
 

@@ -2,11 +2,11 @@ from pylps.core import *
 
 initialise(max_time=10)
 
-create_actions('show(_)', 'valid(_)', 'say(_, _)')
+create_actions('show(_)', 'valid(_, _)', 'say(_, _)')
 create_events('river(_, _, _, _)', 'member(_, _)')
 create_facts('inp(_, _)', 'crossing(_, _, _)')
 create_variables(
-    'A', 'B', 'C', 'P', 'V', 'X', 'Y', 'Z', 'Tail',
+    'A', 'B', 'C', 'P', 'V', 'X', 'Y', 'Z', 'Tail', 'D',
     'Action', 'Start', 'End', 'Plan',
 )
 
@@ -36,14 +36,13 @@ goal(river(A, A, _, []).frm(T, T))
 goal(river(A, B, V, P).frm(T1, T3)).requires(
     crossing(A, C, Action),
     C.not_in(V),
-    valid(C).frm(T1, T2),
-    say(C, Action).frm(T1, T2),
+    valid(C, Action).frm(T1, T2),
     river(C, B, [C | V], Plan).frm(T2, T3),
     P.is_([Action | Plan]),
 )
 
-false_if(valid([A, B, B, C]), A != B)
-false_if(valid([A, C, B, B]), A != B)
+false_if(valid([A, B, B, C], D), A != B)
+false_if(valid([A, C, B, B], D), A != B)
 # false_if(valid(X), valid(Y), X != Y)
 
 execute(debug=False, strategy=STRATEGY_GREEDY)

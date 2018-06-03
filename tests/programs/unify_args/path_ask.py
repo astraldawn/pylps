@@ -1,6 +1,6 @@
 from pylps.core import *
 
-initialise(max_time=2)
+initialise(max_time=3)
 
 create_actions('say(_, _)', 'ask(_, _)')
 create_events('respond(_, _)', 'path(_, _)', 'ask2(_, _)')
@@ -29,13 +29,13 @@ goal(respond(X, Y).frm(T1, T2)).requires(
     say(X, Y).frm(T1, T2)
 )
 
-goal(path(X, Y).frm(T1, T2)).requires(
+goal(path(X, Y).frm(T, T)).requires(
     arc(X, Y),
 )
 
-goal(path(X, Y).frm(T1, T2)).requires(
+goal(path(X, Y).frm(T, T)).requires(
     arc(X, Z),
-    path(Z, Y).frm(T1, T2),
+    path(Z, Y).frm(T, T),
 )
 
 execute(debug=False)

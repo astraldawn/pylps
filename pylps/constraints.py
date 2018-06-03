@@ -1,12 +1,10 @@
 import copy
-import operator
 from collections import deque
 
 from unification import *
 from ordered_set import OrderedSet
 
 from pylps.kb import KB
-from pylps.config import CONFIG
 from pylps.constants import *
 from pylps.expand import *
 from pylps.exceptions import *
@@ -18,12 +16,20 @@ from pylps.unifier import unify_fact
 
 def constraints_satisfied(o_goal, state, cycle_proposed: Proposed,
                           is_observation=False):
+
+    constraints = KB.get_constraints(o_goal)
+    causalities = KB.exists_causality(o_goal)
+
+    if not constraints:
+        return (True, True) if is_observation else True
+
     # Handle goal
     goal = reify_obj_args(o_goal, state.subs)
+    # print(goal)
+
     all_proposed = copy.deepcopy(cycle_proposed)
 
-    # Action for current rule + the new action
-    all_proposed._actions.update(state.actions)
+    # The new action
     all_proposed._actions.add(goal)
 
     all_proposed._actions = OrderedSet(
@@ -36,14 +42,9 @@ def constraints_satisfied(o_goal, state, cycle_proposed: Proposed,
         if not isinstance(end_time, int):
             end_time = reify(var(end_time.name), state.subs)
 
-        if obs.action.end_time == end_time:
+        # print(obs.action.end_time, end_time)
+        if obs.end_time == end_time:
             all_proposed._actions.add(obs.action)
-
-    # debug_display('ALL_PROPOSED', all_proposed)
-    # debug_display('SUBS', state.subs)
-
-    constraints = KB.get_constraints(goal)
-    causalities = KB.exists_causality(goal)
 
     if causalities:
         for causality in causalities:
@@ -57,7 +58,7 @@ def constraints_satisfied(o_goal, state, cycle_proposed: Proposed,
                 if reify_outcome in all_proposed.fluents:
                     continue
 
-                all_proposed.add_fluent(copy.deepcopy(reify_outcome))
+                all_proposed.add_fluent(reify_outcome)  # REMOVED_DEEPCOPY
 
                 # TODO: Check this addition for duplicates
                 co_cons = KB.get_constraints(causality_outcome.fluent)
@@ -108,11 +109,11 @@ def check_constraint(constraint, all_proposed, custom_start_subs=None):
 
 def expand_constraint(constraint, cur_state, states, all_proposed):
 
-    debug_display('EXPAND_CONS', constraint)
+    # debug_display('EXPAND_CONS', constraint, cur_state.subs)
 
     goal = constraint.goal
 
-    if goal.BaseClass is ACTION:
+    if goal.BaseClass is ACTION or goal.BaseClass is EVENT:
         expand_action(constraint, cur_state, states, all_proposed)
     elif goal.BaseClass is EXPR:
         expand_expr(constraint, cur_state, states, constraint=True)
@@ -123,7 +124,7 @@ def expand_constraint(constraint, cur_state, states, all_proposed):
     else:
         raise PylpsUnimplementedOutcomeError(goal.BaseClass)
 
-    debug_display()
+    # debug_display()
 
 
 def expand_action(constraint, cur_state, states, all_proposed):
@@ -136,7 +137,6 @@ def expand_action(constraint, cur_state, states, all_proposed):
 
     r_action = reify_obj_args(cons_action, cur_subs)
     grounded = is_grounded(r_action)
-    # debug_display(grounded, cons_action, cur_subs)
 
     for action in all_proposed.actions:
         if action.name != cons_action.name:
@@ -176,8 +176,6 @@ def expand_fact(constraint, cur_state, states):
 
     all_subs = list(unify_fact(fact))
 
-    debug_display('FACT_CONS', all_subs)
-
     subs = []
 
     for sub in all_subs:
@@ -212,9 +210,10 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
         except AttributeError:
             continue
 
-    # debug_display('CONS_FLUENT', cons_fluent, outcome)
+    # debug_display('CONS_FLUENT', cons_fluent, outcome, cur_subs)
     # debug_display('CUR_SUBS', cur_subs)
-    # debug_display('FROM KB', fluents, all_proposed)
+    # debug_display('FROM KB', fluents)
+    # debug_display('ALL_PROP', all_proposed)
 
     for causality_outcome in all_proposed.fluents:
         if causality_outcome.outcome == A_INITIATE:
@@ -235,6 +234,7 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
         #     fluents.remove(causality_outcome.fluent)
 
     # debug_display('FROM KB AFTER ADD', fluents)
+    # debug_display()
 
     # No fluents found
     if not fluents:
@@ -242,7 +242,7 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
         if outcome:
             return
 
-        new_state = copy.deepcopy(cur_state)
+        new_state = cur_state  # REMOVED_DEEPCOPY
         states.append(new_state)
         return
 
@@ -261,11 +261,7 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
 
         new_state = copy.deepcopy(cur_state)
         cons_fluent_res = reify_args(cons_fluent.args, cur_subs)
-        # res = unify_args(cons_fluent.args, fluent.args)
         res = unify_args(cons_fluent_res, fluent.args)
-
-        # debug_display(
-        # 'MATCHING', cons_fluent_res, res, cur_subs, fluent.args)
 
         if res == {}:
             continue
@@ -273,8 +269,6 @@ def expand_fluent(constraint, cur_state, states, all_proposed):
         new_state.update_subs(res)
         states.append(new_state)
 
-    # debug_display('CONSTRAINT_FLUENT', fluent, outcome, matched)
-
     if not outcome and not matched:
-        new_state = copy.deepcopy(cur_state)
+        new_state = cur_state  # REMOVED_DEEPCOPY
         states.append(new_state)

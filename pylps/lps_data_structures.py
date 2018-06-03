@@ -95,10 +95,6 @@ class Variable(LPSComparable):
         return Expr(OP_NOT_IN, self, convert_arg(other))
 
 
-class TemporalVar(Variable):
-    BaseClass = TEMPORAL_VARIABLE
-
-
 class LPSConstant(LPSComparable):
     BaseClass = CONSTANT
 

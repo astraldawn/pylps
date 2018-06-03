@@ -1,20 +1,19 @@
 from pylps.core import *
 
-initialise(max_time=10)
+initialise(max_time=4)
 
-create_actions('sort(_)', 'say(_)')
+create_actions('sort(_)', 'say(_)', 'show(_, _, _, _)')
 create_variables(
     'X', 'Y', 'Xs', 'Ys', 'Left', 'Right', 'Ls', 'Rs',
-    'L1', 'L2', 'L3',
+    'L1', 'L2', 'L3', 'T6'
 )
 create_events('quicksort(_, _)', 'split(_, _, _, _)', 'append(_, _, _)')
 
-observe(sort([6, 1, 5, 2, 4, 3]).frm(1, 2))
+observe(sort([3, 5, 4, 1, 6, 2]).frm(1, 2))
 
 reactive_rule(sort(X).frm(T1, T2)).then(
     quicksort(X, Y).frm(T2, T3),
     say(Y).frm(T3, T4),
-    T2 <= T3,
 )
 
 goal(append([], X, X)).requires()
@@ -29,7 +28,7 @@ goal(quicksort([X | Xs], Ys).frm(T1, T5)).requires(
     split(Xs, X, Left, Right).frm(T2, T3),
     quicksort(Left, Ls).frm(T3, T4),
     quicksort(Right, Rs).frm(T4, T5),
-    append(Ls, [X | Rs], Ys),
+    append(Ls, [X | Rs], Ys)
 )
 
 goal(split([], Y, [], []).frm(T1, T1))
@@ -44,7 +43,7 @@ goal(split([X | Xs], Y, Ls, [X | Rs]).frm(T1, T3)).requires(
     split(Xs, Y, Ls, Rs).frm(T2, T3),
 )
 
-execute(debug=False)
+execute(debug=True)
 
 show_kb_log()
 

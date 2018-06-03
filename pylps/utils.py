@@ -1,5 +1,7 @@
 import copy
 import itertools
+import random
+import pickle
 from unification import *
 
 from pylps.constants import *
@@ -7,6 +9,12 @@ from pylps.exceptions import *
 
 from pylps.config import CONFIG
 from pylps.lps_data_structures import LPSList, LPSTuple
+
+
+def pylps_deepcopy(x):
+    return copy.deepcopy(x)
+    # return pickle.loads(pickle.dumps(x, -1))
+    # return dill.loads(dill.dumps(x, -1))
 
 
 def pylps_equality(self, other):
@@ -41,6 +49,12 @@ def generate_combinations(goal_ids, select=0):
     return combs
 
 
+def get_random_var():
+    random_int = random.randint(0, 1e10)
+    random_str = 'V_' + str(random_int)
+    return var(random_str)
+
+
 def strictly_increasing(iterable):
     return all(x < y for x, y in zip(iterable, iterable[1:]))
 
@@ -53,17 +67,12 @@ def unify_args(args_with_var, args_grounded, cur_subs=None):
     assert len(args_with_var) == len(args_grounded), \
         ERROR_UNIFY_ARGS_ARITY_MISMATCH
 
-    # debug_display('UNIFY_ARGS', args_with_var, args_grounded)
-
     subs = {}
     for v_arg, g_arg in zip(args_with_var, args_grounded):
         res = unify_args_single(v_arg, g_arg, subs, cur_subs)
 
         if not res:
             return {}
-
-    # debug_display('UNIFY_ARGS_SUBS', subs)
-    # debug_display()
 
     return subs
 
@@ -199,15 +208,12 @@ def convert_args_to_python(obj):
 
         converted_args.append(arg)
 
-    # debug_display('CONVERT_ARGS', obj.args, converted_args)
-
     return converted_args
 
 
 def reify_single(arg, substitutions):
     try:
         r_arg = reify(Var(arg.name), substitutions)
-        # debug_display('R_SINGLE', arg, r_arg, type(arg), type(r_arg))
         if isinstance(r_arg, Var):
             return arg
 
@@ -218,7 +224,8 @@ def reify_single(arg, substitutions):
 
 def reify_args(o_args_with_var, substitutions):
     r_args = []
-    args_with_var = copy.deepcopy(o_args_with_var)
+    # args_with_var = copy.deepcopy(o_args_with_var)
+    args_with_var = o_args_with_var  # REMOVED_DEEPCOPY
     r_args = [
         reify_arg_helper(arg, substitutions)
         for arg in args_with_var
@@ -238,20 +245,18 @@ def reify_arg_helper(arg, substitutions):
             for item in arg
         ]
 
-    if arg.BaseClass is VARIABLE or arg.BaseClass is TEMPORAL_VARIABLE:
-        # arg = reify(var(arg.name), substitutions)
-        # debug_display('REIFY_VAR', reify(var(arg.name), substitutions))
+    if arg.BaseClass is VARIABLE:
         return reify_single(arg, substitutions)
 
     if arg.BaseClass is EXPR:
-        ret = copy.deepcopy(arg)
+        ret = arg  # REMOVED_DEEPCOPY
         ret.left = reify_arg_helper(ret.left, substitutions)
         ret.right = reify_arg_helper(ret.right, substitutions)
         ret.args = [ret.left, ret.right]
         return ret
 
     if arg.BaseClass is FUNCTION:
-        r_arg = copy.deepcopy(arg)
+        r_arg = arg  # REMOVED_DEEPCOPY
 
         r_arg.args = [
             reify_arg_helper(item, substitutions) for item in arg.args
@@ -270,13 +275,36 @@ def reify_arg_helper(arg, substitutions):
             if prev_list == r_list or is_grounded_list(r_list):
                 break
 
-            prev_list = copy.deepcopy(r_list)
+            prev_list = r_list  # REMOVED_DEEPCOPY
             r_list = [
                 reify_arg_helper(item, substitutions)
                 for item in r_list
             ]
 
-        return LPSList(copy.deepcopy(r_list))
+        '''
+        Optimisation - flattening list
+        '''
+        try:
+            if len(r_list) == 1 and r_list[0].BaseClass is TUPLE:
+                pass
+
+            tup = r_list[0]._tuple
+            const = tup[0].const
+            head = tup[1]
+            tail = tup[2]
+
+            if const is MATCH_LIST_HEAD:
+                # print(head, tail)
+                head = LPSList([head])
+                head._list.extend(tail._list)
+                r_list = head._list
+                # print(r_list)
+                # print()
+
+        except (AttributeError, IndexError):
+            pass
+
+        return LPSList(r_list)  # REMOVED_DEEPCOPY
 
     if arg.BaseClass == TUPLE:
         r_list = [
@@ -290,13 +318,13 @@ def reify_arg_helper(arg, substitutions):
             if prev_list == r_list or is_grounded_list(r_list):
                 break
 
-            prev_list = copy.deepcopy(r_list)
+            prev_list = r_list  # REMOVED_DEEPCOPY
             r_list = [
                 reify_arg_helper(item, substitutions)
                 for item in r_list
             ]
 
-        return LPSTuple(copy.deepcopy(r_list))
+        return LPSTuple(r_list)  # REMOVED_DEEPCOPY
 
     raise PylpsUnimplementedOutcomeError((arg.BaseClass, type(arg), arg))
 
@@ -361,6 +389,9 @@ def rename_args(counter, obj):
     if obj.BaseClass is ACTION or obj.BaseClass is EVENT:
         obj._start_time.name += sub_constant
         obj._end_time.name += sub_constant
+
+    if obj.BaseClass is FLUENT:
+        obj._time.name += sub_constant
 
 
 def rename_arg(counter, arg):

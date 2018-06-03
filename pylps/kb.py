@@ -26,6 +26,8 @@ class _KB(object):
     display_log = []
     log = []
 
+    max_time = 0
+
     def reset_kb(self):
         self.reset_reactive_rules()
         self.clear_logs()
@@ -247,7 +249,6 @@ class _KB(object):
     def get_facts(self, fact, reactive_rule=False):
         try:
             facts = self.facts[fact.name]
-            debug_display('FACTS', self.facts)
 
             if not reactive_rule:
                 return self._match_facts(fact, facts)
@@ -302,7 +303,7 @@ class _KB(object):
     def clear_cycle_obs(self, current_time):
         new_cycle_obs = []
         for obs in self.cycle_obs:
-            if obs.end_time != current_time:
+            if obs.end_time < current_time:
                 continue
             new_cycle_obs.append(obs)
 
@@ -354,6 +355,9 @@ class _KB(object):
             # Argument conversion for final display
             converted_args = convert_args_to_python(action)
 
+        if action.end_time > self.max_time:
+            return
+
         self.log.append(
             [action.BaseClass, action.name, converted_args,
              (action.start_time, action.end_time), from_obs])
@@ -374,6 +378,9 @@ class _KB(object):
                 pass
 
             converted_args.append(arg)
+
+        if time > self.max_time:
+            return
 
         self.log.append([action_type, fluent.name,
                          converted_args, time, False])
@@ -402,6 +409,7 @@ class _KB(object):
 
             if print_log:
                 display(item[:4])
+
             self.display_log.append(item[:4])
 
     def clear_logs(self):

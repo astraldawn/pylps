@@ -41,6 +41,7 @@ class Action(LPSObject):
     def __repr__(self):
         ret = LPSObject.__repr__(self)
         ret += "| Temporal %s %s |" % (self.start_time, self.end_time)
+        ret += "| Reactive %s |" % (self.from_reactive)
         return ret
 
     @property
@@ -60,7 +61,7 @@ class Action(LPSObject):
     def frm(self, start_time, end_time):
         self._start_time = start_time
         self._end_time = end_time
-        return self
+        return copy.deepcopy(self)
 
     def initiates(self, fluent):
         self.fluent = fluent
@@ -88,7 +89,8 @@ class Event(LPSObject):
 
     def __repr__(self):
         ret = LPSObject.__repr__(self)
-        ret += "| Temporal %s %s |" % (self.start_time, self.end_time)
+        ret += "| Temporal %s %s | Reactive %s | Completed %s |" % (
+            self.start_time, self.end_time, self.from_reactive, self.completed)
         return ret
 
     @property
@@ -113,6 +115,26 @@ class Event(LPSObject):
     def frm(self, start_time, end_time):
         self._start_time = copy.deepcopy(start_time)
         self._end_time = copy.deepcopy(end_time)
+        return copy.deepcopy(self)
+
+    def initiates(self, fluent):
+        self.fluent = fluent
+        KB.add_causality_outcome(self, A_INITIATE)
+        return self
+
+    def terminates(self, fluent):
+        self.fluent = fluent
+        KB.add_causality_outcome(self, A_TERMINATE)
+        return self
+
+    def iff(self, *args):
+        converted = [(arg, True) for arg in args
+                     if not isinstance(arg, tuple)]
+        converted += [arg for arg in args
+                      if isinstance(arg, tuple)]
+
+        KB.set_causality_reqs(self, converted)
+
         return self
 
 
@@ -151,7 +173,7 @@ class ReactiveRule(object):
 
     def __repr__(self):
         ret = "Reactive rule\n"
-        ret += "Conds: %s\n" % (self.conds)
+        ret += "Conds: %s\n" % (str(self.conds))
         ret += "Goals: %s\n" % (', '.join(str(g) for g in self.goals))
         return ret
 
@@ -211,12 +233,13 @@ class Observation(object):
         self._action = action
         self._start_time = start
         self._end_time = end
+        self.used = False
 
     def __repr__(self):
         ret = "Observation\n"
         ret += "Action: %s\n" % (self.action)
-        ret += "Start: %s\n" % (self.start_time)
-        ret += "End: %s\n" % (self.end_time)
+        ret += "Start / End: %s / %s   | Used: %s\n" % (
+            self.start_time, self.end_time, self.used)
         return ret
 
     @property

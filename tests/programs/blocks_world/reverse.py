@@ -46,7 +46,7 @@ goal(
     make_on(Block, Place).frm(T2, T3),
 )
 
-goal(make_on(Block, Place).frm(T1, T2)).requires(
+goal(make_on(Block, Place).frm(T1, T4)).requires(
     ~location(Block, Place).at(T1),
     make_clear(Place).frm(T1, T2),
     make_clear(Block).frm(T2, T3),
@@ -69,7 +69,7 @@ goal(make_clear(Block).frm(T1, T2)).requires(
 move(Block, Place).initiates(location(Block, Place))
 move(Block, _).terminates(location(Block, Place))
 
-execute()
+execute(debug=False)
 
 show_kb_log()
 

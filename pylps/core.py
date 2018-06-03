@@ -76,7 +76,7 @@ def initialise(max_time=5, create_vars=True):
     # Must call create object directly due to stack issues
     if create_vars:
         creator.create_objects(
-            ['T', 'T1', 'T2', 'T3', 'T4', 'T5'], TEMPORAL_VARIABLE)
+            ['T', 'T1', 'T2', 'T3', 'T4', 'T5'], VARIABLE)
         creator.create_objects(['_'], VARIABLE)
 
     ENGINE.set_params(max_time=max_time)
@@ -87,9 +87,10 @@ def execute(
     single_clause=False,
     solution_preference=SOLN_PREF_FIRST,
     debug=False,
-    experimental=False,
+    experimental=True,
     strategy=STRATEGY_GREEDY,
-    stepwise=False
+    stepwise=False,
+    obs=OBS_BEFORE
 ):
     '''Execute pyLPS program
 
@@ -112,6 +113,7 @@ def execute(
 
     options_dict = {
         'n_solutions': n_solutions,
+        'obs': obs,
         'single_clause': single_clause,
         'solution_preference': solution_preference,
 
@@ -125,9 +127,9 @@ def execute(
     KB.reset_kb()
 
     # Initially
-    for fluent in KB.initial_fluents:
-        KB.add_fluent(fluent)
-        KB.log_fluent(fluent, 0, F_INITIATE)
+    # for fluent in KB.initial_fluents:
+    #     KB.add_fluent(fluent)
+    #     KB.log_fluent(fluent, 0, F_INITIATE)
 
     CONFIG.set_options(options_dict)
     ENGINE.run(stepwise=stepwise)

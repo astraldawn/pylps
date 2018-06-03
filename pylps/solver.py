@@ -2,11 +2,10 @@
 Revised solver that will recursively yield solutions
 '''
 import copy
-from collections import deque, defaultdict
+
+from collections import deque
 
 from functools import partial
-from more_itertools import peekable
-from ordered_set import OrderedSet
 from unification import *
 
 from pylps.constants import *
@@ -108,8 +107,7 @@ class _Solver(object):
 
                 multigoal = KB.goals[cur_goal_pos]
 
-                reactive_soln[cur_goal_pos] = peekable(
-                    self.backtrack_solve(multigoal))
+                reactive_soln[cur_goal_pos] = self.backtrack_solve(multigoal)
 
                 new_state = next(reactive_soln[cur_goal_pos])
 
@@ -270,18 +268,28 @@ class _Solver(object):
                             actions_valid = False
 
                     if not actions_valid:
+                        # debug_display('INVALID_STATE',
+                        #               self.current_time, cur_state)
                         continue
 
                     if cur_state.result in valid_results:
+                        debug_display(
+                            'VALID_STATE', self.current_time, cur_state)
                         prev_seen_len = len(seen_actions[sol_id])
 
-                        for action in cur_state.actions:
-                            seen_actions[sol_id].add(action)
+                        if CONFIG.experimental:
+                            for action in cur_state.actions:
+                                if action.BaseClass is ACTION:
+                                    seen_actions[sol_id].add(action)
+                        else:
+                            for action in cur_state.actions:
+                                seen_actions[sol_id].add(action)
 
                         if prev_seen_len != len(seen_actions[sol_id]) \
-                                or cur_state.result is G_SOLVED:
+                                or cur_state.result is G_SOLVED \
+                                or cur_state.reactive_only:
                             goal_states[sol_id].append(
-                                copy.deepcopy(cur_state))
+                                cur_state)
 
                         # Only want the first solution for a goal
                         if cur_state.result is G_SOLVED and fast_solve:
@@ -293,9 +301,12 @@ class _Solver(object):
                 if g_states == []:
                     new_solutions.append(solutions[sol_id])
 
-                for g_state in g_states:
+                for i, g_state in enumerate(g_states):
+                    if i == len(g_states) - 1:
+                        t_soln = solutions[sol_id]
+                    else:
+                        t_soln = copy.deepcopy(solutions[sol_id])
 
-                    t_soln = copy.deepcopy(solutions[sol_id])
                     s_utils.add_to_cycle_proposed(
                         t_soln._proposed, g_state)
                     t_soln.add_state(g_state)
@@ -303,7 +314,6 @@ class _Solver(object):
                     new_solutions.append(t_soln)
 
             solutions = new_solutions
-            # print(len(solutions))
 
         solutions = sorted(
             solutions,
@@ -334,7 +344,7 @@ class _Solver(object):
         '''
         self.reactive = reactive
         self.only_facts = only_facts
-        states = deque()
+        self.states = deque()
 
         '''
         Additional empty state to cover the case where
@@ -345,14 +355,14 @@ class _Solver(object):
             yield State([], {})
 
         start_state = copy.deepcopy(start)
-        states.append(start_state)
+        self.states.append(start_state)
 
         if current_time:
             self.current_time = current_time
 
-        while states:
+        while self.states:
             # cur_state = states.popleft()
-            cur_state = states.pop()
+            cur_state = self.states.pop()
 
             self.iterations += 1
 
@@ -369,35 +379,41 @@ class _Solver(object):
                 break
 
             # debug_display(self.iterations, goal)
-            # debug_display(cur_state)
+            # debug_display('STATE_BT', cur_state)
 
             if not goal:
                 cur_state.set_result(G_SOLVED)
                 yield cur_state
             else:
-                self.expand_goal(goal, cur_state, states)
+                self.expand_goal(goal, cur_state)
 
         if CONFIG.solution_preference is SOLN_PREF_FIRST:
             yield State([], {})
 
-    def expand_goal(self, goal, cur_state, states):
+    def expand_goal(self, goal, cur_state):
 
         outcome = True
+        states = self.states
+        cur_state.compress(cpos=1)
 
         if isinstance(goal, tuple):
             outcome, goal = goal[1], goal[0]
 
-        debug_display('EXPAND', goal, outcome)
+        # debug_display('EXPAND', self.current_time, goal, outcome)
         # debug_display('EXPAND_R', reify_obj_args(goal, cur_state.subs))
 
-        if self.reactive and \
-                (goal.BaseClass is ACTION or goal.BaseClass is EVENT):
-            self.expand_action_reactive(goal, cur_state, states)
-            return
+        # if self.reactive and \
+        #         (goal.BaseClass is ACTION):
+        #     self.expand_action_reactive(goal, cur_state, states)
+        #     return
 
         if goal.BaseClass is ACTION:
-            self.expand_action(goal, cur_state, states)
+            self.expand_action(goal, cur_state, states, outcome)
         elif goal.BaseClass is EVENT:
+            if goal.completed and CONFIG.experimental:
+                self.expand_action(goal, cur_state, states, outcome,
+                                   completed_event=True)
+                return
             self.expand_event(goal, cur_state, states, outcome)
         elif goal.BaseClass is EXPR:
             expand_expr(goal, cur_state, states)
@@ -408,11 +424,39 @@ class _Solver(object):
         else:
             raise UnimplementedOutcomeError(goal.BaseClass)
 
-        debug_display()
+        # debug_display()
 
-    def expand_action(self, goal, cur_state, states):
-        new_state = copy.deepcopy(cur_state)
+    def expand_action(self, goal, cur_state, states, outcome=None,
+                      completed_event=False):
+        new_state = cur_state  # REMOVED_DEEPCOPY
         cur_subs = cur_state.subs
+
+        if self.reactive or goal.from_reactive and not completed_event:
+            from_kb = list(unify_action(goal, self.current_time))
+
+            for i, sub in enumerate(from_kb):
+                if i == len(from_kb) - 1:
+                    new_state = cur_state
+                else:
+                    new_state = copy.deepcopy(cur_state)
+
+                new_state.update_subs(sub)
+                states.append(new_state)
+
+            if from_kb:
+                return
+
+            new_state._goal_pos -= 1
+            mod_g = new_state._goals[new_state.goal_pos]
+
+            if isinstance(mod_g, tuple):
+                mod_g[0].from_reactive = True
+            else:
+                mod_g.from_reactive = True
+
+            new_state.set_result(G_DEFER)
+            states.append(new_state)
+            return
 
         # Handle temporal variables (atomic action)
         start_time = var(goal.start_time.name)
@@ -423,27 +467,32 @@ class _Solver(object):
 
         r_start_time = reify(start_time, cur_subs)
 
+        # if completed_event:
+        #     debug_display('COMPLETED_EVENT', goal)
+        #     r_start_time = reify(start_time, cur_subs)
+        #     r_end_time = reify(end_time, cur_subs)
+
+        #     debug_display('S / E', start_time, end_time,
+        #                   self.current_time, r_start_time, r_end_time)
+        #     debug_display('CUR_SUBS', cur_subs)
+
         '''
         TODO
 
         NEED TO FIX FOR RIVER CROSSING
         '''
-        # print(goal)
-        # print(cur_subs[start_time])
-        # print()
-
         # if not cur_subs.get(start_time)  \
         #         or not isinstance(cur_subs[start_time], int):
         if not isinstance(r_start_time, int):
+            # If it is a completed event and we don't have subs, it is fine
+            if completed_event:
+                pass
+
             # Start time has not been substituted
-            if cur_state.temporal_used:
+            elif cur_state.temporal_used:
                 new_state._goal_pos -= 1
 
-                if CONFIG.experimental:
-                    new_state.add_to_goals(goal)
-
                 new_state.set_result(G_DEFER)
-                # debug_display('DEFER_IF', goal)
                 states.append(new_state)
                 return
             else:
@@ -455,9 +504,25 @@ class _Solver(object):
         else:
             # debug_display('START HAS ALREADY BEEN UNIFIED')
             # debug_display(cur_state)
+            if not isinstance(cur_subs[start_time], int) \
+                and not completed_event:
+                new_state.temporal_used_true()
+                # pass
 
-            unify_end = unify(end_time, r_start_time + 1)
+            unify_start = unify(start_time, r_start_time)
+            new_state.update_subs(unify_start)
+
+            r_end_time = r_start_time + 1
+
+            if completed_event:
+                r_end_time = reify(end_time, cur_subs)
+
+            unify_end = unify(end_time, r_end_time)
             new_state.update_subs(unify_end)
+
+            if completed_event and CONFIG.experimental:
+                if not isinstance(r_end_time, int):
+                    new_state._subs[end_time] = r_start_time
 
             temporal_valid = new_state.subs[end_time] <= self.current_time + 1
             temporal_exceed = new_state.subs[end_time] - self.current_time < 1
@@ -465,15 +530,13 @@ class _Solver(object):
             if not temporal_valid:
                 new_state._goal_pos -= 1
 
-                if CONFIG.experimental:
-                    new_state.add_to_goals(goal)
-
                 new_state.set_result(G_DEFER)
                 # debug_display('DEFER_ELSE', goal)
                 states.append(new_state)
                 return
 
-            if temporal_exceed:
+            # Only apply temporal exceed for actions
+            if temporal_exceed and not completed_event:
                 new_state.set_result(G_DISCARD)
                 states.append(new_state)
                 return
@@ -494,16 +557,35 @@ class _Solver(object):
 
         # Done
         if valid or CONFIG.strategy is not STRATEGY_DEFAULT:
-            new_state.add_action(copy.deepcopy(goal))
+            new_state.add_action(goal)  # REMOVED_DEEPCOPY
             states.append(new_state)
 
     def expand_action_reactive(self, goal, cur_state, states):
+        debug_display('EXPAND_A_R', goal)
+
         for sub in list(unify_action(goal, self.current_time)):
             new_state = copy.deepcopy(cur_state)
             new_state.update_subs(sub)
             states.append(new_state)
 
     def expand_event(self, goal, cur_state, states, outcome=True):
+        # debug_display('EXPAND_EVENT', goal)
+
+        if self.reactive:
+            from_kb = list(unify_action(goal, self.current_time))
+
+            for i, sub in enumerate(from_kb):
+                if i == len(from_kb) - 1:
+                    new_state = cur_state
+                else:
+                    new_state = copy.deepcopy(cur_state)
+
+                new_state.update_subs(sub)
+                states.append(new_state)
+
+            if from_kb:
+                return
+
         all_false = True
         all_true = True
         res_success = 0
@@ -517,9 +599,11 @@ class _Solver(object):
             if CONFIG.single_clause:
                 KB_clauses = [KB_clauses[-1]]
 
-            for clause in KB_clauses:
+            for i, clause in enumerate(KB_clauses):
+                is_single = (i == len(KB_clauses) - 1)
                 res = self.match_event(
-                    goal, clause, cur_state, states, outcome)
+                    goal, clause, cur_state, states, outcome,
+                    is_single=is_single)
 
                 # debug_display('ME', goal, clause, res)
 
@@ -535,7 +619,7 @@ class _Solver(object):
         # Negation of goals
         if not outcome:
             if all_false:
-                new_state = copy.deepcopy(cur_state)
+                new_state = cur_state  # REMOVED_DEEPCOPY
                 states.append(new_state)
 
             if all_true:
@@ -543,11 +627,12 @@ class _Solver(object):
                 for i in range(res_success):
                     states.pop()
 
-                new_state = copy.deepcopy(cur_state)
+                new_state = cur_state  # REMOVED_DEEPCOPY
                 new_state.set_result(G_DISCARD)
                 states.append(new_state)
 
-    def match_event(self, goal, clause, cur_state, states, outcome):
+    def match_event(self, goal, clause, cur_state, states, outcome,
+                    is_single):
         cur_subs = cur_state.subs
 
         # Reify if possible
@@ -557,11 +642,9 @@ class _Solver(object):
         # debug_display('ME_REIFY_ARGS', goal_args)
         # debug_display('ME_REIFY_SUBS', cur_subs)
 
-        new_state = copy.deepcopy(cur_state)
-        new_state._counter += 1
         new_reqs = []
         new_subs = {}
-        counter = new_state.counter + new_state.reactive_id
+        counter = cur_state.counter + 1
 
         for clause_arg, goal_arg in zip(clause.goal[0].args, goal_args):
             match_res = s_utils.match_clause_goal(
@@ -576,8 +659,17 @@ class _Solver(object):
             if not match_res:
                 return False
 
+        if is_single:
+            new_state = cur_state
+        else:
+            new_state = copy.deepcopy(cur_state)
+
+        new_state.reactive_only = goal.from_reactive
+        new_state._counter += 1
+
         s_utils.create_clause_variables(
-            clause, counter, goal, new_subs, new_reqs
+            clause, counter, goal, cur_subs, new_subs, new_reqs,
+            reactive=goal.from_reactive
         )
 
         new_state.update_subs(new_subs)
@@ -595,7 +687,7 @@ class _Solver(object):
                         and new_state.temporal_used:
                     new_state.set_result(G_DEFER)
 
-        new_state.replace_event(goal, outcome, copy.deepcopy(new_reqs))
+        new_state.replace_event(goal, outcome, new_reqs)  # REMOVED_DEEPCOPY
         states.append(new_state)
 
         return True
@@ -614,12 +706,12 @@ class _Solver(object):
         else:
             all_subs = list(unify_fact(r_fact))
 
-        debug_display('EXPAND_F', all_subs)
+        # debug_display('EXPAND_F', all_subs)
 
         # Handle the case where fact is grounded (existence check)
         if grounded:
             if all_subs[0]:
-                new_state = copy.deepcopy(cur_state)
+                new_state = cur_state  # REMOVED_DEEPCOPY
                 states.append(new_state)
 
             return
@@ -643,23 +735,42 @@ class _Solver(object):
 
         subs.reverse()
 
-        debug_display('EXPAND_FACT_VALID_SUBS', subs)
+        # debug_display('EXPAND_FACT_VALID_SUBS', subs)
 
-        for sub in subs:
-            new_state = copy.deepcopy(cur_state)
+        for i, sub in enumerate(subs):
+            if i == len(subs) - 1:
+                new_state = cur_state
+            else:
+                new_state = copy.deepcopy(cur_state)
+
             new_state.update_subs(sub)
             states.append(new_state)
 
     def expand_fluent(self, fluent, cur_state, states, outcome=True):
         cur_subs = cur_state.subs
+        f_time = reify(var(fluent.time.name), cur_subs)
 
         # debug_display('FLUENT', fluent, outcome, cur_subs)
+        # debug_display('FTIME / CTIME', f_time, self.current_time)
+
+        try:
+            if not isinstance(f_time, int) and f_time.BaseClass is CONSTANT:
+                f_time = f_time.const
+
+            if f_time > self.current_time:
+                new_state = cur_state  # REMOVED_DEEPCOPY
+                new_state._goal_pos -= 1
+                new_state.set_result(G_DEFER)
+                states.append(new_state)
+                return
+        except AttributeError:
+            pass
 
         # TODO: There might be a need for better temporal handling here
         all_subs = list(unify_fluent(
             fluent, self.current_time, counter=cur_state.counter))
 
-        # debug_display('FLUENT_ALL_SUBS', all_subs, cur_state.counter)
+        debug_display('FLUENT_ALL_SUBS', all_subs, cur_state.counter)
 
         subs = []
 
@@ -672,7 +783,15 @@ class _Solver(object):
                 if cur_subs.get(k):
                     res = reify(k, cur_subs)
                     # debug_display('F_MATCH_SUBS', v, res)
-                    if not isinstance(res, Var) and v != res:
+                    v_c = v
+                    r_c = res
+                    if is_constant(v_c):
+                        v_c = LPSConstant(v_c)
+
+                    if is_constant(r_c):
+                        r_c = LPSConstant(r_c)
+
+                    if not isinstance(res, Var) and v_c != r_c:
                         valid_sub = False
 
             if valid_sub:
@@ -692,22 +811,23 @@ class _Solver(object):
             #     states.append(new_state)
             #     return
 
-            for sub in subs:
-                new_state = copy.deepcopy(cur_state)
+            for i, sub in enumerate(subs):
+                if i == len(subs) - 1:
+                    new_state = cur_state
+                else:
+                    new_state = copy.deepcopy(cur_state)
+
                 new_state.update_subs(sub)
                 states.append(new_state)
 
         elif not outcome:
             # TODO: Is it possible to have a sub but not match it? Or is
             # it such that no sub can be matched?
-            new_state = copy.deepcopy(cur_state)
+            # new_state = copy.deepcopy(cur_state)
+            new_state = cur_state  # REMOVED_DEEPCOPY
             if subs:
-                debug_display('FLUENT_CHECK_F_DEFER')
+                # debug_display('FLUENT_CHECK_F_DEFER')
                 new_state._goal_pos -= 1
-
-                if CONFIG.experimental:
-                    new_state.add_to_goals((fluent, outcome))
-
                 new_state.set_result(G_DEFER)
                 states.append(new_state)
                 return

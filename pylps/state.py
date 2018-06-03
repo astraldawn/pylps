@@ -15,7 +15,8 @@ class Proposed(object):
         self._fluents = OrderedSet()
 
     def __repr__(self):
-        ret = "Proposed Actions: %s\n" % (str(self._actions))
+        ret = "Proposed Actions: %s\n" % (str(
+            [a for a in self._actions if a.BaseClass is ACTION]))
         ret += "Proposed Fluents: %s\n" % (str(self._fluents))
         return ret
 
@@ -104,15 +105,17 @@ class Solution(object):
 
 class State(object):
     def __init__(self, goals=[], subs={},
-                 proposed=Proposed(), from_reactive=False):
+                 proposed=Proposed(), from_reactive=False,
+                 result=G_NPROCESSED):
         self._goals = deque(goals)
         self._subs = subs
         self._proposed = proposed
         self._temporal_used = False
         self._goal_pos = 0
-        self._result = G_NPROCESSED
+        self._result = result
         self._counter = 0
         self._reactive_id = None
+        self.reactive_only = True
 
         if from_reactive:
             self._reactive_id = CONFIG.reactive_id
@@ -121,8 +124,8 @@ class State(object):
     def __repr__(self):
         ret = "STATE\n"
         ret += "Reactive ID %s\n" % self.reactive_id
-        ret += "Goal pos %s     Result %s\n" % (
-            str(self.goal_pos), self.result)
+        ret += "Goal pos: %s    Result: %s    Reactive only: %s\n" % (
+            str(self.goal_pos), self.result, self.reactive_only)
 
         for item, goal in enumerate(self.goals):
             t_goal = goal
@@ -203,11 +206,6 @@ class State(object):
             else:
                 n_reqs.append((req, outcome))
 
-        if CONFIG.experimental:
-            self._goals.extendleft(reversed(copy.deepcopy(n_reqs)))
-            self._goal_pos -= 1
-            return
-
         new_goals = deque()
 
         for goal in self.goals:
@@ -217,11 +215,16 @@ class State(object):
             if isinstance(goal, tuple):
                 goal_obj = goal[0]
 
-            if goal_obj != event:
-                new_goals.append(goal)
+            if goal_obj == event:
+                new_goals.extend(n_reqs)  # REMOVED_DEEPCOPY
+
+                if CONFIG.experimental:
+                    goal_obj.completed = True
+                    new_goals.append(goal)  # handle the event
+
                 continue
 
-            new_goals.extend(copy.deepcopy(n_reqs))
+            new_goals.append(goal)
 
         self._goals = new_goals
 
@@ -229,7 +232,14 @@ class State(object):
         self._goal_pos -= 1
 
     def add_to_goals(self, goal):
-        self._goals.appendleft(copy.deepcopy(goal))
+        self._goals.appendleft(goal)  # REMOVED_DEEPCOPY
+
+    def compress(self, cpos=0):
+        # cpos = self._goal_pos
+        for i in range(self._goal_pos - cpos):
+            self._goals.popleft()
+
+        self._goal_pos = cpos
 
     @property
     def goal_pos(self):
@@ -237,15 +247,7 @@ class State(object):
 
     def get_next_goal(self, reactive=False):
         try:
-            if not CONFIG.experimental:
-                reactive = True
-
-            if reactive:
-                cur_goal = self.goals[self.goal_pos]
-            else:
-                cur_goal = self.goals[0]
-                self._goals.popleft()
-
+            cur_goal = self.goals[self.goal_pos]
             self._goal_pos += 1
             return cur_goal
         except IndexError:
