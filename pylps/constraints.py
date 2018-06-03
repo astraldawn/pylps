@@ -16,8 +16,17 @@ from pylps.unifier import unify_fact
 
 def constraints_satisfied(o_goal, state, cycle_proposed: Proposed,
                           is_observation=False):
+
+    constraints = KB.get_constraints(o_goal)
+    causalities = KB.exists_causality(o_goal)
+
+    if not constraints:
+        return (True, True) if is_observation else True
+
     # Handle goal
     goal = reify_obj_args(o_goal, state.subs)
+    # print(goal)
+
     all_proposed = copy.deepcopy(cycle_proposed)
 
     # The new action
@@ -36,9 +45,6 @@ def constraints_satisfied(o_goal, state, cycle_proposed: Proposed,
         # print(obs.action.end_time, end_time)
         if obs.end_time == end_time:
             all_proposed._actions.add(obs.action)
-
-    constraints = KB.get_constraints(goal)
-    causalities = KB.exists_causality(goal)
 
     if causalities:
         for causality in causalities:
@@ -107,7 +113,7 @@ def expand_constraint(constraint, cur_state, states, all_proposed):
 
     goal = constraint.goal
 
-    if goal.BaseClass is ACTION:
+    if goal.BaseClass is ACTION or goal.BaseClass is EVENT:
         expand_action(constraint, cur_state, states, all_proposed)
     elif goal.BaseClass is EXPR:
         expand_expr(constraint, cur_state, states, constraint=True)

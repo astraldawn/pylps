@@ -40,7 +40,7 @@ refill.initiates(water)
 false_if(eliminate, fire, ~water)
 
 execute(single_clause=False, strategy=STRATEGY_DEFAULT)
-show_kb_log(show_events=True)
+show_kb_log(show_events=False)
 
 '''
 maxTime(10).

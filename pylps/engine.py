@@ -57,20 +57,22 @@ class _ENGINE(object):
         obs_strategy[CONFIG.obs]()
 
     def _obs_after(self):
+        KB.clear_cycle_obs(self.current_time)
+
         self._check_rules()
         self._check_goals()
-        KB.clear_before_cycle_obs()
         self._check_observations()
-        KB.clear_before_cycle_obs()
+
         commit_outcomes(self.initiated, self.terminated)
 
     def _obs_before(self):
+        KB.clear_cycle_obs(self.current_time)
+
         self._check_observations()
         self._check_rules()
-        KB.clear_before_cycle_obs()
         self._check_goals()
+
         commit_outcomes(self.initiated, self.terminated)
-        KB.clear_before_cycle_obs()
 
     def _check_observations(self):
 
@@ -159,6 +161,8 @@ class _ENGINE(object):
         debug_display('CG_B_TIME / N_GOALS', self.current_time, len(KB.goals))
         debug_display('CG_KB_BEF', KB.goals)
         solutions = SOLVER.solve_goals(self.current_time)
+
+        # print(self.current_time, solutions)
 
         debug_display('CG_S_TIME / N_SOLN', self.current_time, len(solutions))
         debug_display('CG_SOLN', solutions)

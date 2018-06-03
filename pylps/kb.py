@@ -300,18 +300,14 @@ class _KB(object):
     def add_cycle_obs(self, observation):
         self._cycle_obs.add(observation)
 
-    def clear_before_cycle_obs(self):
+    def clear_cycle_obs(self, current_time):
         new_cycle_obs = []
         for obs in self.cycle_obs:
-            if obs.used:
+            if obs.end_time < current_time:
                 continue
-            obs.used = True
             new_cycle_obs.append(obs)
 
         self._cycle_obs = OrderedSet(new_cycle_obs)
-
-    def clear_cycle_obs(self):
-        self._cycle_obs = OrderedSet()
 
     # @property
     # def cycle_actions(self):

@@ -504,7 +504,8 @@ class _Solver(object):
         else:
             # debug_display('START HAS ALREADY BEEN UNIFIED')
             # debug_display(cur_state)
-            if not isinstance(cur_subs[start_time], int):
+            if not isinstance(cur_subs[start_time], int) \
+                and not completed_event:
                 new_state.temporal_used_true()
                 # pass
 
@@ -512,6 +513,7 @@ class _Solver(object):
             new_state.update_subs(unify_start)
 
             r_end_time = r_start_time + 1
+
             if completed_event:
                 r_end_time = reify(end_time, cur_subs)
 

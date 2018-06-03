@@ -87,7 +87,7 @@ def execute(
     single_clause=False,
     solution_preference=SOLN_PREF_FIRST,
     debug=False,
-    experimental=False,
+    experimental=True,
     strategy=STRATEGY_GREEDY,
     stepwise=False,
     obs=OBS_BEFORE

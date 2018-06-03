@@ -281,6 +281,29 @@ def reify_arg_helper(arg, substitutions):
                 for item in r_list
             ]
 
+        '''
+        Optimisation - flattening list
+        '''
+        try:
+            if len(r_list) == 1 and r_list[0].BaseClass is TUPLE:
+                pass
+
+            tup = r_list[0]._tuple
+            const = tup[0].const
+            head = tup[1]
+            tail = tup[2]
+
+            if const is MATCH_LIST_HEAD:
+                # print(head, tail)
+                head = LPSList([head])
+                head._list.extend(tail._list)
+                r_list = head._list
+                # print(r_list)
+                # print()
+
+        except (AttributeError, IndexError):
+            pass
+
         return LPSList(r_list)  # REMOVED_DEEPCOPY
 
     if arg.BaseClass == TUPLE:

@@ -15,7 +15,8 @@ class Proposed(object):
         self._fluents = OrderedSet()
 
     def __repr__(self):
-        ret = "Proposed Actions: %s\n" % (str(self._actions))
+        ret = "Proposed Actions: %s\n" % (str(
+            [a for a in self._actions if a.BaseClass is ACTION]))
         ret += "Proposed Fluents: %s\n" % (str(self._fluents))
         return ret
 
