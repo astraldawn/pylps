@@ -14,7 +14,7 @@ from pylps.utils import *
 
 from pylps.kb import KB
 
-from pylps.state import State, Proposed
+from pylps.plan import Plan, Proposed
 from pylps.constraints import check_constraint, constraints_satisfied
 
 
@@ -28,7 +28,7 @@ def unify_obs(observation):
 
     # Constraint check
     action_cons, return_state = constraints_satisfied(
-        action, State(), Proposed(), is_observation=True)
+        action, Plan(), Proposed(), is_observation=True)
 
     if not action_cons:
         return_state.update_subs({

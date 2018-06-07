@@ -10,7 +10,7 @@ from pylps.expand import *
 from pylps.exceptions import *
 from pylps.utils import *
 
-from pylps.state import State, Proposed
+from pylps.plan import Plan, Proposed
 from pylps.unifier import unify_fact
 
 
@@ -87,7 +87,7 @@ def check_constraint(constraint, all_proposed, custom_start_subs=None):
 
     states = deque()
 
-    start_state = State(
+    start_state = Plan(
         goals=[copy.deepcopy(c) for c in constraint],
         subs={}
     )

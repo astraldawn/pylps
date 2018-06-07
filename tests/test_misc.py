@@ -163,13 +163,31 @@ def test_antecedent_defer():
     expected = [
         action('a1', [], (1, 2)),
         action('a2', [], (2, 3)),
-        action('a3', [], (3, 4)),
-        fluent_initiate('f1', [], 4),
-        action('r1', [], (4, 5)),
+        action('a3', [], (5, 6)),
+        fluent_initiate('f1', [], 6),
+        action('r1', [], (6, 7)),
     ]
 
     # WHEN
     actual = run_pylps_test_program('misc', 'antecedent_defer')
+
+    # THEN
+    assert actual == expected
+
+
+def test_antecedent_defer_complex():
+    # GIVEN
+    expected = [
+        action('a1', [], (1, 2)),
+        action('a2', [], (2, 3)),
+        event('e2', [], (3, 6)),
+        action('a3', [], (8, 9)),
+        fluent_initiate('f1', [], 9),
+        action('r1', [], (9, 10)),
+    ]
+
+    # WHEN
+    actual = run_pylps_test_program('misc', 'antecedent_defer_complex')
 
     # THEN
     assert actual == expected

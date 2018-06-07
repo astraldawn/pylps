@@ -12,8 +12,8 @@ from pylps.lps_data_structures import LPSList, LPSTuple
 
 
 def pylps_deepcopy(x):
-    return copy.deepcopy(x)
-    # return pickle.loads(pickle.dumps(x, -1))
+    # return copy.deepcopy(x)
+    return pickle.loads(pickle.dumps(x, -1))
     # return dill.loads(dill.dumps(x, -1))
 
 

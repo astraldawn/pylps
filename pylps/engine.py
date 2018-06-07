@@ -8,7 +8,7 @@ from pylps.causality import unify_obs, commit_outcomes
 from pylps.unifier import reify_goals
 from pylps.solver import SOLVER
 from pylps.solver_utils import process_solutions
-from pylps.state import State
+from pylps.plan import Plan
 
 
 class _ENGINE(object):
@@ -22,7 +22,7 @@ class _ENGINE(object):
 
     def run(self, stepwise=False):
         self.current_time = self.start_time
-        KB.reset_goals()
+        KB.reset_plans()
 
         if not stepwise:
             while self.current_time <= self.max_time:
@@ -60,7 +60,7 @@ class _ENGINE(object):
         KB.clear_cycle_obs(self.current_time)
 
         self._check_rules()
-        self._check_goals()
+        self._solve_plans()
         self._check_observations()
 
         commit_outcomes(self.initiated, self.terminated)
@@ -70,14 +70,14 @@ class _ENGINE(object):
 
         self._check_observations()
         self._check_rules()
-        self._check_goals()
+        self._solve_plans()
 
         commit_outcomes(self.initiated, self.terminated)
 
     def _check_observations(self):
 
         for observation in KB.observations:
-            if observation.start_time == self.current_time:
+            if observation.end_time - 1 == self.current_time:
                 ret = unify_obs(observation)
                 if ret:
                     i, t = ret
@@ -120,7 +120,7 @@ class _ENGINE(object):
                     conds[0].const is True:
                 true_trigger = True
                 rule._constant_trigger = True
-                state_list = [State([], {}, result=G_SOLVED)]
+                state_list = [Plan([], {}, result=G_SOLVED)]
 
             # fact only
             if only_facts:
@@ -129,7 +129,7 @@ class _ENGINE(object):
             if not true_trigger:
 
                 state_list = list(SOLVER.backtrack_solve(
-                    start=State(conds, {}),  # REMOVED_DEEPCOPY
+                    start=Plan(conds, {}),  # REMOVED_DEEPCOPY
                     reactive=True,
                     only_facts=only_facts,
                     current_time=self.current_time
@@ -150,16 +150,16 @@ class _ENGINE(object):
                 new_goals = reify_goals(rule.goals, subs)
 
                 if result is G_SOLVED:
-                    KB.add_goals(new_goals, subs)
+                    KB.add_plan(new_goals, subs)
 
                 if result is G_DEFER:
                     defer = list(state.goals)[state.goal_pos:]
                     new_goals = defer + new_goals
-                    KB.add_goals(new_goals, subs)
+                    KB.add_plan(new_goals, subs)
 
-    def _check_goals(self):
-        debug_display('CG_B_TIME / N_GOALS', self.current_time, len(KB.goals))
-        debug_display('CG_KB_BEF', KB.goals)
+    def _solve_plans(self):
+        debug_display('CG_B_TIME / N_GOALS', self.current_time, len(KB.plans))
+        debug_display('CG_KB_BEF', KB.plans)
         solutions = SOLVER.solve_goals(self.current_time)
 
         # print(self.current_time, solutions)

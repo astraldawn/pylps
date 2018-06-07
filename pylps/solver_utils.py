@@ -18,7 +18,7 @@ def process_solutions(solutions, cycle_time):
     processed = set()
     solved_goals = set()
 
-    cycle_actions = OrderedSet()
+    cycle_events = OrderedSet()
 
     for solution in solutions:
 
@@ -27,7 +27,7 @@ def process_solutions(solutions, cycle_time):
             if state.result is G_SOLVED:
                 solved_goals.add(state.reactive_id)
                 processed.add(state.reactive_id)
-                cycle_actions |= state.actions
+                cycle_events |= state.actions
 
             elif state.result is G_DEFER:
                 if state.reactive_id in solved_goals:
@@ -36,7 +36,7 @@ def process_solutions(solutions, cycle_time):
                 processed.add(state.reactive_id)
 
                 # Kept because of the reactive_id possibly being solved
-                cycle_actions |= state.actions
+                cycle_events |= state.actions
 
                 new_state = state  # REMOVED DEEPCOPY
 
@@ -59,11 +59,11 @@ def process_solutions(solutions, cycle_time):
         if maximum_solved > 0 and solution.solved == maximum_solved:
             break
 
-    process_cycle(cycle_actions)
+    process_cycle(cycle_events)
 
     unsolved_existing_goals = OrderedSet()
 
-    for start_state in KB.goals:
+    for start_state in KB.plans:
         if start_state.reactive_id in processed or \
                 start_state.reactive_id in solved_goals:
             continue
@@ -77,27 +77,27 @@ def process_solutions(solutions, cycle_time):
 
         unsolved_existing_goals.add(state)
 
-    KB.set_goals(unsolved_existing_goals)
+    KB.set_plans(unsolved_existing_goals)
 
 
-def process_cycle(cycle_actions):
+def process_cycle(cycle_events):
     '''
     TODO - Delay all commitment into KB until all are processed
     '''
 
-    for action in cycle_actions:
+    for event in cycle_events:
 
         # Convert args for action
-        converted_args = convert_args_to_python(action)
+        converted_args = convert_args_to_python(event)
 
         # Add into observations
         KB.add_cycle_obs(Observation(
-            action, action.start_time, action.end_time))
+            event, event.start_time, event.end_time))
 
         # Log action
-        KB.log_action_new(action, converted_args=converted_args)
+        KB.log_action_new(event, converted_args=converted_args)
 
-        initiates, terminates = process_causalities(action)
+        initiates, terminates = process_causalities(event)
         commit_outcomes(initiates, terminates)
 
 

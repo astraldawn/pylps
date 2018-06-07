@@ -15,16 +15,17 @@ create_events(
     'clear(_)', 'make_tower(_)',
     'make_on(_, _)', 'make_clear(_)',
 )
-create_variables('Block', 'Block1', 'Place', 'Places')
+create_variables('Block', 'Block1', 'Place', 'Places', 'A', 'B', 'C')
 
-observe(move('c', 'a').frm(1, 2))
+observe(move('d', 'a').frm(2, 3))
 
 initially(
-    location('b', 'floor'), location('c', 'b'), location('a', 'floor'),
+    location('b', 'floor'), location('c', 'floor'), location('a', 'floor'),
+    location('d', 'floor')
 )
 
 reactive_rule(True).then(
-    make_tower(['b', 'a', 'floor']).frm(T1, T2),
+    make_tower(['c', 'b', 'a', 'floor']).frm(T1, T2),
 )
 
 
@@ -49,7 +50,7 @@ goal(
     make_on(Block, Place).frm(T2, T3),
 )
 
-goal(make_on(Block, Place).frm(T1, T2)).requires(
+goal(make_on(Block, Place).frm(T1, T4)).requires(
     ~location(Block, Place).at(T1),
     make_clear(Place).frm(T1, T2),
     make_clear(Block).frm(T2, T3),
@@ -69,9 +70,10 @@ goal(make_clear(Block).frm(T1, T2)).requires(
     make_on(Block1, 'floor').frm(T1, T2),
 )
 
+false_if(move(A, B), ~clear(B))
+
 move(Block, Place).initiates(location(Block, Place))
 move(Block, _).terminates(location(Block, Place))
-
 execute()
 
 show_kb_log()

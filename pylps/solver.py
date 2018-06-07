@@ -15,7 +15,7 @@ from pylps.utils import *
 from pylps.kb import KB
 from pylps.config import CONFIG
 
-from pylps.state import State, Proposed, Solution
+from pylps.plan import Plan, Proposed, Solution
 
 from pylps.unifier import unify_fact, unify_fluent, unify_action
 from pylps.constraints import constraints_satisfied
@@ -86,7 +86,7 @@ class _Solver(object):
                     end = True
                     break
 
-                if cur_goal_pos >= len(KB.goals):
+                if cur_goal_pos >= len(KB.plans):
 
                     if len(self.cycle_proposed.actions) >= max_soln:
                         solutions.append(Solution(
@@ -105,7 +105,7 @@ class _Solver(object):
 
                 # debug_display('FORWARD', cur_goal_pos)
 
-                multigoal = KB.goals[cur_goal_pos]
+                multigoal = KB.plans[cur_goal_pos]
 
                 reactive_soln[cur_goal_pos] = self.backtrack_solve(multigoal)
 
@@ -170,15 +170,15 @@ class _Solver(object):
     def alternate_solver(self):
         solutions = []
         backtrack_solutions = {}
-        empty_state = State([], {})
+        empty_state = Plan([], {})
         goal_ids = []
 
-        if len(KB.goals) == 0:
+        if len(KB.plans) == 0:
             solutions.append(Solution(
                 proposed=[], states=[])
             )
 
-        for i, goal in enumerate(KB.goals):
+        for i, goal in enumerate(KB.plans):
             backtrack_solutions[i] = list(self.backtrack_solve(goal))
 
             goal_ids.append([
@@ -224,7 +224,7 @@ class _Solver(object):
         solutions = []
         fast_solve = fast_solve
 
-        if len(KB.goals) == 0:
+        if len(KB.plans) == 0:
             solutions.append(Solution(
                 proposed=Proposed(), states=[])
             )
@@ -235,7 +235,7 @@ class _Solver(object):
             Solution(proposed=Proposed(), states=[])
         ]
 
-        for i, goal in enumerate(KB.goals):
+        for i, goal in enumerate(KB.plans):
 
             backtrack_solve = self.backtrack_solve(goal)
 
@@ -333,7 +333,7 @@ class _Solver(object):
         display()
 
     def backtrack_solve(
-        self, start: State, pos=0,
+        self, start: Plan, pos=0,
         reactive=False, only_facts=False,  # Reactive rule solver
         current_time=None
     ):
@@ -352,7 +352,7 @@ class _Solver(object):
         '''
         if CONFIG.solution_preference is SOLN_PREF_MAX and \
                 CONFIG.strategy is STRATEGY_DEFAULT:
-            yield State([], {})
+            yield Plan([], {})
 
         start_state = copy.deepcopy(start)
         self.states.append(start_state)
@@ -361,7 +361,7 @@ class _Solver(object):
             self.current_time = current_time
 
         while self.states:
-            # cur_state = states.popleft()
+            # cur_state = self.states.popleft()
             cur_state = self.states.pop()
 
             self.iterations += 1
@@ -369,6 +369,7 @@ class _Solver(object):
             # debug_display('STATE_BT', cur_state)
 
             if cur_state.result is G_DEFER or cur_state.result is G_DISCARD:
+                # print('STATE_BT', cur_state)
                 yield cur_state
                 continue
 
@@ -388,7 +389,7 @@ class _Solver(object):
                 self.expand_goal(goal, cur_state)
 
         if CONFIG.solution_preference is SOLN_PREF_FIRST:
-            yield State([], {})
+            yield Plan([], {})
 
     def expand_goal(self, goal, cur_state):
 
@@ -505,7 +506,7 @@ class _Solver(object):
             # debug_display('START HAS ALREADY BEEN UNIFIED')
             # debug_display(cur_state)
             if not isinstance(cur_subs[start_time], int) \
-                and not completed_event:
+                    and not completed_event:
                 new_state.temporal_used_true()
                 # pass
 
