@@ -22,7 +22,6 @@ class _ENGINE(object):
 
     def run(self, stepwise=False):
         self.current_time = self.start_time
-        KB.reset_plans()
 
         if not stepwise:
             while self.current_time <= self.max_time:
@@ -90,6 +89,7 @@ class _ENGINE(object):
             KB.log_fluent(fluent, 0, F_INITIATE)
 
     def _check_rules(self):
+
         # Check rules
         for rule in KB.rules:
 

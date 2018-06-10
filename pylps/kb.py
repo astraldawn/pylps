@@ -32,6 +32,8 @@ class _KB(object):
         self.reset_reactive_rules()
         self.clear_logs()
         self.clear_fluents()
+        self._cycle_obs = OrderedSet()
+        self._fact_used_reactive = set()
 
     ''' Rule controls '''
 
@@ -112,7 +114,7 @@ class _KB(object):
         self._plans = plans
 
     def reset_plans(self):
-        self._goals = OrderedSet()
+        self._plans = OrderedSet()
 
     ''' Clauses '''
 

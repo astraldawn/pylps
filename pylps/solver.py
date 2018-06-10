@@ -224,6 +224,8 @@ class _Solver(object):
         solutions = []
         fast_solve = fast_solve
 
+        # print(KB.plans)
+
         if len(KB.plans) == 0:
             solutions.append(Solution(
                 proposed=Proposed(), states=[])
@@ -292,7 +294,7 @@ class _Solver(object):
                                 cur_state)
 
                         # Only want the first solution for a goal
-                        if cur_state.result is G_SOLVED and fast_solve:
+                        if cur_state.result in valid_results and fast_solve:
                             goal_solved = True
                             break
 
@@ -342,6 +344,7 @@ class _Solver(object):
         Solve all inside here, except for the case when deferring
         This function should return a generator
         '''
+        self.strategy = CONFIG.strategy
         self.reactive = reactive
         self.only_facts = only_facts
         self.states = deque()

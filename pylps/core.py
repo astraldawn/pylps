@@ -124,6 +124,7 @@ def execute(
     }
 
     # Resets
+    CONFIG.reactive_id = 0
     KB.reset_kb()
 
     # Initially

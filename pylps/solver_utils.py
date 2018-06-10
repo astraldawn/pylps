@@ -342,4 +342,21 @@ def create_clause_variables(
 
 
 def add_to_cycle_proposed(cycle_proposed, state):
-    cycle_proposed.add_actions(reify_actions(state, reify=True))
+    actions = reify_actions(state, reify=True)
+    cycle_proposed.add_actions(actions)
+
+    for action in actions:
+        causalities = KB.exists_causality(action)
+
+        if not causalities:
+            continue
+
+        for causality in causalities:
+            action_subs = unify_args(causality.action.args, action.args)
+
+            for causality_outcome in causality.outcomes:
+                reify_outcome = copy.deepcopy(causality_outcome)
+                reify_outcome.fluent.args = reify_args_constraint_causality(
+                    reify_outcome.fluent.args, action_subs)
+
+                cycle_proposed.add_fluent(reify_outcome)

@@ -1,6 +1,6 @@
 from pylps.core import *
 
-initialise(max_time=10)
+initialise(max_time=2)
 
 create_facts('country(_)', 'colour(_)', 'adjacent(_, _)')
 create_actions('paint(_, _)')
