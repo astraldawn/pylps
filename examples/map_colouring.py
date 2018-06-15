@@ -1,6 +1,6 @@
 from pylps.core import *
 
-initialise(max_time=2)
+initialise(max_time=10)
 
 create_facts('country(_)', 'colour(_)', 'adjacent(_, _)')
 create_actions('paint(_, _)')
@@ -15,10 +15,10 @@ colour('red')
 colour('yellow')
 colour('blue')
 
-adjacent('C', 'A')
-adjacent('C', 'B')
 adjacent('A', 'B')
+adjacent('A', 'C')
 adjacent('A', 'D')
+adjacent('B', 'C')
 adjacent('B', 'D')
 
 reactive_rule(country(X)).then(

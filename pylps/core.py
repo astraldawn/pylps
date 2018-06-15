@@ -11,24 +11,39 @@ import pylps.creator as creator
 ''' Declarations '''
 
 
-def create_actions(*args):
-    creator.create_objects(args, ACTION)
+def create_actions(*args, return_obj=False):
+    ret = creator.create_objects(args, ACTION, return_obj)
+
+    if return_obj:
+        return ret
 
 
-def create_events(*args):
-    creator.create_objects(args, EVENT)
+def create_events(*args, return_obj=False):
+    ret = creator.create_objects(args, EVENT, return_obj)
+
+    if return_obj:
+        return ret
 
 
-def create_facts(*args):
-    creator.create_objects(args, FACT)
+def create_facts(*args, return_obj=False):
+    ret = creator.create_objects(args, FACT, return_obj)
+
+    if return_obj:
+        return ret
 
 
-def create_fluents(*args):
-    creator.create_objects(args, FLUENT)
+def create_fluents(*args, return_obj=False):
+    ret = creator.create_objects(args, FLUENT, return_obj)
+
+    if return_obj:
+        return ret
 
 
-def create_variables(*args):
-    creator.create_objects(args, VARIABLE)
+def create_variables(*args, return_obj=False):
+    ret = creator.create_objects(args, VARIABLE, return_obj)
+
+    if return_obj:
+        return ret
 
 
 def initially(*args):

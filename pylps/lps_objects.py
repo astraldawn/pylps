@@ -58,6 +58,11 @@ class Action(LPSObject):
     def update_end_time(self, new_end_time):
         self._end_time = new_end_time
 
+    def at(self, time):
+        self._start_time = time
+        self._end_time = time
+        return copy.deepcopy(self)
+
     def frm(self, start_time, end_time):
         self._start_time = start_time
         self._end_time = end_time
@@ -108,13 +113,13 @@ class Event(LPSObject):
         self._end_time = new_end_time
 
     def at(self, time):
-        self._start_time = copy.deepcopy(time)
-        self._end_time = copy.deepcopy(time)
-        return self
+        self._start_time = time
+        self._end_time = time
+        return copy.deepcopy(self)
 
     def frm(self, start_time, end_time):
-        self._start_time = copy.deepcopy(start_time)
-        self._end_time = copy.deepcopy(end_time)
+        self._start_time = start_time
+        self._end_time = end_time
         return copy.deepcopy(self)
 
     def initiates(self, fluent):
