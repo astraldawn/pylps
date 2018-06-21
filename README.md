@@ -12,10 +12,16 @@ python setup.py develop
 ```
 To run tests, run the following command in main directory
 
-```pytest```
+```
+pytest
+```
 
 # Coverage
-```rm -rf htmlcov && py.test --cov-report html --cov=pylps tests/```
+```
+rm -rf htmlcov && py.test --cov-report html --cov=pylps tests/
+```
 
 # Profiling
-```python -m cProfile -s tottime file_name.py```
+```
+python -m cProfile -s tottime file_name.py
+```
