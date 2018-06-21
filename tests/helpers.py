@@ -1,5 +1,6 @@
 import subprocess
 import os
+from sys import platform
 
 TEST_ENV = os.getenv('TEST_ENV', None)
 CIRCLE_CI_PATH = '/home/circleci/repo/'
@@ -11,9 +12,12 @@ def run_pylps_example(example_name, use_helper=False):
     path = ''
     split_char = WINDOWS_SPLIT_CHAR
     EXEC = 'python'
+
+    if platform == "linux":
+        split_char = LINUX_SPLIT_CHAR
+
     if TEST_ENV:
         path = CIRCLE_CI_PATH
-        split_char = LINUX_SPLIT_CHAR
 
     if use_helper:
         EXEC = 'pylps'
@@ -32,9 +36,12 @@ def run_pylps_example(example_name, use_helper=False):
 def run_pylps_test_program(program_group, program_name):
     path = ''
     split_char = WINDOWS_SPLIT_CHAR
+
+    if platform == "linux":
+        split_char = LINUX_SPLIT_CHAR
+
     if TEST_ENV:
         path = CIRCLE_CI_PATH
-        split_char = LINUX_SPLIT_CHAR
 
     completed = subprocess.run(
         ['python', path + 'tests/programs/' + program_group + '/' +
