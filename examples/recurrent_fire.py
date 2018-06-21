@@ -1,7 +1,7 @@
 from pylps.core import *
 
 
-initialise(max_time=10)  # Assume all time variables created here
+initialise(max_time=10)
 
 create_fluents('fire', 'water')
 create_actions('eliminate', 'escape', 'refill', 'ignite(_)')
@@ -35,7 +35,6 @@ refill.initiates(water)
 false_if(eliminate, fire, ~water)
 
 execute(debug=False, strategy=STRATEGY_GREEDY)
-
 show_kb_log()
 
 '''
