@@ -14,7 +14,7 @@ from pylps.utils import *
 
 from pylps.kb import KB
 
-from pylps.state import State, Proposed
+from pylps.plan import Plan, Proposed
 from pylps.constraints import check_constraint, constraints_satisfied
 
 
@@ -28,7 +28,7 @@ def unify_obs(observation):
 
     # Constraint check
     action_cons, return_state = constraints_satisfied(
-        action, State(), Proposed(), is_observation=True)
+        action, Plan(), Proposed(), is_observation=True)
 
     if not action_cons:
         return_state.update_subs({
@@ -71,6 +71,7 @@ def process_causalities(action, deconflict=True):
         TODO: This check should be shifted into generating fluents
         Because the fluent might not be grounded yet
         '''
+
         constraint_subs = _check_reqs(causality.reqs, action_subs)
 
         if not constraint_subs:
@@ -86,6 +87,10 @@ def process_causalities(action, deconflict=True):
                 fluent = copy.deepcopy(causality_outcome.fluent)
 
                 fluent.args = reify_args(fluent.args, c_sub)
+
+                # TODO: Constraint check on solution
+                check_outcome_constraint(fluent)
+
                 fluents = generate_outcome_fluents(fluent)
 
                 if outcome is A_INITIATE:
@@ -133,6 +138,10 @@ def commit_outcomes(initiates, terminates):
 '''
 Helper functions
 '''
+
+
+def check_outcome_constraint(fluent):
+    pass
 
 
 def _check_reqs(reqs, subs):

@@ -58,6 +58,9 @@ class Action(LPSObject):
     def update_end_time(self, new_end_time):
         self._end_time = new_end_time
 
+    def at(self, time):
+        return self.frm(time, time)
+
     def frm(self, start_time, end_time):
         self._start_time = start_time
         self._end_time = end_time
@@ -108,13 +111,11 @@ class Event(LPSObject):
         self._end_time = new_end_time
 
     def at(self, time):
-        self._start_time = copy.deepcopy(time)
-        self._end_time = copy.deepcopy(time)
-        return self
+        return self.frm(time, time)
 
     def frm(self, start_time, end_time):
-        self._start_time = copy.deepcopy(start_time)
-        self._end_time = copy.deepcopy(end_time)
+        self._start_time = start_time
+        self._end_time = end_time
         return copy.deepcopy(self)
 
     def initiates(self, fluent):
@@ -141,6 +142,9 @@ class Event(LPSObject):
 class Fact(LPSObject):
     BaseClass = FACT
 
+    def __pos__(self):
+        KB.add_fact(self, force=True)
+
 
 class Fluent(LPSObject):
     BaseClass = FLUENT
@@ -156,7 +160,7 @@ class Fluent(LPSObject):
 
     def at(self, time):
         self._time = time
-        return self
+        return copy.deepcopy(self)
 
 
 class ReactiveRule(object):

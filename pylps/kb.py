@@ -5,7 +5,7 @@ from ordered_set import OrderedSet
 from pylps.constants import *
 from pylps.utils import *
 from pylps.kb_objects import *
-from pylps.state import State
+from pylps.plan import Plan
 
 
 class _KB(object):
@@ -16,7 +16,7 @@ class _KB(object):
     initial_fluents = []
 
     _clauses = {}
-    _goals = OrderedSet()
+    _plans = OrderedSet()
 
     _observations = []
     _constraints = []
@@ -32,6 +32,8 @@ class _KB(object):
         self.reset_reactive_rules()
         self.clear_logs()
         self.clear_fluents()
+        self._cycle_obs = OrderedSet()
+        self._fact_used_reactive = set()
 
     ''' Rule controls '''
 
@@ -102,17 +104,17 @@ class _KB(object):
     ''' Goal control '''
 
     @property
-    def goals(self):
-        return self._goals
+    def plans(self):
+        return self._plans
 
-    def add_goals(self, goals, subs):
-        self._goals.add(State(goals, subs, from_reactive=True))
+    def add_plan(self, goals, subs):
+        self._plans.add(Plan(goals, subs, from_reactive=True))
 
-    def set_goals(self, goals):
-        self._goals = goals
+    def set_plans(self, plans):
+        self._plans = plans
 
-    def reset_goals(self):
-        self._goals = OrderedSet()
+    def reset_plans(self):
+        self._plans = OrderedSet()
 
     ''' Clauses '''
 
@@ -220,7 +222,7 @@ class _KB(object):
 
     ''' Facts '''
 
-    def add_fact(self, fact):
+    def add_fact(self, fact, force=False):
         if fact.name not in self.facts:
             self.facts[fact.name] = OrderedSet()
 
@@ -234,7 +236,7 @@ class _KB(object):
                 pass
 
         # Do not save facts that are not grounded
-        if contains_var:
+        if contains_var and not force:
             return
 
         self.facts[fact.name].add(fact)
@@ -308,39 +310,6 @@ class _KB(object):
             new_cycle_obs.append(obs)
 
         self._cycle_obs = OrderedSet(new_cycle_obs)
-
-    # @property
-    # def cycle_actions(self):
-    #     return self._goals.actions
-
-    # def add_cycle_action(self, goal, subs):
-    #     action = goal.obj
-    #     action_args = reify_args(action.args, subs)
-    #     goal_temporal_vars = reify(goal.temporal_vars, subs)
-    #     action.args = action_args
-
-    #     # self._cycle_actions.add((action, goal_temporal_vars))
-    #     goal.add_action((action, goal_temporal_vars), propagate=True)
-    #     # self.log_action(action.name, action_args, goal_temporal_vars)
-
-    # def clear_cycle_actions(self):
-    #     KB.goals.clear_actions()
-
-    # def display_cycle_actions(self):
-    #     display('\nCYCLE ACTIONS\n')
-    #     for (cycle_action, temporal_vars) in self.cycle_actions:
-    #         display(cycle_action, temporal_vars)
-    #     display('\n')
-
-    # def exists_cycle_action(self, action):
-    #     return action in [action for (action, _) in self.cycle_actions]
-
-    # def get_cycle_actions(self, action):
-    #     ret = []
-    #     for (cycle_action, temporal_vars) in self.cycle_actions:
-    #         if cycle_action.name == action.name:
-    #             ret.append(cycle_action)
-    #     return ret
 
     ''' Logs '''
 

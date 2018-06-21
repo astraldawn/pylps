@@ -103,7 +103,7 @@ class Solution(object):
                 self._solved += 1
 
 
-class State(object):
+class Plan(object):
     def __init__(self, goals=[], subs={},
                  proposed=Proposed(), from_reactive=False,
                  result=G_NPROCESSED):

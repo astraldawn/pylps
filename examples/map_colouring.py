@@ -15,10 +15,10 @@ colour('red')
 colour('yellow')
 colour('blue')
 
-adjacent('C', 'A')
-adjacent('C', 'B')
 adjacent('A', 'B')
+adjacent('A', 'C')
 adjacent('A', 'D')
+adjacent('B', 'C')
 adjacent('B', 'D')
 
 reactive_rule(country(X)).then(
@@ -32,7 +32,7 @@ false_if(
     paint(Y, C)
 )
 
-execute(strategy=STRATEGY_GREEDY)
+execute(debug=False, strategy=STRATEGY_GREEDY)
 
 show_kb_log()
 

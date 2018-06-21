@@ -1,7 +1,7 @@
 from pylps.core import *
 
 
-initialise(max_time=10)  # Assume all time variables created here
+initialise(max_time=10)
 
 create_fluents('fire', 'water')
 create_actions('eliminate', 'escape', 'refill', 'ignite(_)')
@@ -15,11 +15,10 @@ observe(refill.frm(7, 8))
 
 initially(water)
 
-flammable('sofa'), flammable('bed')
-# flammable(X)
++flammable(X)
 
 reactive_rule(fire.at(T1)).then(
-    deal_with_fire.frm(T2, T3))
+    deal_with_fire.frm(T1, T2))
 
 goal(deal_with_fire.frm(T1, T2)).requires(
     eliminate.frm(T1, T2))
@@ -36,7 +35,6 @@ refill.initiates(water)
 false_if(eliminate, fire, ~water)
 
 execute(debug=False, strategy=STRATEGY_GREEDY)
-
 show_kb_log()
 
 '''

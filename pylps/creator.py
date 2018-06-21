@@ -1,4 +1,3 @@
-import inspect
 import sys
 from pylps.constants import *
 from pylps.exceptions import *
@@ -29,7 +28,6 @@ def ClassFactory(name, arity, base_type):
             if len(args) != arity:
                 raise TypeError('Please supply %s arguments' % arity)
             self.args = [convert_arg(arg) for arg in args]
-            self.created = True
             self._start_time = Variable('T1')
             self._end_time = Variable('T2')
             self.from_reactive = False
@@ -40,7 +38,6 @@ def ClassFactory(name, arity, base_type):
             if len(args) != arity:
                 raise TypeError('Please supply %s arguments' % arity)
             self.args = [convert_arg(arg) for arg in args]
-            self.created = True
             self._start_time = Variable('T1')
             self._end_time = Variable('T2')
             self.from_reactive = False
@@ -52,7 +49,6 @@ def ClassFactory(name, arity, base_type):
             if len(args) != arity:
                 raise TypeError('Please supply %s arguments' % arity)
             self.args = [convert_arg(arg) for arg in args]
-            self.created = True
             self._time = Variable('T1')
 
     elif base_type == FACT:
@@ -61,7 +57,6 @@ def ClassFactory(name, arity, base_type):
             if len(args) != arity:
                 raise TypeError('Please supply %s arguments' % arity)
             self.args = [convert_arg(arg) for arg in args]
-            self.created = True
             KB.add_fact(self)  # Add the declared fact straight to KB
 
     else:
@@ -73,22 +68,17 @@ def ClassFactory(name, arity, base_type):
     return type(name, (BaseClass,), attrs)
 
 
-def create_objects(args, object_type):
-    # stack = inspect.stack()
-
-    # TODO: This is mega hacky
-    # locals_ = stack[-1][0].f_locals
-    locals_ = sys._getframe(2).f_locals
+def create_objects(args, object_type, return_obj=False):
+    locals_ = {}
+    ret = []
 
     for arg in args:
-        '''
-        TODO: PROPER ARGUMENT HANDLING
-        For example, check if the object is already in locals
-        Tweak the argument string to accept arguments
-        '''
         if object_type == VARIABLE:
-            # globals()[arg] = Variable(arg)
-            locals_[arg] = Variable(arg)
+            var = Variable(arg)
+            if return_obj:
+                ret.append(var)
+            else:
+                locals_[arg] = var
         elif object_type in valid_dynamic_types:
             name, arity = (arg, 0)
             if '(' in arg:
@@ -98,7 +88,18 @@ def create_objects(args, object_type):
             new_object = ClassFactory(
                 name, arity, base_type=object_type
             )
-            # globals()[name] = new_object
-            locals_[name] = new_object if arity else new_object()
+            n_obj = new_object if arity else new_object()
+
+            if return_obj:
+                ret.append(n_obj)
+            else:
+                locals_[name] = n_obj
         else:
             raise TypeError('Invalid object')
+
+    if return_obj:
+        if len(ret) == 1:
+            return ret[0]
+        return tuple(r for r in ret)
+    else:
+        sys._getframe(2).f_globals.update(locals_)
