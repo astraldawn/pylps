@@ -171,10 +171,14 @@ def expand_action(constraint, cur_state, states, all_proposed):
 
 
 def expand_fact(constraint, cur_state, states):
+    # debug_display('CONSTRAINT', constraint)
     fact, outcome = constraint.goal, constraint.outcome
     cur_subs = cur_state.subs
 
     all_subs = list(unify_fact(fact))
+
+    # debug_display('CUR_SUBS', cur_subs)
+    # debug_display('ALL_SUBS', all_subs)
 
     subs = []
 
@@ -184,11 +188,20 @@ def expand_fact(constraint, cur_state, states):
             if not valid_sub:
                 continue
 
-            if cur_subs.get(k) and v != cur_subs[k]:
-                valid_sub = False
+            if cur_subs.get(k):
+                res = reify(k, cur_subs)
+                # print(k, cur_subs, res, v)
+
+                if v.BaseClass is VARIABLE and v.name == k.token:
+                    continue
+
+                if not isinstance(res, Var) and v != res:
+                    valid_sub = False
 
         if valid_sub:
             subs.append(sub)
+
+    # print('AFTER', subs)
 
     for sub in subs:
         new_state = copy.deepcopy(cur_state)

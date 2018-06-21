@@ -275,8 +275,8 @@ class _Solver(object):
                         continue
 
                     if cur_state.result in valid_results:
-                        debug_display(
-                            'VALID_STATE', self.current_time, cur_state)
+                        # debug_display(
+                        #     'VALID_STATE', self.current_time, cur_state)
                         prev_seen_len = len(seen_actions[sol_id])
 
                         if CONFIG.experimental:
@@ -774,7 +774,7 @@ class _Solver(object):
         all_subs = list(unify_fluent(
             fluent, self.current_time, counter=cur_state.counter))
 
-        debug_display('FLUENT_ALL_SUBS', all_subs, cur_state.counter)
+        # debug_display('FLUENT_ALL_SUBS', all_subs, cur_state.counter)
 
         subs = []
 

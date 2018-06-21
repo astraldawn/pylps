@@ -222,7 +222,7 @@ class _KB(object):
 
     ''' Facts '''
 
-    def add_fact(self, fact):
+    def add_fact(self, fact, force=False):
         if fact.name not in self.facts:
             self.facts[fact.name] = OrderedSet()
 
@@ -236,7 +236,7 @@ class _KB(object):
                 pass
 
         # Do not save facts that are not grounded
-        if contains_var:
+        if contains_var and not force:
             return
 
         self.facts[fact.name].add(fact)

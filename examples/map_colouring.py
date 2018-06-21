@@ -32,7 +32,7 @@ false_if(
     paint(Y, C)
 )
 
-execute(strategy=STRATEGY_GREEDY)
+execute(debug=False, strategy=STRATEGY_GREEDY)
 
 show_kb_log()
 

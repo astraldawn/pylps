@@ -135,7 +135,7 @@ class _ENGINE(object):
                     current_time=self.current_time
                 ))
 
-                debug_display('STATE_LIST', self.current_time, state_list)
+                # debug_display('STATE_LIST', self.current_time, state_list)
 
             if not state_list:
                 continue
@@ -158,14 +158,14 @@ class _ENGINE(object):
                     KB.add_plan(new_goals, subs)
 
     def _solve_plans(self):
-        debug_display('CG_B_TIME / N_GOALS', self.current_time, len(KB.plans))
-        debug_display('CG_KB_BEF', KB.plans)
+        # debug_display('CG_B_TIME / N_GOALS', self.current_time, len(KB.plans))
+        # debug_display('CG_KB_BEF', KB.plans)
         solutions = SOLVER.solve_goals(self.current_time)
 
         # print(self.current_time, solutions)
 
-        debug_display('CG_S_TIME / N_SOLN', self.current_time, len(solutions))
-        debug_display('CG_SOLN', solutions)
+        # debug_display('CG_S_TIME / N_SOLN', self.current_time, len(solutions))
+        # debug_display('CG_SOLN', solutions)
 
         process_solutions(solutions, self.current_time)
 
